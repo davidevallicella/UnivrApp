@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="list_bg_1">#ffffff</color>
+    <color name="list_bg_2">#fef2e8</color>
+
+    <color name="honeycombish_blue">#FF58BAED</color>
+    <color name="soft_grey">#FF777777</color>
+    <color name="background">#FFEFEFEF</color>
+
+</resources>

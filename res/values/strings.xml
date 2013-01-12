@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">UnivrApp</string>
+    <string name="launcher_notes_feed">Feed</string>
+    <string name="progress_txt">
+		<![CDATA[
+  			<small><font size="2" face="sans">x</font></small>
+    	]]>
+    </string>
+
+</resources>
