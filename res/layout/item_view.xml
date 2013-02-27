@@ -1,0 +1,31 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <!-- LIST -->
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/footer_banner"
+        android:layout_alignParentTop="true" >
+
+        <com.cellasoft.univrapp.utils.ItemListView
+            android:id="@+id/android:list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#ffffff"
+            android:cacheColorHint="#00000000" />
+    </LinearLayout>
+
+    <!-- FOOTER -->
+
+    <LinearLayout
+        android:id="@+id/footer_banner"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical" />
+        
+</RelativeLayout>

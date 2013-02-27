@@ -2,10 +2,10 @@ package com.cellasoft.univrapp.loader;
 
 import android.database.Cursor;
 
-import com.cellasoft.univrapp.model.RSSItem;
+import com.cellasoft.univrapp.model.Item;
 
 public interface ItemLoader {
 	String[] getProjection();
 
-	RSSItem load(Cursor cursor);
+	Item load(Cursor cursor);
 }

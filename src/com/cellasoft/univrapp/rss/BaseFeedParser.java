@@ -5,26 +5,28 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.xml.sax.InputSource;
 
-public abstract class BaseFeedParser implements FeedParser {
+public abstract class BaseFeedParser {
 
 	public static enum XML_TAGS {
 		RSS, CHANNEL, PUBDATE, DESCRIPTION, LINK, TITLE, ITEM, GUID;
 	}
 
-	private final URL feedUrl;
+	public static URL feedUrl;
 
-	protected BaseFeedParser(String feedUrl) {
+	protected BaseFeedParser(String url) {
 		try {
-			this.feedUrl = new URL(feedUrl);
+			feedUrl = new URL(url);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	protected InputStream getInputStream() {
+	protected static InputSource getInputStream() {
 		try {
-			return feedUrl.openConnection().getInputStream();
+			InputStream is = feedUrl.openConnection().getInputStream();
+			return new InputSource(is);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

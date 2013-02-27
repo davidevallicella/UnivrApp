@@ -40,7 +40,8 @@ public class ChannelView extends LinearLayout {
 
     private ImageButton mSelectButton;
     private ImageButton mStarButton;
-    private TextView mTextView;
+    private TextView mTextView;    
+    private TextView viewDescription;
 
     private TouchDelegateGroup mTouchDelegateGroup;
     private OnChannelViewListener channelListener;
@@ -167,8 +168,12 @@ public class ChannelView extends LinearLayout {
     /**
      * Returns the underlying {@link TextView}.
      */
-    public TextView getTextView() {
+    public TextView getTitleView() {
         return mTextView;
+    }
+    
+    public TextView getDescriptionView() {
+        return viewDescription;
     }
 
     /**

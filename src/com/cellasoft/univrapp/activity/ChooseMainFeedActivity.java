@@ -1,45 +1,28 @@
 package com.cellasoft.univrapp.activity;
 
-import java.io.IOException;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Intent;
-import android.os.AsyncTask;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
+import android.widget.ListView;
+import android.widget.Toast;
 
-import com.cellasoft.univrapp.manager.ContentManager;
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.cellasoft.univrapp.adapter.UniversitylAdapter;
 import com.cellasoft.univrapp.model.Channel;
-import com.cellasoft.univrapp.model.Image;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.utils.Constants;
-import com.cellasoft.univrapp.utils.ImageCache;
+import com.cellasoft.univrapp.utils.HtmlParser;
 import com.cellasoft.univrapp.utils.Settings;
-import com.cellasoft.univrapp.utils.Utils;
+import com.github.droidfu.concurrent.BetterAsyncTask;
 
+public class ChooseMainFeedActivity extends SherlockListActivity {
 
-@SuppressLint("NewApi")
-public class ChooseMainFeedActivity extends Activity {
-
-	private Spinner spinner;
-	private Exception error;
+	private UniversitylAdapter adapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -49,150 +32,79 @@ public class ChooseMainFeedActivity extends Activity {
 	}
 
 	private void init() {
-		if (ContentManager.isEmpty()) {
-			initSpinner();
-		} else
-			startMainActivity();
+		adapter = new UniversitylAdapter(getApplicationContext());
+		getListView().setAdapter(adapter);
 	}
 
-	private void initSpinner() {
-		spinner = (Spinner) findViewById(R.id.choose_school);
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_spinner_item);
-		adapter.addAll(Constants.UNIVERSITY.DEST.keySet());
-
-		spinner.setAdapter(adapter);
-
-		findViewById(R.id.choose_confirm_button).setOnClickListener(
-				new OnClickListener() {
-
-					@Override
-					public void onClick(View v) {
-						try {
-							String univeristy = spinner.getSelectedItem()
-									.toString();
-							String url = Constants.UNIVERSITY.URL
-									.get(univeristy);
-							Settings.setUniversity(univeristy);
-							Channel channel = new Channel(univeristy, url);
-							ContentManager.saveChannel(channel);
-							new SaveLecturers(univeristy).execute();
-						} catch (Exception e) {
-							printError(e);
-						}
-					}
-				});
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		String univeristy = adapter.getItem(position);
+		String url = Constants.UNIVERSITY.URL.get(univeristy);
+		Settings.setUniversity(univeristy);
+		if (new Channel(univeristy, url).save())
+			saveLecturers();
 	}
+	
+	private void saveLecturers() {
+		final ProgressDialog progressDialog = new ProgressDialog(this);
+		progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		progressDialog.setMessage(Html
+				.fromHtml(getString(R.string.progress_txt).replace("{message}",
+						"<b>Connect to </b>" + Settings.getUniversity())));
+		BetterAsyncTask<Void, String, Void> saveLecturersTask = new BetterAsyncTask<Void, String, Void>(
+				this) {
 
-	private void startMainActivity() {
-		startActivity(new Intent(this, MainActivity.class));
-		finish();
-	}
+			@Override
+			protected void after(Context context, Void arg1) {
+				progressDialog.dismiss();
+				String message = "Successfull";
+				Toast.makeText(ChooseMainFeedActivity.this, message,
+						Toast.LENGTH_SHORT).show();
+				finish();
+			}
 
-	public void printError(Exception error) {
-		error.printStackTrace();
-		finish();
-	}
+			@Override
+			protected Void doCheckedInBackground(Context context,
+					Void... params) throws Exception {
+				Elements lecturers = HtmlParser.getLecturerElements();
+				progressDialog.setMax(lecturers.size());
 
-	public class SaveLecturers extends AsyncTask<Void, String, Void> {
-
-		String url;
-		int dest;
-		ProgressDialog dialog;
-		private static final int INCREMENT = 1;
-
-		public SaveLecturers(String uni) {
-			url = Constants.UNIVERSITY.URL.get(uni).replace("&rss=1", "");
-			dest = Constants.UNIVERSITY.DEST.get(uni);
-		}
-
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			dialog = new ProgressDialog(ChooseMainFeedActivity.this);
-			dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			dialog.setMessage(Html.fromHtml(getString(R.string.progress_txt)
-					.replace("x", "<b>Connect to </b>" + url)));
-			dialog.setCancelable(false);
-			dialog.show();
-		}
-
-		@Override
-		protected void onPostExecute(Void result) {
-			super.onPostExecute(result);
-			dialog.dismiss();
-			startMainActivity();
-		}
-
-		@Override
-		protected Void doInBackground(Void... params) {
-			
-			DefaultHttpClient httpClient = new DefaultHttpClient();
-
-			HttpGet get = new HttpGet(url);
-			try {
-				HttpResponse response = httpClient.execute(get);
-				String html = Utils.inputStreamToString(response.getEntity()
-						.getContent());
-				Document doc = Jsoup.parse(html);
-				Elements options = doc
-						.select("select[name=personeMittente]>option");
-
-				dialog.setMax(options.size());
-				for (Element option : options) {
-
+				for (Element option : lecturers) {
+					if (isCancelled())
+						finish();
 					int id = Integer.parseInt(option.attr("value"));
 					if (id > 0) {
-						String name = option.text();
-						String imageUrl = getThumbnailUrl(url.split("ent")[0]
-								+ "ent=persona&id=" + id);
-						ContentManager.saveLecturer(new Lecturer(id, dest,
-								name, imageUrl));
-						if (!imageUrl.equals("")) {
-							Image image = new Image(imageUrl,
-									Image.IMAGE_STATUS_QUEUED);
-							if (!ContentManager.existImage(imageUrl))
-								ContentManager.saveImage(image);
-						}
-						publishProgress("<b>Initialization Lecturer: </b>"
-								+ name + "...");
+						Lecturer lecturer = new Lecturer(option);
+						if (lecturer.save())
+							publishProgress("<b>Initialization Lecturer: </b>"
+									+ lecturer.name + "...");
+						else
+							publishProgress("");
 					}
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return null;
-		}
-
-		@Override
-		protected void onProgressUpdate(String... values) {
-			super.onProgressUpdate(values);
-			dialog.setMessage(Html.fromHtml(getString(R.string.progress_txt)
-					.replace("x", values[0])));
-			dialog.incrementProgressBy(INCREMENT);
-		}
-
-		private String getThumbnailUrl(String url)
-				throws ClientProtocolException, IOException {
-			String thumbnailUrl = "";
-			DefaultHttpClient httpClient = new DefaultHttpClient();
-			HttpGet get = new HttpGet(url);
-			HttpResponse response = httpClient.execute(get);
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				HttpEntity entity = response.getEntity();
-				if (entity != null) {
-					String html = Utils
-							.inputStreamToString(entity.getContent());
-					Document doc = Jsoup.parse(html);
-					Element img = doc.select("img[src*=/Persona/]").first();
-					if (img != null) {
-						thumbnailUrl = url.split("\\.it")[0] + ".it"
-								+ img.attr("src");
-					}
-				}
+				return null;
 			}
 
-			return thumbnailUrl;
-		}
+			@Override
+			protected void onProgressUpdate(String... values) {
+				super.onProgressUpdate(values);
+				if (!values[0].isEmpty())
+					progressDialog.setMessage(Html.fromHtml(getString(
+							R.string.progress_txt).replace("{message}",
+							values[0])));
+				progressDialog.incrementProgressBy(1);
+			}
+
+			@Override
+			protected void handleError(Context context, Exception arg1) {
+				progressDialog.dismiss();
+				Toast.makeText(context, arg1.getMessage(), Toast.LENGTH_LONG)
+						.show();
+			}
+		};
+
+		saveLecturersTask.disableDialog();
+		progressDialog.show();
+		saveLecturersTask.execute();
 	}
 }

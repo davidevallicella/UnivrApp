@@ -2,6 +2,7 @@ package com.cellasoft.univrapp.utils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ActiveList<T> extends ArrayList<T> implements Serializable {
@@ -40,7 +41,7 @@ public class ActiveList<T> extends ArrayList<T> implements Serializable {
 		super.add(location, item);
 		fireInsertEvent(location, item);
 	}
-
+	
 	public synchronized void addListener(ActiveListListener<T> listener) {
 		if (this.listeners == null) {
 			listeners = new ArrayList<ActiveListListener<T>>();

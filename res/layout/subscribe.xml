@@ -1,1 +1,133 @@
-<?xml version="1.0" encoding="utf-8"?><RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"    android:layout_width="match_parent"    android:layout_height="match_parent"    android:orientation="vertical" >    <TextView        android:id="@+id/textView2"        android:layout_width="wrap_content"        android:layout_height="wrap_content"        android:layout_marginLeft="15dp"        android:layout_marginTop="15dp"        android:text="Lecturers"        android:textAppearance="?android:attr/textAppearanceSmall" />    <Spinner        android:id="@+id/subscribe_lecturer"        android:layout_width="match_parent"        android:layout_height="wrap_content"        android:layout_alignLeft="@+id/textView2"        android:layout_below="@+id/textView2"        android:layout_marginRight="15dp"        android:layout_marginTop="15dp" />    <TextView        android:id="@+id/textView3"        android:layout_width="wrap_content"        android:layout_height="wrap_content"        android:layout_alignLeft="@+id/subscribe_lecturer"        android:layout_below="@+id/subscribe_lecturer"        android:layout_marginTop="15dp"        android:text="Start Date"        android:textAppearance="?android:attr/textAppearanceSmall" />    <LinearLayout        android:id="@+id/linearLayout1"        android:layout_width="wrap_content"        android:layout_height="wrap_content"        android:layout_alignLeft="@+id/textView3"        android:layout_below="@+id/textView3"        android:orientation="vertical" >        <EditText            android:id="@+id/subscribe_etStartDate"            android:layout_width="140dp"            android:layout_height="wrap_content"            android:editable="false"            android:ems="10"            android:inputType="date" />        <Button            android:id="@+id/subscribe_btnStartDate"            style="?android:attr/buttonStyleSmall"            android:layout_width="90dp"            android:layout_height="40dp"            android:text="Change" />    </LinearLayout>    <LinearLayout        android:id="@+id/LinearLayout01"        android:layout_width="wrap_content"        android:layout_height="wrap_content"        android:layout_alignRight="@+id/subscribe_lecturer"        android:layout_alignTop="@+id/linearLayout1"        android:orientation="vertical" >        <EditText            android:id="@+id/subscribe_etEndDate"            android:layout_width="140dp"            android:layout_height="wrap_content"            android:editable="false"            android:ems="10"            android:inputType="date" />        <Button            android:id="@+id/subscribe_btnEndDate"            style="?android:attr/buttonStyleSmall"            android:layout_width="90dp"            android:layout_height="40dp"            android:text="Change" />    </LinearLayout>    <TextView        android:id="@+id/textView4"        android:layout_width="wrap_content"        android:layout_height="wrap_content"        android:layout_alignBottom="@+id/textView3"        android:layout_alignLeft="@+id/LinearLayout01"        android:text="End Date"        android:textAppearance="?android:attr/textAppearanceSmall" />    <LinearLayout        android:layout_width="wrap_content"        android:layout_height="wrap_content"        android:layout_alignParentLeft="true"        android:layout_alignParentRight="true"        android:layout_below="@+id/linearLayout1"        android:layout_marginTop="42dp"        android:gravity="center_horizontal"        android:orientation="horizontal" >        <Button            android:id="@+id/subscribe_save"            android:layout_width="90dp"            android:layout_height="40dp"            android:text="Save" />        <Button            android:id="@+id/subscribe_back"            android:layout_width="90dp"            android:layout_height="40dp"            android:text="Back" />    </LinearLayout></RelativeLayout>
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="15dp"
+        android:text="Lecturers"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <Spinner
+        android:id="@+id/subscribe_lecturer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView2"
+        android:layout_below="@+id/textView2"
+        android:layout_marginTop="15dp"
+        android:layout_toLeftOf="@+id/subscribe_reload" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/subscribe_lecturer"
+        android:layout_below="@+id/subscribe_lecturer"
+        android:layout_marginTop="15dp"
+        android:text="Start Date"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView3"
+        android:layout_below="@+id/textView3"
+        android:orientation="vertical" >
+
+        <EditText
+            android:id="@+id/subscribe_etStartDate"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:editable="false"
+            android:ems="10"
+            android:inputType="date" />
+
+        <Button
+            android:id="@+id/subscribe_btnStartDate"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="90dp"
+            android:layout_height="40dp"
+            android:text="Change" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/LinearLayout01"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/subscribe_lecturer"
+        android:layout_alignTop="@+id/linearLayout1"
+        android:orientation="vertical" >
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/linearLayout1"
+        android:layout_marginTop="42dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/subscribe_save"
+            android:layout_width="90dp"
+            android:layout_height="40dp"
+            android:text="Save" />
+
+        <Button
+            android:id="@+id/subscribe_back"
+            android:layout_width="90dp"
+            android:layout_height="40dp"
+            android:text="Back" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/subscribe_reload"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_alignBottom="@+id/subscribe_lecturer"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="15dip"
+        android:text="Reload" />
+
+    <EditText
+        android:id="@+id/subscribe_etEndDate"
+        android:layout_width="140dp"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/subscribe_reload"
+        android:layout_below="@+id/textView4"
+        android:editable="false"
+        android:ems="10"
+        android:inputType="date" >
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        android:id="@+id/subscribe_btnEndDate"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="90dp"
+        android:layout_height="40dp"
+        android:layout_alignBottom="@+id/linearLayout1"
+        android:layout_alignLeft="@+id/subscribe_etEndDate"
+        android:text="Change" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textView3"
+        android:layout_alignBottom="@+id/textView3"
+        android:layout_alignLeft="@+id/subscribe_etEndDate"
+        android:text="End Date"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+</RelativeLayout>

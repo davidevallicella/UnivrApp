@@ -23,6 +23,7 @@ public class LecturerAdapter extends BaseAdapter {
 	static class ViewHolder {
 		ImageView thumbnail;
 		TextView name;
+		TextView email;
 	}
 
 	public LecturerAdapter(Context context, ArrayList<Lecturer> lecturers) {

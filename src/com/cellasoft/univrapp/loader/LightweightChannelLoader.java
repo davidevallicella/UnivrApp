@@ -10,8 +10,7 @@ public class LightweightChannelLoader implements ChannelLoader {
 			Channels.ID,
 			Channels.TITLE, 
 			Channels.URL,
-			Channels.STARRED,
-			Channels.IMAGE_URL
+			Channels.STARRED
 			};
 
 	@Override
@@ -26,7 +25,6 @@ public class LightweightChannelLoader implements ChannelLoader {
 		channel.title = cursor.getString(1);// cursor.getColumnIndex(Channels.TITLE));
 		channel.url = cursor.getString(2);// cursor.getColumnIndex(Channels.URL));
 		channel.starred = (cursor.getInt(3) != 0);
-		channel.imageUrl = cursor.getString(4);// cursor.getColumnIndex(Channels.URL));
 		return channel;
 	}
 

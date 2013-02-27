@@ -2,6 +2,7 @@ package com.cellasoft.univrapp.activity;
 
 import java.util.ArrayList;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -18,7 +19,6 @@ import com.actionbarsherlock.app.SherlockListActivity;
 import com.cellasoft.univrapp.adapter.ChannelAdapter;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Channel;
-import com.cellasoft.univrapp.service.SynchronizationService;
 import com.cellasoft.univrapp.utils.ActiveList;
 import com.cellasoft.univrapp.utils.ChannelView;
 import com.cellasoft.univrapp.utils.Constants;
@@ -61,9 +61,9 @@ public class ChannelListActivity extends SherlockListActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		if (Constants.DEBUG_MODE)
-			Log.d(Constants.LOG_TAG, "onCreate()");
+			Log.d(TAG, "onCreate()");
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
+		setContentView(R.layout.channel_view);
 		init();
 	}
 
@@ -71,17 +71,14 @@ public class ChannelListActivity extends SherlockListActivity {
 	protected void onStart() {
 		super.onStart();
 		loadData();
-		startSyncProcess();
 	}
 
 	private void init() {
 		// Init GUI
 		initListSelector();
-		// initListScrollListener();
 		// Add the footer before adding the adapter, else the footer will not
 		// load!
-		// initListFooter()
-	//	initBanner();
+		initBanner();
 	}
 
 	private void initListSelector() {
@@ -105,7 +102,7 @@ public class ChannelListActivity extends SherlockListActivity {
 
 	private void loadChannels() {
 		channels = ContentManager
-				.loadAllChannels(ContentManager.LIGHTWEIGHT_CHANNEL_LOADER);
+				.loadAllChannels(ContentManager.FULL_CHANNEL_LOADER);
 		if (channels == null || channels.isEmpty()) {
 			channels = new ActiveList<Channel>();
 		}
@@ -123,11 +120,14 @@ public class ChannelListActivity extends SherlockListActivity {
 
 		switch (item.getItemId()) {
 		case R.id.menu_subscribe:
-			Intent intent = new Intent(this, SubscribeActivity.class);
-			startActivityForResult(intent, 1);
+			showSubscriptions();
 			break;
 		case R.id.menu_unsubscribe:
 			confirmDeleteChannel();
+			break;
+		case R.id.menu_settings:
+			showSettings();
+			break;
 		default:
 			break;
 		}
@@ -143,11 +143,15 @@ public class ChannelListActivity extends SherlockListActivity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		channelAdp.refresh();
 	};
-	
-	private void startSyncProcess() {
-		Intent service = new Intent(ChannelListActivity.this,
-				SynchronizationService.class);
-		startService(service);
+
+	private void showSettings() {
+		Intent intent = new Intent(this, SettingsActivity.class);
+		startActivity(intent);
+	}
+
+	private void showSubscriptions() {
+		Intent intent = new Intent(this, SubscribeActivity.class);
+		startActivityForResult(intent, 1);
 	}
 
 	private void showChannel(Channel channel) {
@@ -183,6 +187,7 @@ public class ChannelListActivity extends SherlockListActivity {
 		progressDialog.setMessage("Unsubscribe selected channels");
 		AsyncTask<Void, Void, Void> unsubscribingTask = new AsyncTask<Void, Void, Void>() {
 
+			@SuppressLint("ShowToast")
 			@Override
 			protected void onPostExecute(Void result) {
 				super.onPostExecute(result);

@@ -15,7 +15,7 @@ import android.net.Uri;
 import com.cellasoft.univrapp.model.Channel.Channels;
 import com.cellasoft.univrapp.model.Image.Images;
 import com.cellasoft.univrapp.model.Lecturer.Lecturers;
-import com.cellasoft.univrapp.model.RSSItem.Items;
+import com.cellasoft.univrapp.model.Item.Items;
 
 public class Provider extends ContentProvider {
 	public static final String AUTHORITY = "com.cellasoft.univrapp.provider.provider";
@@ -234,6 +234,7 @@ public class Provider extends ContentProvider {
 		itemsProjectionMap.put(Items.DESCRIPTION, Items.DESCRIPTION);
 		itemsProjectionMap.put(Items.PUB_DATE, Items.PUB_DATE);
 		itemsProjectionMap.put(Items.LINK, Items.LINK);
+		itemsProjectionMap.put(Items.READ, Items.READ);
 		itemsProjectionMap.put(Items.CHANNEL_ID, Items.CHANNEL_ID);
 
 		lecturerProjectionMap = new HashMap<String, String>();
@@ -242,6 +243,7 @@ public class Provider extends ContentProvider {
 		lecturerProjectionMap.put(Lecturers.DEST, Lecturers.DEST);
 		lecturerProjectionMap.put(Lecturers.NAME, Lecturers.NAME);
 		lecturerProjectionMap.put(Lecturers.THUMBNAIL, Lecturers.THUMBNAIL);
+		lecturerProjectionMap.put(Lecturers.EMAIL, Lecturers.EMAIL);
 
 		imagesProjectionMap = new HashMap<String, String>();
 		imagesProjectionMap.put(Images.ID, Images.ID);

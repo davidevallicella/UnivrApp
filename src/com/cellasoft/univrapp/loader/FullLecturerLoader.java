@@ -10,7 +10,8 @@ public class FullLecturerLoader implements LecturerLoader {
 			Lecturers.KEY,
 			Lecturers.DEST,
 			Lecturers.THUMBNAIL,
-			Lecturers.NAME };
+			Lecturers.NAME, 
+			Lecturers.EMAIL };
 
 	@Override
 	public String[] getProjection() {
@@ -25,6 +26,7 @@ public class FullLecturerLoader implements LecturerLoader {
 		lecturer.dest = cursor.getInt(1);
 		lecturer.thumbnail = cursor.getString(2);
 		lecturer.name = cursor.getString(3);
+		lecturer.mail = cursor.getString(4);
 		return lecturer;
 	}
 }

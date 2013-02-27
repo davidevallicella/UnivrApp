@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="5dip" >
+
+    <LinearLayout
+        android:id="@+id/thumbnail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dip"
+        android:layout_marginRight="5dip"
+        android:background="@drawable/image"
+        android:padding="3dip" >
+
+        <ImageView
+            android:id="@+id/university_image"
+            android:layout_width="60dip"
+            android:layout_height="60dip" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/university_title"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignBottom="@+id/thumbnail"
+        android:layout_marginLeft="3dp"
+        android:layout_toRightOf="@+id/thumbnail"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:gravity="center_vertical"
+        android:paddingLeft="6dp"
+        android:paddingRight="6dp"
+        android:singleLine="true"
+        android:typeface="serif"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#111111"
+        android:textSize="18sp" />
+
+</RelativeLayout>

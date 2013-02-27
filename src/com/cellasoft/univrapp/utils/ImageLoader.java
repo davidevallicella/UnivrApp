@@ -193,7 +193,7 @@ public class ImageLoader implements Runnable {
 			bitmap = Bitmap.createScaledBitmap(bitmap,
 					(int) (THUMBNAIL_HEIGHT * ratio), THUMBNAIL_HEIGHT, false);
 		} else {
-			bitmap = BitmapFactory.decodeResource(ApplicationContext.getInstance().getResources(), R.drawable.thumb);
+			bitmap = BitmapFactory.decodeResource(Application.getInstance().getResources(), R.drawable.thumb);
 		}
 		return bitmap;
 	}

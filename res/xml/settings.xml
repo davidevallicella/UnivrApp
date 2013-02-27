@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="Synchronization" >
+        <CheckBoxPreference
+            android:key="wifi_only"
+            android:summary="Automatic refresh on WiFi Only"
+            android:title="Sync on WiFi only" />
+
+        <SwitchPreference
+            android:key="auto_update"
+            android:summary="Automatic update of all subscriptions"
+            android:switchTextOff="NO"
+            android:switchTextOn="YES"
+            android:title="Auto update" />
+
+        <ListPreference
+            android:dependency="auto_update"
+            android:entries="@array/updateInterval"
+            android:entryValues="@array/updateIntervalValues"
+            android:key="update_interval"
+            android:summary="Define how often updates will be performed"
+            android:title="Updates interval" />
+
+        <SwitchPreference
+            android:key="download_images"
+            android:summary="Download and update lecturers thumbnail"
+            android:switchTextOff="NO"
+            android:switchTextOn="YES"
+            android:title="Lecturers thumbnail" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.cellasoft.univrapp.model.Channel.Channels;
 import com.cellasoft.univrapp.model.Image.Images;
 import com.cellasoft.univrapp.model.Lecturer.Lecturers;
-import com.cellasoft.univrapp.model.RSSItem.Items;
+import com.cellasoft.univrapp.model.Item.Items;
 import com.cellasoft.univrapp.model.University.Universitys;
 
 public class DBMS extends SQLiteOpenHelper {
@@ -46,8 +46,9 @@ public class DBMS extends SQLiteOpenHelper {
 				+ Items.ID 				+ " INTEGER PRIMARY KEY AUTOINCREMENT," 
 				+ Items.TITLE 			+ " VARCHAR(255)," 
 				+ Items.DESCRIPTION 	+ " LONGTEXT,"
-				+ Items.PUB_DATE 		+ " VARCHAR(25)," 
+				+ Items.PUB_DATE 		+ " INTEGER," 
 				+ Items.LINK 			+ " VARCHAR(1000)," 
+				+ Items.READ 			+ " INTEGER," 
 				+ Items.CHANNEL_ID 		+ " INTEGER );");
 		
 		db.execSQL("CREATE TABLE " + LECTURERS_TABLE_NAME + " (" 
@@ -55,6 +56,7 @@ public class DBMS extends SQLiteOpenHelper {
 				+ Lecturers.KEY			+ " INTEGER,"
 				+ Lecturers.DEST 		+ " INTEGER," 
 				+ Lecturers.THUMBNAIL	+ " VARCHAR(255),"
+				+ Lecturers.EMAIL		+ " VARCHAR(30),"
 				+ Lecturers.NAME 		+ " VARCHAR(30) );");
 		
 		db.execSQL("CREATE TABLE " + UNIVERSITY_TABLE_NAME + " (" 

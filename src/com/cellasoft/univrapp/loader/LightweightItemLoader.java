@@ -1,10 +1,12 @@
 package com.cellasoft.univrapp.loader;
 
+import java.util.Date;
+
 import android.database.Cursor;
 
 import com.cellasoft.univrapp.model.Channel;
-import com.cellasoft.univrapp.model.RSSItem;
-import com.cellasoft.univrapp.model.RSSItem.Items;
+import com.cellasoft.univrapp.model.Item;
+import com.cellasoft.univrapp.model.Item.Items;
 
 public class LightweightItemLoader implements ItemLoader {
 	private final String[] projection = new String[] { 
@@ -20,12 +22,12 @@ public class LightweightItemLoader implements ItemLoader {
 	}
 
 	@Override
-	public RSSItem load(Cursor cursor) {
-		RSSItem item = new RSSItem();
-		item._id = cursor.getInt(0);// cursor.getColumnIndex(Items.ID));
-		item._title = cursor.getString(1);// cursor.getColumnIndex(Items.TITLE));
-		item._pubDate = cursor.getString(3);// cursor.getColumnIndex(Items.PUB_DATE));
-		item._channel = new Channel(cursor.getInt(5));
+	public Item load(Cursor cursor) {
+		Item item = new Item();
+		item.id = cursor.getInt(0);// cursor.getColumnIndex(Items.ID));
+		item.title = cursor.getString(1);// cursor.getColumnIndex(Items.TITLE));
+		item.pubDate = new Date(cursor.getLong(2));// cursor.getColumnIndex(Items.PUB_DATE));
+		item.channel = new Channel(cursor.getInt(3));
 		return item;
 	}
 

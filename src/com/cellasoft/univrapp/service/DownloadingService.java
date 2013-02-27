@@ -7,7 +7,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
@@ -15,13 +14,14 @@ import android.util.Log;
 
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Image;
-import com.cellasoft.univrapp.utils.ApplicationContext;
+import com.cellasoft.univrapp.utils.Application;
 import com.cellasoft.univrapp.utils.Constants;
 import com.cellasoft.univrapp.utils.ImageCache;
 import com.cellasoft.univrapp.utils.ImageLoader;
 import com.cellasoft.univrapp.utils.Settings;
+import com.github.droidfu.services.BetterService;
 
-public class DownloadingService extends Service {
+public class DownloadingService extends BetterService {
 	private static final int DEFAULT_POOL_SIZE = 2;
 	private static final int UPDATE_INTERVAL = 1000 * 30;
 
@@ -91,9 +91,7 @@ public class DownloadingService extends Service {
 			downloading = true;
 		}
 
-		if (Constants.DEBUG_MODE)
-			Log.d(Constants.LOG_TAG, "Start Downloading service at "
-					+ new Date());
+		final long start = System.currentTimeMillis();
 		if (Settings.getDownloadImages()) {
 			try {
 				downloadImages();
@@ -107,8 +105,7 @@ public class DownloadingService extends Service {
 		}
 
 		if (Constants.DEBUG_MODE)
-			Log.d(Constants.LOG_TAG, "Stop Downloading service at "
-					+ new Date());
+			Log.d(Constants.LOG_TAG, "Stop Downloading in: " + (System.currentTimeMillis() - start)/1000 + "s");
 
 		if (Settings.getDownloadImages()) {
 			scheduleNextDownload();
@@ -216,12 +213,12 @@ public class DownloadingService extends Service {
 	}
 
 	public static void cancelScheduledDownloads() {
-		Context context = ApplicationContext.getInstance();
+		Context context = Application.getInstance();
 		AlarmManager am = (AlarmManager) context
 				.getSystemService(Context.ALARM_SERVICE);
 		Intent intent = new Intent(context, DownloadingService.class);
 		PendingIntent pendingIntent = PendingIntent.getService(
-				ApplicationContext.getInstance(), 0, intent, 0);
+				Application.getInstance(), 0, intent, 0);
 		am.cancel(pendingIntent);
 	}
 

@@ -1,7 +1,7 @@
 package com.cellasoft.univrapp.utils;
 
-import com.cellasoft.univrapp.model.RSSItem;
+import com.cellasoft.univrapp.model.Item;
 
 public interface ItemProcessor {
-	void process(RSSItem item);
+	void process(Item item);
 }

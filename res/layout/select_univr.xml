@@ -1,43 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical" >
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="left" >
+    <!-- LIST -->
 
-        <Spinner
-            android:id="@+id/choose_school"
-            android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true" >
+
+        <ListView
+            android:id="@+id/android:list"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp" />
+            android:background="#ffffff"
+            android:cacheColorHint="#00000000" />
+    </LinearLayout>
 
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/choose_school"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="34dp"
-            android:text="Seleziona la facoltà"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textSize="20sp" />
-
-        <Button
-            android:id="@+id/choose_confirm_button"
-            android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/choose_school"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="39dp"
-            android:text="Ok" />
-    </RelativeLayout>
-
-</LinearLayout>
+</RelativeLayout>

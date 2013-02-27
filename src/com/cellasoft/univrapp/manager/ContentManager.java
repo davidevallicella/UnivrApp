@@ -11,6 +11,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 import com.cellasoft.univrapp.loader.ChannelLoader;
 import com.cellasoft.univrapp.loader.FullChannelLoader;
@@ -27,12 +28,13 @@ import com.cellasoft.univrapp.model.Image;
 import com.cellasoft.univrapp.model.Image.Images;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.model.Lecturer.Lecturers;
-import com.cellasoft.univrapp.model.RSSItem;
-import com.cellasoft.univrapp.model.RSSItem.Items;
+import com.cellasoft.univrapp.model.Item;
+import com.cellasoft.univrapp.model.Item.Items;
 import com.cellasoft.univrapp.provider.DBMS;
 import com.cellasoft.univrapp.provider.Provider;
 import com.cellasoft.univrapp.utils.ActiveList;
-import com.cellasoft.univrapp.utils.ApplicationContext;
+import com.cellasoft.univrapp.utils.Application;
+import com.cellasoft.univrapp.utils.Constants;
 
 public class ContentManager {
 
@@ -51,7 +53,7 @@ public class ContentManager {
 	private static ContentResolver cr;
 
 	static {
-		cr = ApplicationContext.getInstance().getContentResolver();
+		cr = Application.getInstance().getContentResolver();
 	}
 
 	public static boolean isEmpty() {
@@ -82,25 +84,37 @@ public class ContentManager {
 		return channel;
 	}
 
-	public static void saveLecturer(Lecturer lecturer) {
-		ContentValues values = new ContentValues();
-		values.put(Lecturers.KEY, lecturer.key);
-		values.put(Lecturers.DEST, lecturer.dest);
-		values.put(Lecturers.THUMBNAIL, lecturer.thumbnail);
-		values.put(Lecturers.NAME, lecturer.name);
+	public static boolean saveLecturer(Lecturer lecturer) {
 
-		Uri contentUri = cr.insert(Lecturers.CONTENT_URI, values);
-		lecturer.id = (int) ContentUris.parseId(contentUri);
+		if (lecturer.id == 0) {
+			if (existLecturer(lecturer))
+				return false;
+			ContentValues values = new ContentValues();
+			values.put(Lecturers.KEY, lecturer.key);
+			values.put(Lecturers.DEST, lecturer.dest);
+			values.put(Lecturers.THUMBNAIL, lecturer.thumbnail);
+			values.put(Lecturers.NAME, lecturer.name);
+
+			Uri contentUri = cr.insert(Lecturers.CONTENT_URI, values);
+			lecturer.id = (int) ContentUris.parseId(contentUri);
+		}
+
+		return true;
 	}
 
-	public static void saveChannel(Channel channel) {
+	public static void subscribe(Channel channel) {
+		if (existChannel(channel))
+			saveChannel(channel);
+	}
+
+	public static boolean saveChannel(Channel channel) {
 		ContentValues values = new ContentValues();
 		values.put(Channels.TITLE, channel.title);
 		values.put(Channels.URL, channel.url);
 		values.put(Channels.DESCRIPTION, channel.description);
 		values.put(Channels.STARRED, channel.starred);
 		values.put(Channels.IMAGE_URL, channel.imageUrl);
-		if (channel.id == 0) {
+		if (!existChannel(channel)) {
 			Uri contentUri = cr.insert(Channels.CONTENT_URI, values);
 			channel.id = (int) ContentUris.parseId(contentUri);
 		} else {
@@ -114,6 +128,8 @@ public class ContentManager {
 			channelCache.remove(channel.id);
 			putChannelToCache(channel);
 		}
+
+		return true;
 	}
 
 	public static void deleteChannel(Channel channel) {
@@ -133,47 +149,55 @@ public class ContentManager {
 		Cursor cursor = cr.query(Items.limitAndStartAt(1, keepMaxItems - 1),
 				new String[] { Items.ID }, Items.CHANNEL_ID + "=?",
 				new String[] { String.valueOf(channel.id) }, Items.ID + " ASC");
-		if (cursor.moveToNext()) {
 
-			long id = cursor.getLong(0);
+		if (cursor.moveToNext()) {
 			String selection = Items.CHANNEL_ID + "=?";
-			cr.delete(Items.CONTENT_URI, selection,
+			int deletedItems = cr.delete(Items.CONTENT_URI, selection,
 					new String[] { String.valueOf(channel.id) });
+			if (Constants.DEBUG_MODE)
+				Log.d("DEBUG", "Number of deleted items: " + deletedItems);
+		} else {
+			if (Constants.DEBUG_MODE)
+				Log.d("DEBUG", "No item to be deleted");
 		}
 		cursor.close();
 	}
 
-	public static boolean saveItem(RSSItem item) {
+	public static boolean saveItem(Item item) {
 		ContentValues values = new ContentValues();
-		if (item._id == 0) {
-			if (existItem(item))
-				return false;
 
-			values.put(Items.TITLE, item._title);
-			values.put(Items.DESCRIPTION, item._description);
-			values.put(Items.PUB_DATE, item._pubDate);
-			values.put(Items.LINK, item._link);
-			values.put(Items.CHANNEL_ID, item._channel.id);
+		if (existItem(item))
+			return false;
+
+		if (item.id == 0) {
+
+			values.put(Items.TITLE, item.title);
+			values.put(Items.DESCRIPTION, item.description);
+			values.put(Items.PUB_DATE, item.pubDate.getTime());
+			values.put(Items.LINK, item.link);
+			values.put(Items.READ, item.read);
+			values.put(Items.CHANNEL_ID, item.channel.id);
 			Uri contentUri = cr.insert(Items.CONTENT_URI, values);
-			item._id = (int) ContentUris.parseId(contentUri);
+			item.id = (int) ContentUris.parseId(contentUri);
 
 		} else {
-
+			values.put(Items.READ, item.read);
 			cr.update(Items.CONTENT_URI, values, Provider.WHERE_ID,
-					new String[] { String.valueOf(item._id) });
+					new String[] { String.valueOf(item.id) });
 		}
+
 		return true;
 	}
 
-	public static RSSItem loadItem(int id, ItemLoader loader,
+	public static Item loadItem(int id, ItemLoader loader,
 			ChannelLoader channelLoader) {
 		Cursor cursor = cr.query(Items.CONTENT_URI, loader.getProjection(),
 				Items.ID + "=?", new String[] { String.valueOf(id) }, null);
-		RSSItem item = null;
+		Item item = null;
 		if (cursor.moveToNext()) {
 			item = loader.load(cursor);
 			if (channelLoader != null) {
-				item._channel = loadChannel(item._channel.id, channelLoader);
+				item.channel = loadChannel(item.channel.id, channelLoader);
 			}
 		}
 		cursor.close();
@@ -196,12 +220,13 @@ public class ContentManager {
 	public static void loadAllItemsOfChannel(Channel channel, ItemLoader loader) {
 		Cursor cursor = cr.query(Items.CONTENT_URI, loader.getProjection(),
 				Items.CHANNEL_ID + "=?",
-				new String[] { String.valueOf(channel.id) }, Items.ID + " ASC");
-		ActiveList<RSSItem> items = channel.getItems();
+				new String[] { String.valueOf(channel.id) }, Items.PUB_DATE
+						+ " DESC, " + Items.ID + " ASC");
+		ActiveList<Item> items = channel.getItems();
 		items.clear();
 		while (cursor.moveToNext()) {
-			RSSItem item = loader.load(cursor);
-			item._channel = channel;
+			Item item = loader.load(cursor);
+			item.channel = channel;
 			items.add(item);
 		}
 		cursor.close();
@@ -267,11 +292,11 @@ public class ContentManager {
 		return images;
 	}
 
-	public static void saveImage(Image image) {
+	public static boolean saveImage(Image image) {
 		ContentValues values = new ContentValues();
 		if (image.id == 0) {
-			if (existImage(image.url))
-				return;
+			if (existImage(image))
+				return false;
 
 			values.put(Images.URL, image.url);
 			values.put(Images.STATUS, image.status);
@@ -285,6 +310,8 @@ public class ContentManager {
 			cr.update(Images.CONTENT_URI, values, Provider.WHERE_ID,
 					new String[] { String.valueOf(image.id) });
 		}
+
+		return true;
 	}
 
 	public static List<Integer> loadOldestImageIds(int keepMaxItems) {
@@ -313,13 +340,13 @@ public class ContentManager {
 				new String[] { String.valueOf(imageId) });
 	}
 
-	public static void deleteItem(RSSItem item) {
+	public static void deleteItem(Item item) {
 		cr.delete(Items.CONTENT_URI, Items.ID + "=?",
-				new String[] { String.valueOf(item._id) });
+				new String[] { String.valueOf(item.id) });
 	}
 
-	public static boolean existItem(RSSItem item) {
-		return existItem(item._link);
+	public static boolean existItem(Item item) {
+		return existItem(item.link);
 	}
 
 	public static boolean existItem(String link) {
@@ -339,10 +366,19 @@ public class ContentManager {
 		return result;
 	}
 
-	public static boolean existImage(String url) {
+	public static boolean existLecturer(Lecturer lecturer) {
+		Cursor cursor = cr.query(Lecturers.CONTENT_URI,
+				new String[] { Lecturers.ID }, Lecturers.KEY + "=?",
+				new String[] { String.valueOf(lecturer.key) }, null);
+		boolean result = cursor.moveToFirst();
+		cursor.close();
+		return result;
+	}
+
+	public static boolean existImage(Image image) {
 		Cursor cursor = cr.query(Images.CONTENT_URI,
 				new String[] { Images.ID }, Images.URL + "=?",
-				new String[] { url }, null);
+				new String[] { image.url }, null);
 		boolean result = cursor.moveToFirst();
 		cursor.close();
 		return result;
@@ -393,7 +429,7 @@ public class ContentManager {
 	}
 
 	public static void clearDatabase() {
-		ApplicationContext.getInstance().deleteDatabase(DBMS.DATABASE_NAME);
+		Application.getInstance().deleteDatabase(DBMS.DATABASE_NAME);
 	}
 
 	public static void unsubscribe(Channel channel) {

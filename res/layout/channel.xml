@@ -30,14 +30,13 @@
         <ImageView
             android:id="@+id/channel_image"
             android:layout_width="50dip"
-            android:layout_height="50dip"
-            android:src="@drawable/univr" />
+            android:layout_height="50dip" />
     </LinearLayout>
 
     <TextView
         android:id="@+id/channel_title"
-        android:layout_width="0dip"
-        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
         android:layout_marginLeft="3dp"
         android:layout_toRightOf="@+id/channel_thumbnail"
         android:layout_weight="1"
@@ -48,7 +47,7 @@
         android:singleLine="true"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="#111111"
-        android:textSize="15sp"
+        android:textSize="16sp"
         android:textStyle="bold" />
 
     <ImageButton

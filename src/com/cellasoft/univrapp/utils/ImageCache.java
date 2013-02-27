@@ -77,7 +77,7 @@ public class ImageCache implements Map<String, Bitmap> {
 	public static synchronized ImageCache createInstance(Context context,
 			int initialCapacity, int concurrencyLevel) {
 		instance = new ImageCache(context, initialCapacity, concurrencyLevel);
-		clearCacheIfNecessary();
+		//clearCacheFolder();
 		return instance;
 	}
 
@@ -189,7 +189,7 @@ public class ImageCache implements Map<String, Bitmap> {
 	}
 
 	public static void downloadImage(String imageUrl) throws IOException {
-		if (Utils.isNetworkAvailable(ApplicationContext.getInstance())) {
+		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 			HttpClient client = new DefaultHttpClient();
 			HttpParams params = client.getParams();
 			HttpConnectionParams.setConnectionTimeout(params,
@@ -245,7 +245,7 @@ public class ImageCache implements Map<String, Bitmap> {
 			bitmap = Bitmap.createScaledBitmap(bitmap,
 					(int) (THUMBNAIL_HEIGHT * ratio), THUMBNAIL_HEIGHT, false);
 		} else {
-			bitmap = BitmapFactory.decodeResource(ApplicationContext
+			bitmap = BitmapFactory.decodeResource(Application
 					.getInstance().getResources(), R.drawable.thumb);
 		}
 		return bitmap;
@@ -279,12 +279,12 @@ public class ImageCache implements Map<String, Bitmap> {
 	}
 
 	public static void clearCacheIfNecessary() {
-		System.out.println("--------------------------------------------RESET");
 		List<Integer> oldestImageIds = ContentManager.loadOldestImageIds(2000);
 		for (int imageId : oldestImageIds) {
 			try {
 				File imageFile = new File(getCacheFileName(imageId));
 				imageFile.delete();
+				
 				ContentManager.deleteImage(imageId);
 			} catch (RuntimeException e) {
 			}

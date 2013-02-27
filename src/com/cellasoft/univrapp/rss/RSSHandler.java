@@ -1,13 +1,15 @@
 package com.cellasoft.univrapp.rss;
 
+import java.util.Date;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.cellasoft.univrapp.manager.ContentManager;
-import com.cellasoft.univrapp.model.Channel;
-import com.cellasoft.univrapp.model.RSSItem;
+import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.rss.BaseFeedParser.XML_TAGS;
+import com.cellasoft.univrapp.utils.DateUtils;
+import com.cellasoft.univrapp.utils.Html;
 
 public class RSSHandler extends DefaultHandler {
 
@@ -24,23 +26,27 @@ public class RSSHandler extends DefaultHandler {
 	final int RSS_ITEM_GUID = 50;
 	final int RSS_ITEM_PUB_DATE = 60;
 
-	private Channel channel;
-	private RSSItem currentItem;
+	private Item currentItem;
 	private StringBuilder builder;
-	private int newItems = 0;
-
+	private int maxItems = 20;
 	int currentState = 0;
+	private SaxFeedParser feed;
+	private OnNewEntryCallback callback;
 
-	public RSSHandler(Channel channel) {
-		this.channel = channel;
+	public RSSHandler(int maxItems) {
+		this.maxItems = maxItems;
 	}
 
-	public Channel getChannel() {
-		return this.channel;
+	public OnNewEntryCallback getCallback() {
+		return callback;
 	}
 
-	public int getNewItems() {
-		return newItems;
+	public void setCallback(OnNewEntryCallback callback) {
+		this.callback = callback;
+	}
+
+	public SaxFeedParser getFeed() {
+		return feed;
 	}
 
 	@Override
@@ -56,13 +62,14 @@ public class RSSHandler extends DefaultHandler {
 		super.startElement(uri, localName, qName, attributes);
 
 		try {
-			switch (XML_TAGS.valueOf(localName.toUpperCase().trim())) {
+			switch (getTag(localName)) {
 			case CHANNEL:
+				feed = new SaxFeedParser();
 				currentState = RSS_CHANNEL;
 				break;
 			case ITEM:
-				currentItem = new RSSItem();
-				currentItem._channel = this.channel;
+				currentItem = new Item();
+				// currentItem.channel = this.channel;
 				currentState = RSS_ITEM;
 				break;
 			case TITLE:
@@ -111,52 +118,63 @@ public class RSSHandler extends DefaultHandler {
 			throws SAXException {
 		super.endElement(uri, localName, qName);
 
-		String theFullText = builder.toString().trim();
+		String theFullText = cleanUpText(builder);
 
-		switch (XML_TAGS.valueOf(localName.toUpperCase().trim())) {
+		switch (getTag(localName)) {
 		case ITEM:
-			channel.addItem(currentItem);
-			newItems++;
+			if (callback != null) {
+				try {
+					callback.onNewEntry(currentItem);
+				} catch (Throwable t) {
+					throw new SAXException(t.getMessage());
+				}
+			}
+
+			feed.addItem(currentItem);
 			currentState = RSS_CHANNEL;
-			// if (channel.getItems().size() == Constants.MAX_ITEMS) {
-			// throw new SAXException("Reaching maximum items. Stop parsing.");
-			// }
+			if (feed.getEntries().size() == maxItems) {
+				throw new SAXException("Reaching maximum items (" + maxItems
+						+ "). Stop parsing.");
+			}
 			break;
 		case TITLE:
 			if (currentState == RSS_ITEM_TITLE) {
-				currentItem.setTitle(theFullText);
+				currentItem.setTitle(Html.decode(theFullText));
 				currentState = RSS_ITEM;
 			} else if (currentState == RSS_CHANNEL_TITLE) {
-				if (channel.title == null)
-					channel.title = theFullText;
+				// if (channel.title == null)
+				feed.setTitle(Html.decode(theFullText));
 				currentState = RSS_CHANNEL;
 			}
 			break;
 		case LINK:
 			if (currentState == RSS_ITEM_LINK) {
 				currentItem.setLink(theFullText);
-				if (ContentManager.existItem(currentItem)) {
+				if (currentItem.exist()) {
 					throw new SAXException(
-							"Trovato item giï¿½ esistente. Stop parsing.");
+							"Trovato item già esistente. Stop parsing.");
 				}
 				currentState = RSS_ITEM;
 			} else if (currentState == RSS_CHANNEL_LINK) {
-				channel.url = theFullText;
+				feed.setLink(theFullText);
 				currentState = RSS_CHANNEL;
 			}
 			break;
 		case DESCRIPTION:
 			if (currentState == RSS_ITEM_DESCRIPTION) {
-				currentItem.setDescription(theFullText);
+				currentItem.setDescription(theFullText.replace(",", "<br/>"));
 				currentState = RSS_ITEM;
 			} else if (currentState == RSS_CHANNEL_DESCRIPTION) {
-				channel.description = theFullText;
+				feed.setDescription(theFullText);
 				currentState = RSS_CHANNEL;
 			}
 			break;
 		case PUBDATE:
+			Date updated = new Date();
+			updated = DateUtils.parseDate(theFullText);
+
 			if (currentState == RSS_ITEM_PUB_DATE) {
-				currentItem.setDate(theFullText);
+				currentItem.setDate(updated);
 				currentState = RSS_ITEM;
 			} else
 				currentState = RSS_CHANNEL;
@@ -177,10 +195,25 @@ public class RSSHandler extends DefaultHandler {
 	@Override
 	public void characters(char[] ch, int start, int length)
 			throws SAXException {
-		super.characters(ch, start, length);
 		if (builder != null)
-			for (int i = start; i < start + length; i++)
-				if (ch[i] != '\n' && ch[i] != '\t')
-					builder.append(ch[i]);
+			builder.append(ch, start, length);
+		// for (int i = start; i < start + length; i++)
+		// if (ch[i] != '\n' && ch[i] != '\t' && ch[i] != '\r')
+		// builder.append(ch[i]);
+	}
+
+	private XML_TAGS getTag(String localName) {
+		return XML_TAGS.valueOf(localName.toUpperCase().trim());
+	}
+
+	private String cleanUpText(StringBuilder sb) {
+		if (sb == null)
+			return null;
+		return sb.toString().replace("\r", "").replace("\t", "")
+				.replace("\n", "").trim();
+	}
+
+	public interface OnNewEntryCallback {
+		void onNewEntry(Item item);
 	}
 }

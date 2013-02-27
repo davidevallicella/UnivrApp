@@ -2,6 +2,7 @@ package com.cellasoft.univrapp.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import android.util.Log;
@@ -18,7 +19,7 @@ public class DateUtils {
 
 	static {
 		final String[] possibleDateFormats = {
-				"EEE, dd MMM HH:mm:ss",
+				"EEE, dd MMM yyyy HH:mm",
 				"EEE, dd MMM yyyy HH:mm:ss z", // RFC_822
 				"EEE, dd MMM yyyy HH:mm zzzz",
 				"yyyy-MM-dd'T'HH:mm:ssZ",
@@ -31,7 +32,7 @@ public class DateUtils {
 				"yyyy-MM-dd" };
 
 		dateFormats = new SimpleDateFormat[possibleDateFormats.length];
-		TimeZone gmtTZ = TimeZone.getTimeZone("GMT");
+		TimeZone gmtTZ = TimeZone.getTimeZone("GMT+1");
 
 		for (int i = 0; i < possibleDateFormats.length; i++) {
 			dateFormats[i] = new SimpleDateFormat(possibleDateFormats[i]);

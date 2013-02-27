@@ -3,9 +3,10 @@ package com.cellasoft.univrapp.model;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.provider.Provider;
 
-public class Image {
+public class Image implements ActionSupport {
 	public static final byte MAX_RETRIES = 3;
 
 	public static final byte IMAGE_STATUS_PENDING = -1;
@@ -33,6 +34,20 @@ public class Image {
 
 	public void increaseRetries() {
 		this.retries += 1;
+	}
+
+	@Override
+	public boolean save() {
+		return ContentManager.saveImage(this);
+	}
+
+	@Override
+	public void delete() {
+		ContentManager.deleteImage(id);
+	}
+	@Override
+	public boolean exist() {
+		return ContentManager.existImage(this);
 	}
 
 	public static final class Images implements BaseColumns {

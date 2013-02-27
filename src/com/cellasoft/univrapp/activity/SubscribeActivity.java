@@ -9,15 +9,19 @@ import java.util.Map;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.DatePicker;
@@ -31,8 +35,11 @@ import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.utils.Constants;
+import com.cellasoft.univrapp.utils.HtmlParser;
 import com.cellasoft.univrapp.utils.ImageLoader;
 import com.cellasoft.univrapp.utils.Settings;
+import com.github.droidfu.concurrent.BetterAsyncTask;
+import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
 
 public class SubscribeActivity extends SherlockActivity {
 	static final int START_DATE_DIALOG_ID = 0;
@@ -163,6 +170,14 @@ public class SubscribeActivity extends SherlockActivity {
 						showDialog(END_DATE_DIALOG_ID);
 					}
 				});
+		findViewById(R.id.subscribe_reload).setOnClickListener(
+				new OnClickListener() {
+
+					@Override
+					public void onClick(View v) {
+						saveLecturers();
+					}
+				});
 
 		post_data = new PostData();
 		// get the current date
@@ -228,14 +243,6 @@ public class SubscribeActivity extends SherlockActivity {
 		}
 	}
 
-	private Runnable updateLecturers = new Runnable() {
-
-		@Override
-		public void run() {
-			loadData();
-		}
-	};
-
 	private void confirmBeforeSavingSubscriptions() {
 		AlertDialog dialog = new AlertDialog.Builder(this)
 				.setTitle("Subscribe")
@@ -261,31 +268,101 @@ public class SubscribeActivity extends SherlockActivity {
 	private void saveSubscriptions() {
 		final ProgressDialog progressDialog = new ProgressDialog(this);
 		progressDialog.setMessage("Unsubscribe selected channels");
-		AsyncTask<Void, Void, Void> subscribingTask = new AsyncTask<Void, Void, Void>() {
+		BetterAsyncTask<Void, Void, Void> subscribingTask = new BetterAsyncTask<Void, Void, Void>(
+				this) {
 
 			@Override
-			protected void onPostExecute(Void result) {
-				super.onPostExecute(result);
+			protected void after(Context context, Void arg1) {
 				progressDialog.dismiss();
-
 				String message = "Successfull";
 				Toast.makeText(SubscribeActivity.this, message, 1000).show();
 			}
 
 			@Override
-			protected Void doInBackground(Void... params) {
-				Lecturer lecturer = (Lecturer) sp_lecturer.getSelectedItem();
-				post_data.personeMittente = lecturer.key;
-				Channel channel = new Channel(lecturer.name,
-						Constants.UNIVERSITY.URL.get(Settings.getUniversity())
-								+ post_data.setParams(), lecturer.thumbnail);
-				ContentManager.saveChannel(channel);
-
-				return null;
+			protected void handleError(Context context, Exception arg1) {
+				progressDialog.dismiss();
+				Toast.makeText(context, arg1.getMessage(), 1000).show();
 			}
 		};
 
+		subscribingTask.disableDialog();
+		subscribingTask
+				.setCallable(new BetterAsyncTaskCallable<Void, Void, Void>() {
+					public Void call(BetterAsyncTask<Void, Void, Void> arg0)
+							throws Exception {
+						save();
+						return null;
+					}
+				});
 		progressDialog.show();
 		subscribingTask.execute();
+	}
+
+	private void save() {
+		Lecturer lecturer = (Lecturer) sp_lecturer.getSelectedItem();
+		post_data.personeMittente = lecturer.key;
+		new Channel(lecturer.name, Constants.UNIVERSITY.URL.get(Settings
+				.getUniversity()) + post_data.setParams(), lecturer.thumbnail)
+				.save();
+	}
+
+	private void saveLecturers() {
+		final ProgressDialog progressDialog = new ProgressDialog(this);
+		progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		progressDialog.setMessage(Html
+				.fromHtml(getString(R.string.progress_txt).replace(
+						"{message}", "<b>Connect to </b>" + Settings.getUniversity())));
+		BetterAsyncTask<Void, String, Void> saveLecturersTask = new BetterAsyncTask<Void, String, Void>(
+				this) {
+
+			@Override
+			protected void after(Context context, Void arg1) {
+				loadData();
+				progressDialog.dismiss();
+				String message = "Successfull";
+				Toast.makeText(SubscribeActivity.this, message, 1000).show();
+			}
+
+			@Override
+			protected Void doCheckedInBackground(Context context,
+					Void... params) throws Exception {
+				Elements lecturers = HtmlParser.getLecturerElements();
+				progressDialog.setMax(lecturers.size());
+
+				for (Element option : lecturers) {
+					if (isCancelled())
+						break;
+					int id = Integer.parseInt(option.attr("value"));
+					if (id > 0) {
+						Lecturer lecturer = new Lecturer(option);
+						if (lecturer.save())
+							publishProgress("<b>Initialization Lecturer: </b>"
+									+ lecturer.name + "...");
+						else
+							publishProgress("");
+					}
+				}
+				return null;
+			}
+
+			@Override
+			protected void onProgressUpdate(String... values) {
+				super.onProgressUpdate(values);
+				if (!values[0].isEmpty())
+					progressDialog.setMessage(Html.fromHtml(getString(
+							R.string.progress_txt).replace("{message}", values[0])));
+				progressDialog.incrementProgressBy(1);
+			}
+
+			@Override
+			protected void handleError(Context context, Exception arg1) {
+				progressDialog.dismiss();
+				Toast.makeText(context, arg1.getMessage(), 1000).show();
+			}
+		};
+
+		saveLecturersTask.disableDialog();
+		progressDialog.show();
+		saveLecturersTask.execute();
 	}
 }
