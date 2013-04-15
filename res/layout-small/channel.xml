@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:padding="2dp" >
+
+    <ImageButton
+        android:id="@+id/channel_chek"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:background="@null"
+        android:contentDescription="@string/desc"
+        android:src="@drawable/btn_check_off_normal" />
+
+    <LinearLayout
+        android:id="@+id/channel_thumbnail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="18dip"
+        android:layout_marginRight="3dip"
+        android:background="@drawable/image"
+        android:padding="2dip" >
+
+        <ImageView
+            android:id="@+id/channel_image"
+            android:layout_width="50dip"
+            android:layout_height="50dip"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/desc"
+            android:scaleType="centerCrop"
+            android:src="@drawable/thumb" />
+    </LinearLayout>
+
+     <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_marginRight="20dip"
+        android:layout_toRightOf="@+id/lecturer_thumbnail"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="3dip" >
+
+        <TextView
+            android:id="@+id/channel_title"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#111111"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/channel_updated"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:paddingLeft="2dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#7b7b7b"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/unread_count"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_marginRight="20dp"
+        android:layout_toRightOf="@+id/channel_title"
+        android:gravity="center_vertical" >
+
+        <TextView
+            android:id="@+id/channel_unreadCount"
+            style="@style/lightboxButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/btn_blue_enabled"
+            android:maxLines="1"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textIsSelectable="false" />
+    </RelativeLayout>
+
+    <ImageButton
+        android:id="@+id/channel_star"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:background="@null"
+        android:contentDescription="@string/desc"
+        android:src="@drawable/btn_star_off_normal" />
+
+</merge>

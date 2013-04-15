@@ -11,10 +11,10 @@ import android.preference.PreferenceGroup;
 import android.preference.PreferenceScreen;
 
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
+import com.cellasoft.univrapp.ConnectivityReceiver;
+import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.service.DownloadingService;
 import com.cellasoft.univrapp.service.SynchronizationService;
-import com.cellasoft.univrapp.utils.ConnectivityReceiver;
-import com.cellasoft.univrapp.utils.Settings;
 
 public class SettingsActivity extends SherlockPreferenceActivity implements
 		OnSharedPreferenceChangeListener {
@@ -25,6 +25,8 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.settings);
+		
+		
 	}
 
 	@Override
@@ -63,7 +65,7 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 				DownloadingService.cancelScheduledDownloads();
 			}
 		}
-
+		
 		Preference pref = findPreference(key);
 		if (pref instanceof ListPreference) {
 			ListPreference listPref = (ListPreference) pref;

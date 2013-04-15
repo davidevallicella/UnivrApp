@@ -1,11 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="list_bg_1">#ffffff</color>
-    <color name="list_bg_2">#fef2e8</color>
-
+    <color name="aliceBlue">#C6E2FF</color>
+    <color name="white">#FFFFFF</color>
     <color name="honeycombish_blue">#FF58BAED</color>
     <color name="soft_grey">#FF777777</color>
     <color name="background">#FFEFEFEF</color>
+    <color name="economia">#FFFAB2</color>
+    <color name="giurisprudenza">#C1D1E0</color>
+    <color name="lettere_filosofia">#EBEBEB</color>
+    <color name="lingue">#D4BAC2</color>
+    <color name="medicina">#F5BAB5</color>
+    <color name="scienze_formazione">#EFD9E7</color>
+    <color name="scineze_mm.ff.nn">#B2E1D0</color>
+    <color name="shadow_dark">#5000</color>
+    <color name="shadow_light">#0000</color>
 
+    <color name="btn_text_selected">#99CCFF</color>
+    <color name="btn_text_normal">#FFF</color>
+    <color name="btn_text_disabled">#777</color>
+    <color name="btn_stroke">#000</color>
+    <color name="btn_stroke_disabled">#444</color>
+    <color name="btn_stroke_disabled_focused">#69F</color>
+    <color name="btn_stroke_focused">#69F</color>
+    <color name="btn_overlay_blue">#756699FF</color>
+    <color name="btn_grey_dark_disabled">#555555</color>
+    <color name="btn_grey_light_disabled">#666666</color>
+    <color name="btn_grey_dark">#333</color>
+    <color name="btn_grey_light">#666</color>
+    <color name="btn_blue_light">#9CF</color>
+    <color name="btn_blue_dark">#36C</color>
+    <color name="btn_green_dark">#093</color>
+    <color name="btn_green_light">#6F9</color>
 </resources>

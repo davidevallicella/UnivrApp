@@ -9,17 +9,17 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.cellasoft.univrapp.Application;
+import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.activity.ChannelListActivity;
 import com.cellasoft.univrapp.activity.R;
 import com.cellasoft.univrapp.manager.SynchronizationManager;
-import com.cellasoft.univrapp.utils.Application;
-import com.cellasoft.univrapp.utils.Constants;
 import com.cellasoft.univrapp.utils.ImageLoader;
-import com.cellasoft.univrapp.utils.Settings;
 import com.github.droidfu.services.BetterService;
 
 public class SynchronizationService extends BetterService {
-	public static final String ACTION = "com.cellasoft.univrapp.activity.SynchronizationService";
+	private final static String DEFAULT_THREAD_NAME = "Asynchronous service RSS feed loader";
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -36,7 +36,7 @@ public class SynchronizationService extends BetterService {
 			public void run() {
 				startSynchronization();
 			}
-		}).start();
+		}, DEFAULT_THREAD_NAME).start();
 	}
 
 	@Override
@@ -86,25 +86,22 @@ public class SynchronizationService extends BetterService {
 				getString(R.string.app_name), ticker, intent);
 		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
-		// if (Settings.getNotificationSound()) {
-		// notification.defaults |= Notification.DEFAULT_SOUND;
-		// }
-		// if (Settings.getNotificationVibrate()) {
-		// notification.defaults |= Notification.DEFAULT_VIBRATE;
-		// }
-		// if (Settings.getNotificationLight()) {
-		// notification.ledARGB = 0xff00ff00;
-		// notification.ledOnMS = 300;
-		// notification.ledOffMS = 1000;
-		// notification.flags |= Notification.FLAG_SHOW_LIGHTS;
-		// }
+		if (Settings.getNotificationSound()) {
+			notification.defaults |= Notification.DEFAULT_SOUND;
+		}
+		if (Settings.getNotificationVibrate()) {
+			notification.defaults |= Notification.DEFAULT_VIBRATE;
+		}
+		if (Settings.getNotificationLight()) {
+			notification.ledARGB = 0xff00ff00;
+			notification.ledOnMS = 300;
+			notification.ledOffMS = 1000;
+			notification.flags |= Notification.FLAG_SHOW_LIGHTS;
+		}
 
-		// try {
-		// startForeground(Constants.NOTIFICATION_ID, notification);
-		// } catch (Throwable t) {
 		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		notificationManager.notify(Constants.NOTIFICATION_ID, notification);
-		// }
+
 	}
 
 	private void scheduleNextUpdate() {
@@ -113,7 +110,6 @@ public class SynchronizationService extends BetterService {
 		PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent,
 				0);
 		int updateInterval = Settings.getUpdateInterval() * 1000 * 60;
-		System.out.println(updateInterval);
 		long firstWake = System.currentTimeMillis() + updateInterval;
 		am.set(AlarmManager.RTC, firstWake, pendingIntent);
 	}

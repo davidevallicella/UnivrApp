@@ -14,8 +14,8 @@ import android.net.Uri;
 
 import com.cellasoft.univrapp.model.Channel.Channels;
 import com.cellasoft.univrapp.model.Image.Images;
-import com.cellasoft.univrapp.model.Lecturer.Lecturers;
 import com.cellasoft.univrapp.model.Item.Items;
+import com.cellasoft.univrapp.model.Lecturer.Lecturers;
 
 public class Provider extends ContentProvider {
 	public static final String AUTHORITY = "com.cellasoft.univrapp.provider.provider";
@@ -25,11 +25,15 @@ public class Provider extends ContentProvider {
 	private static final int ITEMS = 2;
 	private static final int ITEMS_LIMIT = 3;
 	private static final int ITEMS_LIMIT_OFFSET = 4;
-	private static final int LECTURERS = 5;
-	private static final int IMAGES = 6;
-	private static final int IMAGES_LIMIT = 7;
+	private static final int ITEMS_UNREAD_COUNT_ALL_CHANNELS = 5;
+	private static final int ITEMS_UNREAD_COUNT_OF_EACH_CHANNEL = 6;
+	private static final int LECTURERS = 7;
+	private static final int IMAGES = 8;
+	private static final int IMAGES_LIMIT = 9;
 
 	public static final String WHERE_ID = "ID=?";
+
+	private DatabaseHelper dbHelper;
 
 	private static HashMap<String, String> channelsProjectionMap;
 	private static HashMap<String, String> itemsProjectionMap;
@@ -38,17 +42,24 @@ public class Provider extends ContentProvider {
 
 	@Override
 	public int delete(Uri uri, String where, String[] whereArgs) {
-		SQLiteDatabase db = DBMS.getInstance(getContext());
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		int count;
 		switch (URL_MATCHER.match(uri)) {
 		case CHANNELS:
-			count = db.delete(DBMS.CHANNELS_TABLE_NAME, where, whereArgs);
+			count = db.delete(DatabaseHelper.CHANNELS_TABLE_NAME, where,
+					whereArgs);
 			break;
 		case ITEMS:
-			count = db.delete(DBMS.ITEMS_TABLE_NAME, where, whereArgs);
+			count = db
+					.delete(DatabaseHelper.ITEMS_TABLE_NAME, where, whereArgs);
 			break;
 		case IMAGES:
-			count = db.delete(DBMS.IMAGES_TABLE_NAME, where, whereArgs);
+			count = db.delete(DatabaseHelper.IMAGES_TABLE_NAME, where,
+					whereArgs);
+			break;
+		case LECTURERS:
+			count = db.delete(DatabaseHelper.LECTURERS_TABLE_NAME, where,
+					whereArgs);
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown URI " + uri);
@@ -89,25 +100,28 @@ public class Provider extends ContentProvider {
 			values = new ContentValues();
 		}
 
-		SQLiteDatabase db = DBMS.getInstance(getContext());
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		long rowId = -1;
 		Uri contentUri = null;
 		switch (matchedUri) {
 		case CHANNELS:
-			rowId = db.insert(DBMS.CHANNELS_TABLE_NAME, Channels.DESCRIPTION,
-					values);
+			rowId = db.insert(DatabaseHelper.CHANNELS_TABLE_NAME,
+					Channels.DESCRIPTION, values);
 			contentUri = Channels.CONTENT_URI;
 			break;
 		case ITEMS:
-			rowId = db.insert(DBMS.ITEMS_TABLE_NAME, Items.DESCRIPTION, values);
+			rowId = db.insert(DatabaseHelper.ITEMS_TABLE_NAME,
+					Items.DESCRIPTION, values);
 			contentUri = Channels.CONTENT_URI;
 			break;
 		case LECTURERS:
-			rowId = db.insert(DBMS.LECTURERS_TABLE_NAME, null, values);
+			rowId = db
+					.insert(DatabaseHelper.LECTURERS_TABLE_NAME, null, values);
 			contentUri = Lecturers.CONTENT_URI;
 			break;
 		case IMAGES:
-			rowId = db.insert(DBMS.IMAGES_TABLE_NAME, Images.URL, values);
+			rowId = db.insert(DatabaseHelper.IMAGES_TABLE_NAME, Images.URL,
+					values);
 			contentUri = Images.CONTENT_URI;
 			break;
 		default:
@@ -124,7 +138,10 @@ public class Provider extends ContentProvider {
 
 	@Override
 	public boolean onCreate() {
-		DBMS.getInstance(getContext()).rawQuery("PRAGMA synchronous=OFF", null);
+		dbHelper = new DatabaseHelper(getContext());
+		dbHelper.getWritableDatabase().rawQuery("PRAGMA synchronous=OFF", null);
+		dbHelper.close();
+
 		return true;
 	}
 
@@ -135,43 +152,52 @@ public class Provider extends ContentProvider {
 		String group = null, having = null, limit = null;
 		switch (URL_MATCHER.match(uri)) {
 		case CHANNELS:
-			qb.setTables(DBMS.CHANNELS_TABLE_NAME);
+			qb.setTables(DatabaseHelper.CHANNELS_TABLE_NAME);
 			qb.setProjectionMap(channelsProjectionMap);
 			break;
 		case ITEMS:
-			qb.setTables(DBMS.ITEMS_TABLE_NAME);
+			qb.setTables(DatabaseHelper.ITEMS_TABLE_NAME);
 			qb.setProjectionMap(itemsProjectionMap);
 			break;
 		case ITEMS_LIMIT:
-			qb.setTables(DBMS.ITEMS_TABLE_NAME);
+			qb.setTables(DatabaseHelper.ITEMS_TABLE_NAME);
 			qb.setProjectionMap(itemsProjectionMap);
 			limit = uri.getLastPathSegment();
 			break;
 		case ITEMS_LIMIT_OFFSET:
-			qb.setTables(DBMS.ITEMS_TABLE_NAME);
+			qb.setTables(DatabaseHelper.ITEMS_TABLE_NAME);
 			qb.setProjectionMap(itemsProjectionMap);
 			limit = uri.getLastPathSegment() + ", "
 					+ uri.getPathSegments().get(1);
 			break;
 		case IMAGES:
-			qb.setTables(DBMS.IMAGES_TABLE_NAME);
+			qb.setTables(DatabaseHelper.IMAGES_TABLE_NAME);
 			qb.setProjectionMap(imagesProjectionMap);
 			limit = "50";
 			break;
 		case IMAGES_LIMIT:
-			qb.setTables(DBMS.IMAGES_TABLE_NAME);
+			qb.setTables(DatabaseHelper.IMAGES_TABLE_NAME);
 			qb.setProjectionMap(imagesProjectionMap);
 			limit = uri.getLastPathSegment();
 			break;
 		case LECTURERS:
-			qb.setTables(DBMS.LECTURERS_TABLE_NAME);
+			qb.setTables(DatabaseHelper.LECTURERS_TABLE_NAME);
 			qb.setProjectionMap(lecturerProjectionMap);
+			break;
+		case ITEMS_UNREAD_COUNT_OF_EACH_CHANNEL:
+			qb.setTables(DatabaseHelper.ITEMS_TABLE_NAME);
+			qb.setProjectionMap(itemsProjectionMap);
+			group = Items.CHANNEL_ID;
+			break;
+		case ITEMS_UNREAD_COUNT_ALL_CHANNELS:
+			qb.setTables(DatabaseHelper.ITEMS_TABLE_NAME);
+			qb.setProjectionMap(itemsProjectionMap);
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown URI " + uri);
 		}
 
-		SQLiteDatabase db = DBMS.getInstance(getContext());
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		Cursor c = qb.query(db, projection, selection, selectionArgs, group,
 				having, sortOrder, limit);
 
@@ -182,22 +208,24 @@ public class Provider extends ContentProvider {
 	@Override
 	public int update(Uri uri, ContentValues values, String where,
 			String[] whereArgs) {
-		SQLiteDatabase db = DBMS.getInstance(getContext());
+		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		int count;
 		switch (URL_MATCHER.match(uri)) {
 		case CHANNELS:
-			count = db.update(DBMS.CHANNELS_TABLE_NAME, values, where,
-					whereArgs);
+			count = db.update(DatabaseHelper.CHANNELS_TABLE_NAME, values,
+					where, whereArgs);
 			break;
 		case ITEMS:
-			count = db.update(DBMS.ITEMS_TABLE_NAME, values, where, whereArgs);
-			break;
-		case LECTURERS:
-			count = db.update(DBMS.LECTURERS_TABLE_NAME, values, where,
+			count = db.update(DatabaseHelper.ITEMS_TABLE_NAME, values, where,
 					whereArgs);
 			break;
+		case LECTURERS:
+			count = db.update(DatabaseHelper.LECTURERS_TABLE_NAME, values,
+					where, whereArgs);
+			break;
 		case IMAGES:
-			count = db.update(DBMS.IMAGES_TABLE_NAME, values, where, whereArgs);
+			count = db.update(DatabaseHelper.IMAGES_TABLE_NAME, values, where,
+					whereArgs);
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown URI " + uri);
@@ -209,24 +237,37 @@ public class Provider extends ContentProvider {
 
 	static {
 		URL_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
-		URL_MATCHER.addURI(AUTHORITY, DBMS.CHANNELS_TABLE_NAME, CHANNELS);
-		URL_MATCHER.addURI(AUTHORITY, DBMS.ITEMS_TABLE_NAME, ITEMS);
-		URL_MATCHER.addURI(AUTHORITY, DBMS.LECTURERS_TABLE_NAME, LECTURERS);
-		URL_MATCHER
-				.addURI(AUTHORITY, DBMS.ITEMS_TABLE_NAME + "/#", ITEMS_LIMIT);
-		URL_MATCHER.addURI(AUTHORITY, DBMS.ITEMS_TABLE_NAME + "/#/#",
+		URL_MATCHER.addURI(AUTHORITY, DatabaseHelper.CHANNELS_TABLE_NAME,
+				CHANNELS);
+		URL_MATCHER.addURI(AUTHORITY, DatabaseHelper.ITEMS_TABLE_NAME, ITEMS);
+		URL_MATCHER.addURI(AUTHORITY, DatabaseHelper.LECTURERS_TABLE_NAME,
+				LECTURERS);
+		URL_MATCHER.addURI(AUTHORITY, DatabaseHelper.ITEMS_TABLE_NAME + "/#",
+				ITEMS_LIMIT);
+		URL_MATCHER.addURI(AUTHORITY, DatabaseHelper.ITEMS_TABLE_NAME + "/#/#",
 				ITEMS_LIMIT_OFFSET);
-		URL_MATCHER.addURI(AUTHORITY, DBMS.IMAGES_TABLE_NAME, IMAGES);
-		URL_MATCHER.addURI(AUTHORITY, DBMS.IMAGES_TABLE_NAME + "/#",
+		URL_MATCHER.addURI(AUTHORITY, DatabaseHelper.ITEMS_TABLE_NAME
+				+ "/unread", ITEMS_UNREAD_COUNT_OF_EACH_CHANNEL);
+		URL_MATCHER.addURI(AUTHORITY, DatabaseHelper.ITEMS_TABLE_NAME
+				+ "/unread/all", ITEMS_UNREAD_COUNT_ALL_CHANNELS);
+		URL_MATCHER.addURI(AUTHORITY, DatabaseHelper.IMAGES_TABLE_NAME, IMAGES);
+		URL_MATCHER.addURI(AUTHORITY, DatabaseHelper.IMAGES_TABLE_NAME + "/#",
 				IMAGES_LIMIT);
 
 		channelsProjectionMap = new HashMap<String, String>();
 		channelsProjectionMap.put(Channels.ID, Channels.ID);
+		channelsProjectionMap.put(Channels.LECTURER_ID, Channels.LECTURER_ID);
 		channelsProjectionMap.put(Channels.TITLE, Channels.TITLE);
 		channelsProjectionMap.put(Channels.URL, Channels.URL);
 		channelsProjectionMap.put(Channels.DESCRIPTION, Channels.DESCRIPTION);
+		channelsProjectionMap.put(Channels.UPDATE_TIME, Channels.UPDATE_TIME);
 		channelsProjectionMap.put(Channels.STARRED, Channels.STARRED);
 		channelsProjectionMap.put(Channels.IMAGE_URL, Channels.IMAGE_URL);
+		channelsProjectionMap.put(Channels.UNREAD, "(SELECT COUNT(*) FROM "
+				+ DatabaseHelper.ITEMS_TABLE_NAME + " WHERE "
+				+ DatabaseHelper.ITEMS_TABLE_NAME + ".CHANNEL_ID = "
+				+ DatabaseHelper.CHANNELS_TABLE_NAME + ".ID AND "
+				+ DatabaseHelper.ITEMS_TABLE_NAME + ".READ = 0) AS UNREAD");
 
 		itemsProjectionMap = new HashMap<String, String>();
 		itemsProjectionMap.put(Items.ID, Items.ID);
@@ -235,15 +276,22 @@ public class Provider extends ContentProvider {
 		itemsProjectionMap.put(Items.PUB_DATE, Items.PUB_DATE);
 		itemsProjectionMap.put(Items.LINK, Items.LINK);
 		itemsProjectionMap.put(Items.READ, Items.READ);
+		itemsProjectionMap.put(Items.UNREAD_COUNT, "COUNT(*) AS UNREAD");
+		itemsProjectionMap.put(Items.COUNT, "COUNT(*)");
 		itemsProjectionMap.put(Items.CHANNEL_ID, Items.CHANNEL_ID);
+		itemsProjectionMap.put(Items.UPDATE_TIME, Items.UPDATE_TIME);
 
 		lecturerProjectionMap = new HashMap<String, String>();
 		lecturerProjectionMap.put(Lecturers.ID, Lecturers.ID);
 		lecturerProjectionMap.put(Lecturers.KEY, Lecturers.KEY);
 		lecturerProjectionMap.put(Lecturers.DEST, Lecturers.DEST);
 		lecturerProjectionMap.put(Lecturers.NAME, Lecturers.NAME);
-		lecturerProjectionMap.put(Lecturers.THUMBNAIL, Lecturers.THUMBNAIL);
+		lecturerProjectionMap.put(Lecturers.DEPARTMENT, Lecturers.DEPARTMENT);
+		lecturerProjectionMap.put(Lecturers.SECTOR, Lecturers.SECTOR);
+		lecturerProjectionMap.put(Lecturers.OFFICE, Lecturers.OFFICE);
+		lecturerProjectionMap.put(Lecturers.TELEPHONE, Lecturers.TELEPHONE);
 		lecturerProjectionMap.put(Lecturers.EMAIL, Lecturers.EMAIL);
+		lecturerProjectionMap.put(Lecturers.THUMBNAIL, Lecturers.THUMBNAIL);
 
 		imagesProjectionMap = new HashMap<String, String>();
 		imagesProjectionMap.put(Images.ID, Images.ID);

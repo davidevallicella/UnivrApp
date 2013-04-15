@@ -5,17 +5,35 @@
         android:id="@+id/menu_subscribe"
         android:icon="@drawable/ic_menu_add"
         android:showAsAction="ifRoom"
-        android:title="Subscribe"/>
+        android:title="@string/subscribe"/>
     <item
         android:id="@+id/menu_unsubscribe"
         android:icon="@drawable/ic_menu_delete"
         android:showAsAction="ifRoom"
-        android:title="Unsubscribe"/>
+        android:title="@string/unsubscribe"/>
+    
+     <item
+        android:id="@+id/menu_selectAll"
+        android:icon="@drawable/ic_menu_select_all"
+        android:showAsAction="never"
+        android:title="@string/select_all"/>
     
     <item
         android:id="@+id/menu_settings"
         android:icon="@drawable/ic_menu_preferences"
         android:showAsAction="never"
-        android:title="Settings"/>
+        android:title="@string/settings"/>
+    
+    <item
+        android:id="@+id/menu_reset"
+        android:icon="@drawable/trash"
+        android:showAsAction="never"
+        android:title="@string/reset"/>
+    
+    <item
+        android:id="@+id/menu_about"
+        android:icon="@drawable/ic_menu_info_details"
+        android:showAsAction="never"
+        android:title="@string/about"/>
 
 </menu>

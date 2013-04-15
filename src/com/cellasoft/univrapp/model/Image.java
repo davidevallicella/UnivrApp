@@ -1,5 +1,7 @@
 package com.cellasoft.univrapp.model;
 
+import java.util.ArrayList;
+
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -43,7 +45,7 @@ public class Image implements ActionSupport {
 
 	@Override
 	public void delete() {
-		ContentManager.deleteImage(id);
+		ContentManager.deleteImage(this);
 	}
 	@Override
 	public boolean exist() {
@@ -68,6 +70,10 @@ public class Image implements ActionSupport {
 		public static final Uri limit(int limit) {
 			return Uri.parse("content://" + Provider.AUTHORITY + "/images/"
 					+ limit);
+		}
+		
+		public static ArrayList<Image> loadAllQueuedImages() {
+			return ContentManager.loadAllQueuedImages();
 		}
 	}
 }

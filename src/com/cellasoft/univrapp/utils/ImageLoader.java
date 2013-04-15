@@ -1,35 +1,27 @@
 package com.cellasoft.univrapp.utils;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import com.cellasoft.univrapp.activity.R;
+import com.cellasoft.univrapp.Constants;
+import com.github.droidfu.adapters.WebGalleryAdapter;
+import com.github.droidfu.http.BetterHttpResponse;
+import com.github.droidfu.widgets.WebImageView;
 
-/**
- * Realizes an background image loader backed by a two-level FIFO cache. If the
- * image to be loaded is present in the cache, it is set immediately on the
- * given view. Otherwise, a thread from a thread pool will be used to download
- * the image in the background and set the image on the view as soon as it
- * completes.
- * 
- * @author Matthias Kaeppler
- */
 public class ImageLoader implements Runnable {
+	private static final String TAG = ImageLoader.class.getSimpleName();
+
 	public static final int CONNECT_TIMEOUT = 5 * 1000;
 	public static final int READ_TIMEOUT = 10 * 1000;
-
 	private static ThreadPoolExecutor executor;
 
 	private static ImageCache imageCache;
@@ -39,9 +31,12 @@ public class ImageLoader implements Runnable {
 	public static final int BITMAP_DOWNLOADED_FAILED = 0;
 	public static final int BITMAP_DOWNLOADED_SUCCESS = 1;
 
+	protected static final int DEFAULT_RETRY_HANDLER_SLEEP_TIME = 2000;
+	private static final int DEFAULT_NUM_RETRIES = 3;
+
 	static final String BITMAP_EXTRA = "droidfu:extra_bitmap";
 
-	private static int numAttempts = 3;
+	protected static int numRetries = DEFAULT_NUM_RETRIES;
 
 	/**
 	 * @param numThreads
@@ -58,7 +53,7 @@ public class ImageLoader implements Runnable {
 	 *            network connection fails
 	 */
 	public static void setMaxDownloadAttempts(int numAttempts) {
-		ImageLoader.numAttempts = numAttempts;
+		ImageLoader.numRetries = numAttempts;
 	}
 
 	/**
@@ -74,11 +69,11 @@ public class ImageLoader implements Runnable {
 	 */
 	public static synchronized void initialize(Context context) {
 		if (executor == null) {
-			executor = (ThreadPoolExecutor) Executors
-					.newFixedThreadPool(DEFAULT_POOL_SIZE);
+			executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(
+					DEFAULT_POOL_SIZE, new LowestPriorityThreadFactory());
 		}
 		if (imageCache == null) {
-			imageCache = ImageCache.createInstance(context, 50, 5);
+			imageCache = ImageCache.createInstance(context, 70, 5);
 		}
 	}
 
@@ -133,7 +128,7 @@ public class ImageLoader implements Runnable {
 	 */
 	public static void clearCache() {
 		synchronized (imageCache) {
-			imageCache.clear();
+			imageCache.resetMemoryPurger();
 		}
 	}
 
@@ -142,59 +137,46 @@ public class ImageLoader implements Runnable {
 		notifyImageLoaded(bitmap);
 	}
 
-	public static final int THUMBNAIL_HEIGHT = 50;
-	public static final int THUMBNAIL_WIDTH = 50;
-
-	// ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	// imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-	// byte[] byteArray = baos.toByteArray();
-
 	private Bitmap downloadImage(String imageUrl) {
-		Bitmap bitmap = null;
 		if (imageUrl == null || imageUrl.equals("")) {
-			return bitmap;
+			return null;
 		}
 
+		Bitmap bitmap = null;
+		if (Constants.DEBUG_MODE)
+			Log.d("ImageLoader", "Download (" + imageUrl + ")");
+
 		int timesTried = 1;
-		while (timesTried <= numAttempts) {
+
+		while (timesTried <= numRetries) {
 			try {
-				URL url = new URL(imageUrl);
-				URLConnection con = url.openConnection();
-				con.setConnectTimeout(READ_TIMEOUT);
-				con.setReadTimeout(READ_TIMEOUT);
-				bitmap = createThumbnail(con.getInputStream());
+				// The bitmap isn't cached so download from the web
+				BetterHttpResponse response = HttpUtility.get(imageUrl);
+				InputStream is = response.getResponseBody();
+				bitmap = ImageCache.decodeStream(is);
+
+				// save in 1st level cache hit (memory)
 				synchronized (imageCache) {
 					imageCache.put(imageUrl, bitmap);
 				}
 				break;
 			} catch (Throwable e) {
-				e.printStackTrace();
-				Log.w(ImageLoader.class.getSimpleName(), "download for "
-						+ imageUrl + " failed (attempt " + timesTried + ")");
+				if (e instanceof OutOfMemoryError) {
+					if (Constants.DEBUG_MODE)
+						Log.e(TAG, "Out of memory", e);
+					clearCache();
+				}
+				Log.w(TAG, "download for " + imageUrl + " failed (attempt "
+						+ timesTried + ")");
 				try {
-					Thread.sleep(2000);
+					Thread.sleep(DEFAULT_RETRY_HANDLER_SLEEP_TIME);
 				} catch (InterruptedException e1) {
 				}
 
 				timesTried++;
 			}
 		}
-		return bitmap;
-	}
 
-	private Bitmap createThumbnail(InputStream is) throws IOException {
-		Bitmap bitmap = null;
-		bitmap = BitmapFactory.decodeStream(is);
-		if (null != bitmap) {
-			is.close();
-			Float width = Float.valueOf(bitmap.getWidth());
-			Float height = Float.valueOf(bitmap.getHeight());
-			Float ratio = width / height;
-			bitmap = Bitmap.createScaledBitmap(bitmap,
-					(int) (THUMBNAIL_HEIGHT * ratio), THUMBNAIL_HEIGHT, false);
-		} else {
-			bitmap = BitmapFactory.decodeResource(Application.getInstance().getResources(), R.drawable.thumb);
-		}
 		return bitmap;
 	}
 
@@ -212,5 +194,16 @@ public class ImageLoader implements Runnable {
 		}
 
 		handler.sendMessage(message);
+	}
+
+	static class LowestPriorityThreadFactory implements ThreadFactory {
+
+		@Override
+		public Thread newThread(final Runnable r) {
+			final Thread t = new Thread(r);
+			t.setPriority(Thread.MIN_PRIORITY);
+			return t;
+		}
+
 	}
 }

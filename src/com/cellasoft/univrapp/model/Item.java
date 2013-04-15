@@ -1,6 +1,7 @@
 package com.cellasoft.univrapp.model;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.Date;
 
 import android.net.Uri;
@@ -32,7 +33,7 @@ public class Item implements ActionSupport, Comparable<Item>, Serializable {
 	public Item() {
 		this.id = 0;
 		this.read = UNREAD;
-		this.pubDate = new Date(System.currentTimeMillis());
+		this.pubDate = new Timestamp(System.currentTimeMillis());
 	}
 
 	public Item(int id) {
@@ -95,7 +96,7 @@ public class Item implements ActionSupport, Comparable<Item>, Serializable {
 		return description;
 	}
 
-	public Date getDate() {
+	public Date getPubDate() {
 		return pubDate;
 	}
 
@@ -133,6 +134,10 @@ public class Item implements ActionSupport, Comparable<Item>, Serializable {
 		} else if (!link.equals(other.link))
 			return false;
 		return true;
+	}
+
+	public void markItemAsRead() {
+		ContentManager.markItemAsRead(this);
 	}
 
 	@Override
@@ -173,10 +178,39 @@ public class Item implements ActionSupport, Comparable<Item>, Serializable {
 		public static final String LINK = "LINK";
 		public static final String READ = "READ";
 		public static final String CHANNEL_ID = "CHANNEL_ID";
+		public static final String UPDATE_TIME = "UPDATE_TIME";
+		public static final String UNREAD_COUNT = "UNREAD";
+	    public static final String COUNT = "COUNT(DISTINCT ID)";
+	    
+		public static final Uri hasTagAndLimit(int limit) {
+			return Uri.parse("content://" + Provider.AUTHORITY + "/items/tag/"
+					+ limit);
+		}
+
+		public static final Uri count() {
+			return Uri
+					.parse("content://" + Provider.AUTHORITY + "/items/count");
+		}
+
+		public static final Uri countUnreadEachChannel() {
+			return Uri.parse("content://" + Provider.AUTHORITY
+					+ "/items/unread");
+		}
+
+		public static final Uri countUnread() {
+			return Uri.parse("content://" + Provider.AUTHORITY
+					+ "/items/unread/all");
+		}
+
+		public static final Uri limit(int limit) {
+			return Uri.parse("content://" + Provider.AUTHORITY + "/items/"
+					+ limit);
+		}
 
 		public static final Uri limitAndStartAt(int limit, int offset) {
 			return Uri.parse("content://" + Provider.AUTHORITY + "/items/"
 					+ limit + "/" + offset);
 		}
+
 	}
 }

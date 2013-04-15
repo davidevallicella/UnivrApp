@@ -7,77 +7,54 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ConnectException;
+import java.net.MalformedURLException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
-import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 
-import com.cellasoft.univrapp.activity.R;
-import com.cellasoft.univrapp.manager.ContentManager;
-import com.cellasoft.univrapp.model.Image;
+import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.exception.UnivrReaderException;
+import com.github.droidfu.http.BetterHttpResponse;
+import com.google.common.collect.MapMaker;
 
-/**
- * <p>
- * A simple 2-level cache for bitmap images consisting of a small and fast
- * in-memory cache (1st level cache) and a slower but bigger disk cache (2nd
- * level cache). For second level caching, the application's cache directory
- * will be used. Please note that Android may at any point decide to wipe that
- * directory.
- * </p>
- * <p>
- * When pulling from the cache, it will first attempt to load the image from
- * memory. If that fails, it will try to load it from disk. If that succeeds,
- * the image will be put in the 1st level cache and returned. Otherwise it's a
- * cache miss, and the caller is responsible for loading the image from
- * elsewhere (probably the Internet).
- * </p>
- * <p>
- * Pushes to the cache are always write-through (i.e., the image will be stored
- * both on disk and in memory).
- * </p>
- * 
- * @author Matthias Kaeppler
- */
 public class ImageCache implements Map<String, Bitmap> {
+	private static final String TAG = ImageCache.class.getSimpleName();
+	private static final int MEMORY_PURGE_DELAY = 120 * 1000;
+
 	private static ImageCache instance;
 
-	public static final int THUMBNAIL_HEIGHT = 50;
-	public static final int THUMBNAIL_WIDTH = 50;
+	public static final int THUMBNAIL_HEIGHT = 60;
+	public static final int THUMBNAIL_WIDTH = 60;
 
 	private static int cachedImageQuality = 100;
-	private String secondLevelCacheDir;
-	private Map<String, Bitmap> cache;
-	private static CompressFormat compressedImageFormat = CompressFormat.JPEG;
+	private Map<String, Bitmap> memoryCache;
+
+	private static CompressFormat compressedPNGImageFormat = CompressFormat.PNG;
+
+	private final Handler mHandler;
+	private final MemoryPurger mPurger;
 
 	private ImageCache(Context context, int initialCapacity,
 			int concurrencyLevel) {
-		cache = new ConcurrentHashMap<String, Bitmap>(initialCapacity, 0.75f,
-				concurrencyLevel);
-		this.secondLevelCacheDir = Environment.getExternalStorageDirectory()
-				.getAbsolutePath() + "/univrapp/imagecache";
-		new File(secondLevelCacheDir).mkdirs();
+		memoryCache = new MapMaker().initialCapacity(initialCapacity)
+				.concurrencyLevel(concurrencyLevel).weakValues().makeMap();
+		FileCache.createInstance(context);
+		mHandler = new Handler();
+		mPurger = new MemoryPurger(this);
 	}
 
 	public static synchronized ImageCache createInstance(Context context,
 			int initialCapacity, int concurrencyLevel) {
 		instance = new ImageCache(context, initialCapacity, concurrencyLevel);
-		//clearCacheFolder();
 		return instance;
 	}
 
@@ -90,36 +67,43 @@ public class ImageCache implements Map<String, Bitmap> {
 	 *            the quality of images being compressed and written to disk
 	 *            (2nd level cache) as a number in [0..100]
 	 */
-	public void setCachedImageQuality(int cachedImageQuality) {
-		this.cachedImageQuality = cachedImageQuality;
+	public void setCachedImageQuality(int imageQuality) {
+		cachedImageQuality = imageQuality;
 	}
 
 	public int getCachedImageQuality() {
 		return cachedImageQuality;
 	}
 
+	@Override
 	public synchronized Bitmap get(Object key) {
 		String imageUrl = (String) key;
-		Bitmap bitmap = cache.get(imageUrl);
+		Bitmap bitmap = memoryCache.get(imageUrl);
 
 		if (bitmap != null) {
+			if (Constants.DEBUG_MODE)
+				Log.d("Image cache", "1nd level cache (memory)");
 			// 1st level cache hit (memory)
 			return bitmap;
 		}
 
-		File imageFile = getImageFile(imageUrl);
+		// 2nd level cache hit (disk)
+		File imageFile = FileCache.getImageFile(imageUrl);
 		if (imageFile.exists()) {
-			// 2nd level cache hit (disk)
+			if (Constants.DEBUG_MODE)
+				Log.d("Image cache", "2nd level cache (disk)");
+
 			try {
 				bitmap = BitmapFactory.decodeFile(imageFile.getAbsolutePath());
 			} catch (Throwable e) {
+				// treat decoding errors as a cache miss
 			}
 
 			if (bitmap == null) {
-				// treat decoding errors as a cache miss
 				return null;
 			}
-			cache.put(imageUrl, bitmap);
+
+			memoryCache.put(imageUrl, bitmap);
 			return bitmap;
 		}
 
@@ -127,183 +111,172 @@ public class ImageCache implements Map<String, Bitmap> {
 		return null;
 	}
 
-	public Bitmap put(String imageUrl, Bitmap image) {
-		File imageFile = getImageFile(imageUrl);
+	@Override
+	public Bitmap put(String imageUrl, Bitmap bitmap) {
+		if (imageUrl == null || bitmap == null)
+			return null;
+
 		try {
+			File imageFile = FileCache.getImageFile(imageUrl);
 			imageFile.createNewFile();
 			FileOutputStream ostream = new FileOutputStream(imageFile);
-			image.compress(compressedImageFormat, cachedImageQuality, ostream);
-			ostream.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.out.println(imageUrl);
-			e.printStackTrace();
+			imageFile = null;
+
+			bitmap.compress(compressedPNGImageFormat, cachedImageQuality,
+					ostream);
+
+			StreamUtils.closeQuietly(ostream);
+		} catch (Throwable e) {
+			if (e instanceof FileNotFoundException)
+				if (Constants.DEBUG_MODE)
+					Log.e(TAG, "File not found", e);
+			if (e instanceof IOException)
+				if (Constants.DEBUG_MODE)
+					Log.e(TAG, "Could not get remote image", e);
 		}
 
-		return cache.put(imageUrl, image);
+		if (Constants.DEBUG_MODE)
+			Log.d("Image cache", "Chached " + imageUrl);
+
+		return memoryCache.put(imageUrl, bitmap);
 	}
 
+	@Override
 	public void putAll(Map<? extends String, ? extends Bitmap> t) {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public boolean containsKey(Object key) {
-		return cache.containsKey(key);
+		return memoryCache.containsKey(key);
 	}
 
+	@Override
 	public boolean containsValue(Object value) {
-		return cache.containsValue(value);
+		return memoryCache.containsValue(value);
 	}
 
+	@Override
 	public Bitmap remove(Object key) {
-		return cache.remove(key);
+		Bitmap bitmap = memoryCache.remove(key);
+		if (bitmap != null) {
+			bitmap.recycle();
+			bitmap = null;
+		}
+		return null;
 	}
 
+	@Override
 	public Set<String> keySet() {
-		return cache.keySet();
+		return memoryCache.keySet();
 	}
 
+	@Override
 	public Set<java.util.Map.Entry<String, Bitmap>> entrySet() {
-		return cache.entrySet();
+		return memoryCache.entrySet();
 	}
 
+	@Override
 	public int size() {
-		return cache.size();
+		return memoryCache.size();
 	}
 
+	@Override
 	public boolean isEmpty() {
-		return cache.isEmpty();
+		return memoryCache.isEmpty();
 	}
 
+	@Override
 	public void clear() {
-		cache.clear();
+		try {
+			memoryCache.clear();
+			FileCache.clearCacheFolder();
+			System.gc();
+		} catch (final Exception e) {
+			Log.e(TAG, "Unknown exception", e);
+		}
 	}
 
+	@Override
 	public Collection<Bitmap> values() {
-		return cache.values();
+		return memoryCache.values();
 	}
 
-	private File getImageFile(String imageUrl) {
-		return new File(getCacheFileName(imageUrl));
-	}
+	public static void downloadImage(String imageUrl)
+			throws UnivrReaderException, ConnectException {
 
-	public static void downloadImage(String imageUrl) throws IOException {
-		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
-			HttpClient client = new DefaultHttpClient();
-			HttpParams params = client.getParams();
-			HttpConnectionParams.setConnectionTimeout(params,
-					ImageLoader.CONNECT_TIMEOUT);
-			HttpConnectionParams.setSoTimeout(params, ImageLoader.READ_TIMEOUT);
-			HttpGet httpGet = new HttpGet(imageUrl);
-			HttpResponse response = client.execute(httpGet);
-			InputStream is = response.getEntity().getContent();
+		if (Constants.DEBUG_MODE)
+			Log.d("ImageCache", "Download (" + imageUrl + ")");
 
-			Bitmap bmp = createThumbnail(is);
-			ByteArrayInputStream bs = bitmapToInputStream(bmp);
-
-			// save to cache folder
-			if (Constants.DEBUG_MODE)
-				Log.i(Constants.LOG_TAG, "Save image to "
-						+ getCacheFileName(imageUrl));
-			File imageFile = new File(getCacheFileName(imageUrl));
+		try {
+			// The bitmap isn't cached so download from the web
+			BetterHttpResponse response = HttpUtility.get(imageUrl);
+			InputStream is = response.getResponseBody();
+			Bitmap bitmap = decodeStream(is);
+			ByteArrayInputStream bs = bitmapToInputStream(bitmap);
+			bitmap.recycle();
+			bitmap = null;
+			File imageFile = new File(FileCache.getCacheFileName(imageUrl));
 			imageFile.createNewFile();
-			FileOutputStream os = null;
-			try {
-				os = new FileOutputStream(imageFile);
-				StreamUtils.writeStream(bs, os);
-			} finally {
-				if (os != null) {
-					os.close();
-				}
-				if (bs != null) {
-					bs.close();
-				}
-			}
-
-		} else {
-			throw new ConnectException("Network Not Available!");
+			OutputStream os = new FileOutputStream(imageFile);
+			StreamUtils.writeStream(bs, os);
+			StreamUtils.closeQuietly(os);
+			StreamUtils.closeQuietly(bs);
+		} catch (Throwable e) {
+			if (e instanceof MalformedURLException)
+				if (Constants.DEBUG_MODE)
+					Log.e(TAG, "Bad image URL", e);
+			if (e instanceof IOException)
+				if (Constants.DEBUG_MODE)
+					Log.e(TAG, "Could not get remote image", e);
 		}
 	}
 
 	private static ByteArrayInputStream bitmapToInputStream(Bitmap src) {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		src.compress(compressedImageFormat, cachedImageQuality, os);
+		src.compress(compressedPNGImageFormat, cachedImageQuality, os);
 
 		byte[] array = os.toByteArray();
+		StreamUtils.closeQuietly(os);
 		return new ByteArrayInputStream(array);
 	}
 
-	public static Bitmap createThumbnail(InputStream is) throws IOException {
-		Bitmap bitmap = null;
-		bitmap = BitmapFactory.decodeStream(is);
-		if (null != bitmap) {
-			is.close();
-			Float width = Float.valueOf(bitmap.getWidth());
-			Float height = Float.valueOf(bitmap.getHeight());
-			Float ratio = width / height;
-			bitmap = Bitmap.createScaledBitmap(bitmap,
-					(int) (THUMBNAIL_HEIGHT * ratio), THUMBNAIL_HEIGHT, false);
-		} else {
-			bitmap = BitmapFactory.decodeResource(Application
-					.getInstance().getResources(), R.drawable.thumb);
+	static Bitmap decodeStream(InputStream is) throws IOException {
+		if (is == null)
+			return null;
+
+		final BitmapFactory.Options mOptions = new BitmapFactory.Options();
+		mOptions.inPurgeable = true;
+		mOptions.inDither = false;
+		Bitmap bitmap = BitmapFactory.decodeStream(is, null, mOptions);
+
+		StreamUtils.closeQuietly(is);
+
+		if (bitmap != null) {
+			ImageScale scale = new ImageScale(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+			return scale.transform(bitmap);
 		}
+
 		return bitmap;
 	}
 
-	public static String getCacheFileName(String imageUrl) {
-		long imageId = 0;
-		int pos = imageUrl.lastIndexOf('#');
-		if (pos > 0) {
-			try {
-				imageId = Integer.parseInt(imageUrl.substring(pos + 1));
-			} catch (NumberFormatException nfe) {
-			}
-		}
-		if (imageId == 0) {
-			Image image = ContentManager.loadImage(imageUrl);
-			if (image == null)
-				return "";
-			imageId = image.id;
-		}
-		return getCacheFileName(imageId);
+	public void resetMemoryPurger() {
+		mHandler.removeCallbacks(mPurger);
+		mHandler.postDelayed(mPurger, MEMORY_PURGE_DELAY);
 	}
 
-	public static String getCacheFileName(long imageId) {
-		return instance.secondLevelCacheDir + "/" + imageId;
-	}
+	private static final class MemoryPurger implements Runnable {
 
-	public static boolean isCached(String imageUrl) {
-		File file = new File(getCacheFileName(imageUrl));
-		return file.exists();
-	}
+		final ImageCache cache;
 
-	public static void clearCacheIfNecessary() {
-		List<Integer> oldestImageIds = ContentManager.loadOldestImageIds(2000);
-		for (int imageId : oldestImageIds) {
-			try {
-				File imageFile = new File(getCacheFileName(imageId));
-				imageFile.delete();
-				
-				ContentManager.deleteImage(imageId);
-			} catch (RuntimeException e) {
-			}
+		MemoryPurger(final ImageCache cache) {
+			this.cache = cache;
 		}
-	}
 
-	public static void clearCacheFolder() {
-		File cacheDir = new File(instance.secondLevelCacheDir);
-		if (!cacheDir.exists())
-			return;
-
-		File[] files = cacheDir.listFiles();
-		if (files != null) {
-			for (File file : files) {
-				try {
-					file.delete();
-				} catch (Throwable t) {
-				}
-			}
+		@Override
+		public void run() {
+			cache.clear();
 		}
+
 	}
 }

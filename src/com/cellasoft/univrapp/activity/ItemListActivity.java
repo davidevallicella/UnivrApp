@@ -1,41 +1,51 @@
 package com.cellasoft.univrapp.activity;
 
-import java.io.IOException;
+import java.util.List;
 
-import org.apache.http.client.ClientProtocolException;
-
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
+import com.cellasoft.univrapp.ConnectivityReceiver;
+import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Settings;
+import com.cellasoft.univrapp.adapter.ItemAdapter.OnItemRequestListener;
+import com.cellasoft.univrapp.criteria.LatestItems;
+import com.cellasoft.univrapp.exception.UnivrReaderException;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.manager.SynchronizationManager;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Item;
+import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.service.SynchronizationService;
 import com.cellasoft.univrapp.utils.ActiveList;
-import com.cellasoft.univrapp.utils.Constants;
-import com.cellasoft.univrapp.utils.HtmlParser;
+import com.cellasoft.univrapp.utils.DateUtils;
 import com.cellasoft.univrapp.utils.ImageLoader;
-import com.cellasoft.univrapp.utils.ItemListView;
-import com.cellasoft.univrapp.utils.Settings;
-import com.cellasoft.univrapp.utils.SynchronizationListener;
+import com.cellasoft.univrapp.widget.ItemListView;
+import com.cellasoft.univrapp.widget.SynchronizationListener;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
+import com.google.ads.Ad;
+import com.google.ads.AdListener;
 import com.google.ads.AdRequest;
-import com.google.ads.AdSize;
+import com.google.ads.AdRequest.ErrorCode;
 import com.google.ads.AdView;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
@@ -43,6 +53,7 @@ import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
  * @author Davide Vallicella
  * @version 1.0
  */
+@SuppressLint("NewApi")
 public class ItemListActivity extends SherlockListActivity {
 
 	private static final String TAG = ItemListActivity.class.getSimpleName();
@@ -50,8 +61,10 @@ public class ItemListActivity extends SherlockListActivity {
 
 	private Channel channel;
 	private ItemListView itemListView;
+	private AdView adView;
 
-	private boolean updated = true;
+	private boolean loading = false;
+	private boolean refresh = false;
 
 	private SynchronizationListener synchronizationListener = new SynchronizationListener() {
 		public void onStart() {
@@ -64,10 +77,18 @@ public class ItemListActivity extends SherlockListActivity {
 			runOnUiThread(new Runnable() {
 				public void run() {
 					if (totalNewItems > 0) {
+						if (Constants.DEBUG_MODE)
+							Log.d(TAG, "Synchronization Listener, load item");
 						loadItems();
 					}
 				}
 			});
+		}
+	};
+
+	private OnItemRequestListener onItemRequestListener = new OnItemRequestListener() {
+		public void onRequest(Item lastItem) {
+			loadMoreItems(lastItem);
 		}
 	};
 
@@ -80,7 +101,8 @@ public class ItemListActivity extends SherlockListActivity {
 
 		if (getIntent().hasExtra(CHANNEL_ID_PARAM)) {
 			int channelId = getIntent().getIntExtra(CHANNEL_ID_PARAM, 0);
-			channel = new Channel(channelId);
+			channel = Channel.findById(channelId,
+					ContentManager.FULL_CHANNEL_LOADER);
 			init();
 		}
 	}
@@ -90,19 +112,24 @@ public class ItemListActivity extends SherlockListActivity {
 		if (Constants.DEBUG_MODE)
 			Log.d(TAG, "onStart()");
 		super.onStart();
-		showChannel(channel.id);
+		loadItems();
 	}
 
 	@Override
 	protected void onResume() {
+		if (Constants.DEBUG_MODE)
+			Log.d(TAG, "onResume()");
 		super.onResume();
-
 		SynchronizationManager.getInstance().registerSynchronizationListener(
 				synchronizationListener);
+		onChannelUpdated();
+		showAdmodBanner();
 	}
 
 	@Override
 	protected void onPause() {
+		if (Constants.DEBUG_MODE)
+			Log.d(TAG, "onPause()");
 		super.onPause();
 		SynchronizationManager.getInstance().unregisterSynchronizationListener(
 				synchronizationListener);
@@ -129,22 +156,126 @@ public class ItemListActivity extends SherlockListActivity {
 				refresh();
 			}
 		});
+
+		if (!channel.url.equals(Settings.getUniversity().url)) {
+			getSupportActionBar().setIcon(
+					new BitmapDrawable(getResources(),
+							imageLoader(channel.imageUrl)));
+		} else {
+			getSupportActionBar().setIcon(
+					Settings.getUniversity().logo_from_resource);
+		}
+
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		getSupportActionBar().setTitle(channel.title);
+		
 		initAnimation();
 		initBanner();
+	}
+
+	private Bitmap imageLoader(String imageUrl) {
+		if (imageUrl != null && imageUrl.length() > 0) {
+			return ImageLoader.get(imageUrl);
+		}
+		// default image
+		return BitmapFactory.decodeResource(getResources(), R.drawable.thumb);
 	}
 
 	private void initAnimation() {
 		LayoutAnimationController controller = AnimationUtils
 				.loadLayoutAnimation(ItemListActivity.this,
 						R.anim.list_layout_controller);
+		controller.getAnimation().reset();
+		
 		itemListView.setLayoutAnimation(controller);
 	}
 
+	private ImageButton closeAdmodButton;
+
 	private void initBanner() {
-		AdView adView = new AdView(this, AdSize.BANNER, Settings.ID_EDITORE);
-		LinearLayout layout = (LinearLayout) findViewById(R.id.footer_banner);
-		layout.addView(adView);
-		adView.loadAd(new AdRequest().addTestDevice(AdRequest.TEST_EMULATOR));
+		// Look up the AdView as a resource and load a request.
+		adView = (AdView) this.findViewById(R.id.adView);
+		adView.loadAd(new AdRequest());
+
+		adView.setAdListener(new AdListener() {
+			@Override
+			public void onReceiveAd(Ad arg0) {
+				if (closeAdmodButton == null) {
+					addCloseButtonTask(adView);
+				} else {
+					adView.setVisibility(View.VISIBLE);
+					closeAdmodButton.setVisibility(View.VISIBLE);
+				}
+			}
+
+			@Override
+			public void onPresentScreen(Ad arg0) {
+			}
+
+			@Override
+			public void onLeaveApplication(Ad arg0) {
+			}
+
+			@Override
+			public void onFailedToReceiveAd(Ad arg0, ErrorCode arg1) {
+			}
+
+			@Override
+			public void onDismissScreen(Ad arg0) {
+			}
+		});
+	}
+
+	private void showAdmodBanner() {
+		if (adView != null && closeAdmodButton != null) {
+			adView.setVisibility(View.VISIBLE);
+			closeAdmodButton.setVisibility(View.VISIBLE);
+		}
+	}
+
+	private void addCloseButtonTask(final AdView adView) {
+		new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected void onPostExecute(Void result) {
+				runOnUiThread(new Runnable() {
+					public void run() {
+						((RelativeLayout) findViewById(R.id.AdModLayout))
+								.addView(closeAdmodButton);
+					}
+				});
+			}
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				SystemClock.sleep(5000);
+
+				RelativeLayout.LayoutParams closeLayoutParams = new RelativeLayout.LayoutParams(
+						30, 30);
+				closeLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,
+						RelativeLayout.TRUE);
+				closeLayoutParams.addRule(RelativeLayout.ALIGN_LEFT,
+						RelativeLayout.TRUE);
+				closeLayoutParams.bottomMargin = (int) adView.getHeight() - 15;
+
+				closeAdmodButton = new ImageButton(getApplicationContext());
+				closeAdmodButton.setLayoutParams(closeLayoutParams);
+				closeAdmodButton.setImageResource(R.drawable.close_button);
+				closeAdmodButton
+						.setBackgroundResource(android.R.color.transparent);
+				closeAdmodButton.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						closeAdmodButton.setVisibility(View.GONE);
+						if (adView != null) {
+							adView.setVisibility(View.GONE);
+						}
+					}
+				});
+
+				return null;
+			}
+		}.execute();
 	}
 
 	@Override
@@ -156,6 +287,7 @@ public class ItemListActivity extends SherlockListActivity {
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		Item item = (Item) l.getItemAtPosition(position);
+		markItemAsRead(item);
 		showItem(item);
 	}
 
@@ -164,129 +296,77 @@ public class ItemListActivity extends SherlockListActivity {
 			com.actionbarsherlock.view.MenuItem item) {
 
 		switch (item.getItemId()) {
-		// case R.id.menu_refresh:
-		// refreshItem = item;
-		// // Refresh the data
-		// refresh();
-		// break;
 		case R.id.menu_clear:
-			cleanList();
-			break;
+			if (!refresh)
+				cleanList();
+			return true;
+		case android.R.id.home:
+			finish();
+			return true;
+		case R.id.menu_contact:
+			showContact();
+			return true;
 		default:
-			break;
+			return super.onOptionsItemSelected(item);
 		}
-		return super.onOptionsItemSelected(item);
 	}
 
-	private void onChannelUpdated(Channel channel) {
-		this.channel = channel;
-	}
-
-	View refreshView;
-	ImageView refreshImage;
-	com.actionbarsherlock.view.MenuItem refreshItem;
-	Animation rotateClockwise;
-
-	private void refreshAnim() {
-		// Inflate our custom layout.
-		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-		refreshView = inflater.inflate(R.layout.refresh_actionview, null);
-
-		// Load the animation
-		final Animation rotateClockwise = AnimationUtils.loadAnimation(this,
-				R.anim.rotate);
-		rotateClockwise.setAnimationListener(new Animation.AnimationListener() {
-
-			@Override
-			public void onAnimationStart(Animation animation) {
-			}
-
-			@Override
-			public void onAnimationRepeat(Animation animation) {
-				if (updated)
-					rotateClockwise.setRepeatCount(0);
-			}
-
-			@Override
-			public void onAnimationEnd(Animation animation) {
-				if (updated) { // Download complete? Stop.
-					refreshView.clearAnimation();
-					refreshItem.setActionView(null);
-				} else { // Still downloading? Start again.
-					refreshView.startAnimation(rotateClockwise);
-				}
-			}
-		}); // Set the listener
-
-		// Apply the View to our MenuItem
-		refreshItem.setActionView(refreshView);
-		// Apply the animation to our View
-		refreshView.startAnimation(rotateClockwise);
+	private void onChannelUpdated() {
+		String lastUpdate = getResources().getString(
+				R.string.last_update_notification).replace("{date}",
+				DateUtils.formatTimeMillis(channel.updateTime));
+		getSupportActionBar().setSubtitle(lastUpdate);
 
 	}
 
 	private void refresh() {
+		refresh = true;
 		final int maxItemsForChannel = Settings.getMaxItemsForChannel();
 
-		BetterAsyncTask<Void, Void, Integer> task = new BetterAsyncTask<Void, Void, Integer>(
+		BetterAsyncTask<Void, Void, List<Item>> task = new BetterAsyncTask<Void, Void, List<Item>>(
 				this) {
 
 			@Override
-			protected void before(Context context) {
-				updated = false;
-				// refreshAnim();
-			}
+			protected void after(Context context, final List<Item> newItems) {
+				String size = "0";
+				if (newItems != null && newItems.size() > 0) {
+					new Runnable() {
+						public void run() {
+							itemListView.addItemsOnTop(newItems);
+							itemListView.startLayoutAnimation();
+						}
+					}.run();
 
-			@Override
-			protected void after(Context context, Integer items) {
-				updated = true;
+					size = String.valueOf(newItems.size());
+				}
 				itemListView.onRefreshComplete();
-				onChannelUpdated(channel);
-				Toast.makeText(context, "Find " + items + " news.", Toast.LENGTH_LONG).show();
+				onChannelUpdated();
+				String message = getResources().getString(
+						R.string.new_items_notification).replace("{total}",
+						size);
+				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				refresh = false;
 			}
 
 			@Override
 			protected void handleError(Context context, Exception e) {
-				updated = true;
 				itemListView.onRefreshComplete();
-				Toast.makeText(context, "Cannot load the feed.", Toast.LENGTH_LONG).show();
+				String message = getResources().getString(
+						R.string.not_load_notification);
+				Toast.makeText(context, message + "\n" + e.getMessage(), Toast.LENGTH_SHORT).show();
+				refresh = false;
 			}
 		};
-		task.setCallable(new BetterAsyncTaskCallable<Void, Void, Integer>() {
+		task.setCallable(new BetterAsyncTaskCallable<Void, Void, List<Item>>() {
+
 			@Override
-			public Integer call(BetterAsyncTask<Void, Void, Integer> arg0)
+			public List<Item> call(BetterAsyncTask<Void, Void, List<Item>> arg0)
 					throws Exception {
-				return channel.update(maxItemsForChannel);
-			}
-		});
-		task.disableDialog();
-		task.execute();
-	}
-
-	private void showChannel(final int channelId) {
-		BetterAsyncTask<Channel, Void, Channel> task = new BetterAsyncTask<Channel, Void, Channel>(
-				this) {
-
-			@Override
-			protected void after(Context context, Channel channel) {
-				itemListView.setItems(channel.getItems());
-				onChannelUpdated(channel);
-			}
-
-			@Override
-			protected void handleError(Context context, Exception e) {
-				e.printStackTrace();
-				Toast.makeText(context, "Cannot load the feed.", Toast.LENGTH_LONG).show();
-			}
-		};
-		task.setCallable(new BetterAsyncTaskCallable<Channel, Void, Channel>() {
-			@Override
-			public Channel call(BetterAsyncTask<Channel, Void, Channel> task)
-					throws Exception {
-				channel = Channel.findById(channelId,
-						ContentManager.LIGHTWEIGHT_CHANNEL_LOADER);
-				channel.loadFullItems();
-				return channel;
+				if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
+					return channel.update(maxItemsForChannel);
+				} else
+					throw new UnivrReaderException(
+							"Connessione non disponibile.");
 			}
 		});
 		task.disableDialog();
@@ -296,25 +376,92 @@ public class ItemListActivity extends SherlockListActivity {
 	private void loadItems() {
 		BetterAsyncTask<Void, Void, ActiveList<Item>> task = new BetterAsyncTask<Void, Void, ActiveList<Item>>(
 				this) {
-			protected void after(Context context, ActiveList<Item> items) {
+
+			@Override
+			protected void before(Context context) {
+				itemListView.clean();
+			}
+
+			protected void after(Context context, final ActiveList<Item> items) {
+
+				itemListView.setItemRequestListener(onItemRequestListener);
 				itemListView.setItems(items);
-				onChannelUpdated(channel);
+				itemListView.startLayoutAnimation();
+
+				if (items.size() == Constants.MAX_ITEMS)
+					itemListView.addFooterView();
+				else
+					itemListView.removeFooterView();
+				onChannelUpdated();
 			}
 
 			protected void handleError(Context context, Exception e) {
 				e.printStackTrace();
+				String message = getResources().getString(
+						R.string.not_load_notification);
+				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 			}
 		};
 		task.setCallable(new BetterAsyncTaskCallable<Void, Void, ActiveList<Item>>() {
 			public ActiveList<Item> call(
 					BetterAsyncTask<Void, Void, ActiveList<Item>> task)
 					throws Exception {
-				channel.loadFullItems();
-				return channel.getItems();
+
+				List<Item> items = ContentManager.loadItems(new LatestItems(
+						channel.id), ContentManager.FULL_ITEM_LOADER,
+						ContentManager.LIGHTWEIGHT_CHANNEL_LOADER);
+
+				ActiveList<Item> result = new ActiveList<Item>();
+				result.addAll(items);
+				return result;
 			}
 		});
 		task.disableDialog();
 		task.execute();
+	}
+
+	protected void loadMoreItems(final Item lastItem) {
+		if (loading) {
+			return;
+		}
+
+		loading = true;
+
+		BetterAsyncTask<Void, Void, List<Item>> loadMoreItemsTask = new BetterAsyncTask<Void, Void, List<Item>>(
+				this) {
+			protected void after(Context context, final List<Item> items) {
+				itemListView.addItems(items);
+
+				if (items.size() < Constants.MAX_ITEMS
+						|| itemListView.getCount() >= Settings
+								.getMaxItemsForChannel()) {
+
+					itemListView.removeFooterView();
+					itemListView.setItemRequestListener(null);
+				}
+
+				loading = false;
+			}
+
+			protected void handleError(Context context, Exception e) {
+				e.printStackTrace();
+				loading = false;
+			}
+		};
+		loadMoreItemsTask
+				.setCallable(new BetterAsyncTaskCallable<Void, Void, List<Item>>() {
+					public List<Item> call(
+							BetterAsyncTask<Void, Void, List<Item>> task)
+							throws Exception {
+						return ContentManager.loadItems(new LatestItems(
+								channel.id, lastItem, LatestItems.OLDER,
+								Constants.MAX_ITEMS),
+								ContentManager.FULL_ITEM_LOADER,
+								ContentManager.LIGHTWEIGHT_CHANNEL_LOADER);
+					}
+				});
+		loadMoreItemsTask.disableDialog();
+		loadMoreItemsTask.execute();
 	}
 
 	private void showItem(final Item item) {
@@ -325,30 +472,34 @@ public class ItemListActivity extends SherlockListActivity {
 		Toast.makeText(getApplicationContext(), item.title, Toast.LENGTH_SHORT)
 				.show();
 		in.putExtra("page_url", item.link);
-		new AsyncTask<Void, Void, Void>() {
-			@Override
-			protected Void doInBackground(Void... params) {
-				try {
-					String html = HtmlParser.get(item.link);
-					for(String file : HtmlParser.getDocuments(html)){
-						System.out.println(file);
-					}
-				} catch (ClientProtocolException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				return null;
-			}
-		};
+		startActivity(in);
+	}
+	
+	private void showContact() {
+		Intent intent = new Intent(this, ContactActivity.class);
 		
-		//startActivity(in);
+		Lecturer lecturer = ContentManager.loadLecturer(channel.lecturerId, ContentManager.FULL_LECTURER_LOADER);	
+		
+		intent.putExtra(ContactActivity.LECTURER_ID_PARAM, lecturer.id);
+		intent.putExtra(ContactActivity.LECTURER_NAME_PARAM, lecturer.name);
+		intent.putExtra(ContactActivity.LECTURER_OFFICE_PARAM, lecturer.office);
+		intent.putExtra(ContactActivity.LECTURER_THUMB_PARAM, lecturer.thumbnail);		
+		startActivity(intent);
+	}
+
+	private void markItemAsRead(Item item) {
+		if (!item.isRead()) {
+			item.markItemAsRead();
+		}
 	}
 
 	private void cleanList() {
-		channel.clean();
+		int deletted = channel.clean();
 		itemListView.clean();
+		Toast.makeText(
+				this,
+				getResources().getString(R.string.clean).replace("{total}",
+						String.valueOf(deletted)), Toast.LENGTH_SHORT).show();
+
 	}
 }

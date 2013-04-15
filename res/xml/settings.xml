@@ -1,33 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:switchpref="http://schemas.android.com/apk/res-auto"  >
 
-    <PreferenceCategory android:title="Synchronization" >
+    <PreferenceCategory android:title="@string/pref_categ_sync" >
         <CheckBoxPreference
             android:key="wifi_only"
-            android:summary="Automatic refresh on WiFi Only"
-            android:title="Sync on WiFi only" />
+            android:summary="@string/pref_wify_only_summary"
+            android:title="@string/pref_wify_only" />
 
-        <SwitchPreference
+        <org.jraf.android.backport.switchwidget.SwitchPreference
             android:key="auto_update"
-            android:summary="Automatic update of all subscriptions"
+            android:summary="@string/pref_auto_update_summary"
             android:switchTextOff="NO"
             android:switchTextOn="YES"
-            android:title="Auto update" />
+            android:title="@string/pref_auto_update" />
 
         <ListPreference
             android:dependency="auto_update"
             android:entries="@array/updateInterval"
             android:entryValues="@array/updateIntervalValues"
             android:key="update_interval"
-            android:summary="Define how often updates will be performed"
-            android:title="Updates interval" />
+            android:summary="@string/pref_update_interval_summary"
+            android:title="@string/pref_update_interval" />
 
-        <SwitchPreference
+        <org.jraf.android.backport.switchwidget.SwitchPreference
             android:key="download_images"
-            android:summary="Download and update lecturers thumbnail"
+            android:summary="@string/pref_downloads_lecturers_summary"
             android:switchTextOff="NO"
             android:switchTextOn="YES"
-            android:title="Lecturers thumbnail" />
+            android:title="@string/pref_downloads_lecturers" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_categ_user_prof" >
+        <ListPreference
+            android:entries="@array/MaxItemForChannel"
+            android:entryValues="@array/MaxItemForChannelValues"
+            android:key="max_items_for_channel"
+            android:summary="@string/pref_max_items_for_channel_summary"
+            android:title="@string/pref_max_items_for_channel" />
+        
+        <ListPreference
+            android:entries="@array/keepMaxItem"
+            android:entryValues="@array/keepMaxItemValues"
+            android:key="keep_max_items"
+            android:summary="@string/pref_keep_max_items_summary"
+            android:title="@string/pref_keep_max_items" />
+        
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="prefSendReport"
+            android:summary="@string/pref_send_report_summary"
+            android:title="@string/pref_send_report" />
+
+        <PreferenceScreen
+            android:key="app_version"
+            android:selectable="false"
+            android:summary="@string/app_version"
+            android:title="Application Version" />
+        
     </PreferenceCategory>
 
 </PreferenceScreen>

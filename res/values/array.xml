@@ -2,12 +2,11 @@
 <resources>
 
     <string-array name="updateInterval">
-        
-        <item name="1">Every 1 minute</item>
-        <item name="5">Every 5 minutes</item>
-        <item name="10">Every 10 minutes</item>
-        <item name="15">Every 15 minutes</item>
-        <item name="30">Every 30 minutes</item>
+        <item name="1">@string/minute_1</item>
+        <item name="5">@string/minutes_5</item>
+        <item name="10">@string/minutes_10</item>
+        <item name="15">@string/minutes_15</item>
+        <item name="30">@string/minutes_30</item>
     </string-array>
     <string-array name="updateIntervalValues">
         <item name="1">1</item>
@@ -15,6 +14,36 @@
         <item name="10">10</item>
         <item name="15">15</item>
         <item name="30">30</item>
+    </string-array>
+    
+    <string-array name="keepMaxItem">
+        <item name="1">@string/clearAll</item>
+        <item name="20">@string/keep_20</item>
+        <item name="50">@string/keep_50</item>
+        <item name="100">@string/keep_100</item>
+        <item name="1000">@string/keep_1000</item>
+    </string-array>
+    <string-array name="keepMaxItemValues">
+        <item name="1">1</item>
+        <item name="20">20</item>
+        <item name="50">50</item>
+        <item name="100">100</item>
+        <item name="1000">1000</item>
+    </string-array>
+    
+    <string-array name="MaxItemForChannel">
+        <item name="10">@string/max_10</item>
+        <item name="20">@string/max_20</item>
+        <item name="50">@string/max_50</item>
+        <item name="100">@string/max_100</item>
+        <item name="200">@string/max_200</item>
+    </string-array>
+    <string-array name="MaxItemForChannelValues">
+        <item name="10">10</item>
+        <item name="20">20</item>
+        <item name="50">50</item>
+        <item name="100">100</item>
+        <item name="200">200</item>
     </string-array>
 
 </resources>

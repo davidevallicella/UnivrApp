@@ -7,7 +7,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.cellasoft.univrapp.model.Item;
-import com.cellasoft.univrapp.rss.BaseFeedParser.XML_TAGS;
+import com.cellasoft.univrapp.reader.BaseFeedReader.XML_TAGS;
 import com.cellasoft.univrapp.utils.DateUtils;
 import com.cellasoft.univrapp.utils.Html;
 
@@ -30,7 +30,7 @@ public class RSSHandler extends DefaultHandler {
 	private StringBuilder builder;
 	private int maxItems = 20;
 	int currentState = 0;
-	private SaxFeedParser feed;
+	private RSSFeed feed;
 	private OnNewEntryCallback callback;
 
 	public RSSHandler(int maxItems) {
@@ -45,7 +45,7 @@ public class RSSHandler extends DefaultHandler {
 		this.callback = callback;
 	}
 
-	public SaxFeedParser getFeed() {
+	public RSSFeed getFeed() {
 		return feed;
 	}
 
@@ -64,12 +64,11 @@ public class RSSHandler extends DefaultHandler {
 		try {
 			switch (getTag(localName)) {
 			case CHANNEL:
-				feed = new SaxFeedParser();
+				feed = new RSSFeed();
 				currentState = RSS_CHANNEL;
 				break;
 			case ITEM:
 				currentItem = new Item();
-				// currentItem.channel = this.channel;
 				currentState = RSS_ITEM;
 				break;
 			case TITLE:
@@ -142,7 +141,6 @@ public class RSSHandler extends DefaultHandler {
 				currentItem.setTitle(Html.decode(theFullText));
 				currentState = RSS_ITEM;
 			} else if (currentState == RSS_CHANNEL_TITLE) {
-				// if (channel.title == null)
 				feed.setTitle(Html.decode(theFullText));
 				currentState = RSS_CHANNEL;
 			}
@@ -170,9 +168,7 @@ public class RSSHandler extends DefaultHandler {
 			}
 			break;
 		case PUBDATE:
-			Date updated = new Date();
-			updated = DateUtils.parseDate(theFullText);
-
+			Date updated = DateUtils.parseRfc822(theFullText);
 			if (currentState == RSS_ITEM_PUB_DATE) {
 				currentItem.setDate(updated);
 				currentState = RSS_ITEM;
@@ -197,9 +193,6 @@ public class RSSHandler extends DefaultHandler {
 			throws SAXException {
 		if (builder != null)
 			builder.append(ch, start, length);
-		// for (int i = start; i < start + length; i++)
-		// if (ch[i] != '\n' && ch[i] != '\t' && ch[i] != '\r')
-		// builder.append(ch[i]);
 	}
 
 	private XML_TAGS getTag(String localName) {

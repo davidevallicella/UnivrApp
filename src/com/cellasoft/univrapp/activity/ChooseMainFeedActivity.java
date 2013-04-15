@@ -1,104 +1,118 @@
 package com.cellasoft.univrapp.activity;
 
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import java.util.List;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.Spanned;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
+import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.adapter.UniversitylAdapter;
+import com.cellasoft.univrapp.exception.UnivrReaderException;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Lecturer;
-import com.cellasoft.univrapp.utils.Constants;
-import com.cellasoft.univrapp.utils.HtmlParser;
-import com.cellasoft.univrapp.utils.Settings;
+import com.cellasoft.univrapp.model.University;
+import com.cellasoft.univrapp.reader.UnivrReader;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 
 public class ChooseMainFeedActivity extends SherlockListActivity {
 
 	private UniversitylAdapter adapter;
+	private Channel channel;
+	private BetterAsyncTask<Void, String, Void> saveLecturersTask;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.select_univr);
+		setContentView(R.layout.university_list);
 		init();
 	}
 
 	private void init() {
+		setResult(RESULT_CANCELED);
 		adapter = new UniversitylAdapter(getApplicationContext());
 		getListView().setAdapter(adapter);
 	}
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		String univeristy = adapter.getItem(position);
-		String url = Constants.UNIVERSITY.URL.get(univeristy);
-		Settings.setUniversity(univeristy);
-		if (new Channel(univeristy, url).save())
-			saveLecturers();
+		University univeristy = adapter.getItem(position);
+		Settings.setUniversity(univeristy.name);
+		channel = new Channel(univeristy.name, univeristy.url);
+		channel.starred = true;
+		saveLecturers();
 	}
-	
+
 	private void saveLecturers() {
 		final ProgressDialog progressDialog = new ProgressDialog(this);
 		progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-		progressDialog.setMessage(Html
-				.fromHtml(getString(R.string.progress_txt).replace("{message}",
-						"<b>Connect to </b>" + Settings.getUniversity())));
-		BetterAsyncTask<Void, String, Void> saveLecturersTask = new BetterAsyncTask<Void, String, Void>(
-				this) {
+		Spanned message = Html.fromHtml(
+				getString(R.string.progress_txt).replace("{message}",
+				"<b>Connect to </b>" + Settings.getUniversity().name));
+		progressDialog.setMessage(message);
+		progressDialog.setCancelable(true);
+		progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+			public void onCancel(DialogInterface dialog) {
+					saveLecturersTask.cancel(true);
+					saveLecturersTask = null;
+				}
+			});
+
+		saveLecturersTask = new BetterAsyncTask<Void, String, Void>(this) {
 
 			@Override
 			protected void after(Context context, Void arg1) {
 				progressDialog.dismiss();
-				String message = "Successfull";
-				Toast.makeText(ChooseMainFeedActivity.this, message,
-						Toast.LENGTH_SHORT).show();
+				String message = getResources().getString(R.string.success);
+				Toast.makeText(ChooseMainFeedActivity.this, message, Toast.LENGTH_SHORT).show();
+				setResult(RESULT_OK);
 				finish();
 			}
 
 			@Override
-			protected Void doCheckedInBackground(Context context,
-					Void... params) throws Exception {
-				Elements lecturers = HtmlParser.getLecturerElements();
-				progressDialog.setMax(lecturers.size());
+			protected Void doCheckedInBackground(Context context, Void... params)
+					throws Exception {
 
-				for (Element option : lecturers) {
-					if (isCancelled())
-						finish();
-					int id = Integer.parseInt(option.attr("value"));
-					if (id > 0) {
-						Lecturer lecturer = new Lecturer(option);
-						if (lecturer.save())
-							publishProgress("<b>Initialization Lecturer: </b>"
-									+ lecturer.name + "...");
-						else
-							publishProgress("");
-					}
-				}
-				return null;
+				List<Lecturer> lecturers = UnivrReader.getLecturers();
+				if (lecturers != null && !lecturers.isEmpty() && !isCancelled()) {
+					channel.save();
+					progressDialog.setMax(lecturers.size());
+					progressDialog.setCancelable(false);
+					for (Lecturer lecturer : lecturers) {
+						publishProgress("<b>Save Lecturer</b><br/>" + lecturer.name + "...");
+						lecturer.save();
+					}					
+
+					lecturers.clear();
+					return null;
+				} 
+				
+				throw new UnivrReaderException(getResources().getString(R.string.univrapp_server_exception));
 			}
 
 			@Override
 			protected void onProgressUpdate(String... values) {
 				super.onProgressUpdate(values);
-				if (!values[0].isEmpty())
-					progressDialog.setMessage(Html.fromHtml(getString(
-							R.string.progress_txt).replace("{message}",
-							values[0])));
+				if (values[0].length() != 0) {
+					Spanned message = Html.fromHtml(
+							getString(R.string.progress_txt).replace("{message}",
+							values[0]));
+					progressDialog.setMessage(message);
+				}
 				progressDialog.incrementProgressBy(1);
 			}
 
 			@Override
-			protected void handleError(Context context, Exception arg1) {
+			protected void handleError(Context context, Exception e) {
 				progressDialog.dismiss();
-				Toast.makeText(context, arg1.getMessage(), Toast.LENGTH_LONG)
+				Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG)
 						.show();
 			}
 		};

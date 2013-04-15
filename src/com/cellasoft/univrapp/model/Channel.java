@@ -1,6 +1,7 @@
 package com.cellasoft.univrapp.model;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Observable;
 
@@ -8,15 +9,15 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.util.Log;
 
+import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.UnivrReaderFactory;
 import com.cellasoft.univrapp.loader.ChannelLoader;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.provider.Provider;
+import com.cellasoft.univrapp.reader.UnivrReader;
+import com.cellasoft.univrapp.rss.RSSFeed;
 import com.cellasoft.univrapp.rss.RSSHandler.OnNewEntryCallback;
-import com.cellasoft.univrapp.rss.SaxFeedParser;
 import com.cellasoft.univrapp.utils.ActiveList;
-import com.cellasoft.univrapp.utils.Constants;
-import com.cellasoft.univrapp.utils.UnivrReader;
-import com.cellasoft.univrapp.utils.UnivrReaderFactory;
 
 public class Channel extends Observable implements ActionSupport, Serializable {
 
@@ -25,19 +26,27 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 	private Object synRoot = new Object();
 	private boolean updating = false;
 
-	public int id = 0;
+	public int id;
+	public int lecturerId;
 	public String url;
 	public String title;
 	public String description;
 	public String imageUrl;
+	public int unread;
+	public long updateTime;
 	public boolean isSelected;
 	public boolean starred;
 
 	public Channel() {
+		this.id = 0;
+		this.lecturerId = 0;
+		this.updateTime = new Timestamp(System.currentTimeMillis()).getTime();
 	}
 
 	public Channel(int id) {
 		this.id = id;
+		this.lecturerId = 0;
+		this.updateTime = new Timestamp(System.currentTimeMillis()).getTime();
 	}
 
 	public Channel(String url) {
@@ -45,13 +54,16 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 	}
 
 	public Channel(String title, String url) {
+		this();
 		this.title = title;
 		this.url = url;
 	}
 
-	public Channel(String title, String url, String imageUrl) {
+	public Channel(int lecturerId, String title, String url, String imageUrl, String description) {
 		this(title, url);
+		this.lecturerId = lecturerId;
 		this.imageUrl = imageUrl;
+		this.description = description;
 	}
 
 	public ActiveList<Item> getItems() {
@@ -80,7 +92,8 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 				// find insert location
 				int position = 0;
 				for (Item currentItem : this.items) {
-					if (currentItem.pubDate.before(item.pubDate)) {
+					if (currentItem.updateTime < item.updateTime) {
+						// if (currentItem.pubDate.before(item.pubDate)) {
 						items.add(position, item);
 						return;
 					}
@@ -105,18 +118,20 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		}
 	}
 
-	public int update(int maxItems) {
+	public List<Item> update(int maxItems) {
 		synchronized (synRoot) {
 			if (updating)
-				return 0;
+				return null;
 			updating = true;
 			this.setChanged();
 			this.notifyObservers(updating);
 		}
 
-		int newItems = updateItems(maxItems);
-		if (newItems > 0)
-			newItems = saveItems();
+		List<Item> newItems = updateItems(maxItems);
+		updateTime = new Timestamp(System.currentTimeMillis()).getTime();
+		save();
+
+		saveItems(newItems);
 
 		synchronized (synRoot) {
 			updating = false;
@@ -127,12 +142,13 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		return newItems;
 	}
 
-	protected int updateItems(int maxItems) {
+	protected List<Item> updateItems(int maxItems) {
 		int numberOfFetchedItems = 0;
+		RSSFeed feed = null;
 		try {
 			UnivrReader reader = UnivrReaderFactory.getGoogleReader();
 			while (true) {
-				SaxFeedParser feed = reader.fetchEntriesOfFeed(this, maxItems,
+				feed = reader.fetchEntriesOfFeed(this, maxItems,
 						new OnNewEntryCallback() {
 
 							@Override
@@ -147,11 +163,9 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 							}
 						});
 
-				int position = 0;
-				List<Item> items = feed.getEntries();
-				for (Item item : items) {
-					this.addItem(position, item);
-					position++;
+				List<Item> entries = feed.getEntries();
+				for (Item item : entries) {
+					this.addItem(item);
 				}
 
 				numberOfFetchedItems += feed.getEntries().size();
@@ -173,22 +187,35 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		} catch (Exception e) {
 			Log.e("ERROR", e.getMessage());
 		}
-		
-		return numberOfFetchedItems;
+
+		if (feed != null)
+			return feed.getEntries();
+
+		return null;
 	}
 
-	private int saveItems() {
+	private int saveItems(List<Item> items) {
 		int newItems = 0;
-		if (items != null) {
+		if (items != null && !items.isEmpty()) {
 			if (exist()) {
 				for (Item item : items) {
+					item.updateTime = System.currentTimeMillis();
 					if (item.save()) {
 						newItems++;
 					}
 				}
 			}
 		}
+
 		return newItems;
+	}
+
+	public int countUnreadItems() {
+		return this.unread;
+	}
+
+	public void setUnreadItems(int unread) {
+		this.unread = unread;
 	}
 
 	public boolean isEmpty() {
@@ -203,13 +230,11 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		return getItems().indexOf(item);
 	}
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Title: ").append(title).append("\n");
-		sb.append("Description: ").append(description).append('\n');
-		sb.append("Url: ").append(url).append('\n');
-		return sb.toString();
+	public boolean subscribe() {
+		if (!ContentManager.existChannel(this)) {
+			return save();
+		}
+		return false;
 	}
 
 	@Override
@@ -228,9 +253,8 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		return ContentManager.existChannel(this);
 	}
 
-	public void clean() {
-		this.clearItems();
-		ContentManager.cleanChannel(this, 1);
+	public int clean() {
+		return ContentManager.cleanChannel(this);
 	}
 
 	public void loadLightweightItems() {
@@ -247,15 +271,25 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		return ContentManager.loadChannel(id, loader);
 	}
 
+	@Override
+	public String toString() {
+		return String
+				.format("Channel [id=%s, title=%s, description=%s, url=%s, thumbnail=%s]",
+						id, title, description, url, imageUrl);
+	}
+
 	public static final class Channels implements BaseColumns {
 		public static final Uri CONTENT_URI = Uri.parse("content://"
 				+ Provider.AUTHORITY + "/channels");
 		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.cellasoft.univrapp.provider.channels";
 
 		public static final String ID = "ID";
+		public static final String LECTURER_ID = "LECTURER_ID";
 		public static final String TITLE = "TITLE";
 		public static final String URL = "URL";
 		public static final String DESCRIPTION = "DESCRIPTION";
+		public static final String UPDATE_TIME = "UPDATE_TIME";
+		public static final String UNREAD = "UNREAD";
 		public static final String STARRED = "STARRED";
 		public static final String IMAGE_URL = "IMAGE_URL";
 

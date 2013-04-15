@@ -2,7 +2,6 @@ package com.cellasoft.univrapp.utils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class ActiveList<T> extends ArrayList<T> implements Serializable {
@@ -15,7 +14,7 @@ public class ActiveList<T> extends ArrayList<T> implements Serializable {
 		void onInsert(int location, T item);
 		void onClear();
 	}
-
+	
 	public synchronized void clear() {
 		super.clear();
 		fireChangedEvent();

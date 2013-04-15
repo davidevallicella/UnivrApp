@@ -10,12 +10,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.cellasoft.univrapp.activity.R;
-import com.cellasoft.univrapp.utils.Constants;
-import com.cellasoft.univrapp.utils.Constants.UNIVERSITY;
+import com.cellasoft.univrapp.model.University;
 
 public class UniversitylAdapter extends BaseAdapter {
 
-	private ArrayList<String> universites;
+	private ArrayList<University> universites;
 
 	private Context context;
 
@@ -26,14 +25,14 @@ public class UniversitylAdapter extends BaseAdapter {
 
 	public UniversitylAdapter(Context context) {
 		this.context = context;
-		this.universites = Constants.UNIVERSITY.UNIVERSITES;
+		this.universites = University.getAllUniversity();
 	}
 
 	public int getCount() {
 		return universites.size();
 	}
 
-	public String getItem(int position) {
+	public University getItem(int position) {
 		return universites.get(position);
 	}
 
@@ -43,7 +42,7 @@ public class UniversitylAdapter extends BaseAdapter {
 
 	public View getView(int position, View convertView, ViewGroup parent) {
 		ViewHolder holder;
-		String item = universites.get(position);
+		University university = universites.get(position);
 
 		if (convertView == null) {
 			convertView = View.inflate(context, R.layout.university_item, null);
@@ -54,13 +53,13 @@ public class UniversitylAdapter extends BaseAdapter {
 		} else
 			holder = (ViewHolder) convertView.getTag();
 
-		holder.logo.setImageDrawable(UNIVERSITY.LOGO.get(item));
-		holder.name.setText(item);
-
+		holder.logo.setImageResource(university.logo_from_resource);
+		holder.name.setText(university.name);
+		convertView.setBackgroundResource(university.color_from_resource);
 		return convertView;
 	}
 
-	public void setUniversites(ArrayList<String> universites) {
+	public void setUniversites(ArrayList<University> universites) {
 		this.universites = universites;
 		notifyDataSetChanged();
 	}

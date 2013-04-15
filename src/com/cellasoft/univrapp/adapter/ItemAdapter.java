@@ -1,6 +1,5 @@
 package com.cellasoft.univrapp.adapter;
 
-import java.text.DateFormat;
 import java.util.List;
 
 import android.content.Context;
@@ -16,14 +15,13 @@ import com.cellasoft.univrapp.activity.R;
 import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.utils.ActiveList;
 import com.cellasoft.univrapp.utils.DateUtils;
+import com.cellasoft.univrapp.utils.ImageLoader;
 
 public class ItemAdapter extends BaseAdapter {
-
+	
 	private static final int REFRESH_MESSAGE = 1;
-	private final int[] bgColors = new int[] { R.color.list_bg_1,
-			R.color.list_bg_2 };
+	private final int[] bgColors = new int[] { R.color.aliceBlue, R.color.white };
 	private ActiveList<Item> items = new ActiveList<Item>();
-	StringBuilder sb = new StringBuilder();
 	private int lastRequestPosition = -1;
 	private Context context;
 
@@ -64,9 +62,10 @@ public class ItemAdapter extends BaseAdapter {
 
 	public ItemAdapter(Context context) {
 		this.context = context;
+		ImageLoader.initialize(context);
 	}
 
-	private void refresh() {
+	public void refresh() {
 		handler.sendEmptyMessage(REFRESH_MESSAGE);
 	}
 
@@ -82,10 +81,21 @@ public class ItemAdapter extends BaseAdapter {
 
 	public synchronized void addItems(List<Item> items) {
 		if (this.items != null) {
+			this.items.addAll(items);
+		} else {
+			this.items = new ActiveList<Item>();
+			this.items.addAll(items);
+			this.items.addListener(activeListListener);
+		}
+		this.notifyDataSetChanged();
+	}
+	
+	public synchronized void addItemsOnTop(List<Item> items) {
+		if (this.items != null) {
 			this.items.addAll(0, items);
 		} else {
 			this.items = new ActiveList<Item>();
-			this.items.addAll(0, items);
+			this.items.addAll(items);
 			this.items.addListener(activeListListener);
 		}
 		this.notifyDataSetChanged();
@@ -128,31 +138,27 @@ public class ItemAdapter extends BaseAdapter {
 			holder = (ViewHolder) convertView.getTag();
 
 		holder.title.setText(item.getTitle());
-		holder.description.setText(Html.fromHtml(item.getDescription()));
-		if (item.pubDate != null) {
-			sb.delete(0, sb.length());
-			try {
-				sb.append(android.text.format.DateUtils.formatSameDayTime(
-						item.pubDate.getTime(), System.currentTimeMillis(),
-						DateFormat.MEDIUM, DateFormat.SHORT));
-			} catch (Throwable e) {
-				sb.append(DateUtils.formatDate(item.pubDate));
-			}
-			holder.date.setText(sb.toString());
-		}
+		
+		String description = item.getDescription().replace("Pubblicato da:", "<b>Pubblicato da:</b>");
+		holder.description.setText(Html.fromHtml(description));
+		holder.date.setText(DateUtils.formatDate(item.pubDate));
+		
 
-		int colorPosition = position % bgColors.length;
-		convertView.setBackgroundResource(bgColors[colorPosition]);
+		if(!item.isRead())
+			convertView.setBackgroundResource(bgColors[0]);
+		else
+			convertView.setBackgroundResource(bgColors[1]);
 
 		// request more items if we reach the to 2/3 items
 		int requestPosition = (2 * getCount() / 3);
-		if (position == requestPosition
-				&& lastRequestPosition != requestPosition
+
+		if (((position == requestPosition) || (position == getCount() -1)) 
+				&& lastRequestPosition != requestPosition 
 				&& itemRequestListener != null) {
 			lastRequestPosition = requestPosition;
 			itemRequestListener.onRequest((Item) getItem(getCount() - 1));
 		}
-
+		
 		return convertView;
 	}
 
@@ -163,4 +169,5 @@ public class ItemAdapter extends BaseAdapter {
 	public interface OnItemRequestListener {
 		void onRequest(Item lastItem);
 	}
+	
 }

@@ -12,13 +12,15 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.cellasoft.univrapp.manager.ContentManager;
+import com.cellasoft.univrapp.Application;
+import com.cellasoft.univrapp.ConnectivityReceiver;
+import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.model.Image;
-import com.cellasoft.univrapp.utils.Application;
-import com.cellasoft.univrapp.utils.Constants;
+import com.cellasoft.univrapp.model.Image.Images;
+import com.cellasoft.univrapp.utils.FileCache;
 import com.cellasoft.univrapp.utils.ImageCache;
 import com.cellasoft.univrapp.utils.ImageLoader;
-import com.cellasoft.univrapp.utils.Settings;
 import com.github.droidfu.services.BetterService;
 
 public class DownloadingService extends BetterService {
@@ -36,10 +38,9 @@ public class DownloadingService extends BetterService {
 		return null;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void onStart(Intent intent, int startId) {
-		if (Constants.DEBUG_MODE)
-			Log.d(Constants.LOG_TAG, "Start Downloading Service..");
 		super.onStart(intent, startId);
 		ImageLoader.initialize(this);
 
@@ -91,8 +92,11 @@ public class DownloadingService extends BetterService {
 			downloading = true;
 		}
 
-		final long start = System.currentTimeMillis();
-		if (Settings.getDownloadImages()) {
+		if (Constants.DEBUG_MODE)
+			Log.d(Constants.LOG_TAG, "Start downloading service at " + new Date());
+
+		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()
+				&& Settings.getDownloadImages()) {
 			try {
 				downloadImages();
 			} catch (Throwable t) {
@@ -105,7 +109,7 @@ public class DownloadingService extends BetterService {
 		}
 
 		if (Constants.DEBUG_MODE)
-			Log.d(Constants.LOG_TAG, "Stop Downloading in: " + (System.currentTimeMillis() - start)/1000 + "s");
+			Log.d(Constants.LOG_TAG, "Stop downloading service at " + new Date());
 
 		if (Settings.getDownloadImages()) {
 			scheduleNextDownload();
@@ -114,7 +118,7 @@ public class DownloadingService extends BetterService {
 	}
 
 	private void downloadImages() {
-		ArrayList<Image> queuedImages = ContentManager.loadAllQueuedImages();
+		ArrayList<Image> queuedImages = Images.loadAllQueuedImages();
 		totalDownloads = queuedImages.size();
 
 		for (final Image image : queuedImages) {
@@ -123,7 +127,7 @@ public class DownloadingService extends BetterService {
 
 			try {
 				image.status = Image.IMAGE_STATUS_DOWNLOADING;
-				ContentManager.saveImage(image);
+				image.save();
 
 				downloadImage(image.url, image.id, new DownloadCallback() {
 					public void onComplete() {
@@ -131,7 +135,7 @@ public class DownloadingService extends BetterService {
 							totalDownloads--;
 						}
 						image.status = Image.IMAGE_STATUS_DOWNLOADED;
-						ContentManager.saveImage(image);
+						image.save();
 					}
 
 					public void onSkip() {
@@ -146,12 +150,12 @@ public class DownloadingService extends BetterService {
 						}
 						if (image.retries == Image.MAX_RETRIES) {
 							image.status = Image.IMAGE_STATUS_FAILED;
-							ContentManager.saveImage(image);
 						} else {
 							image.status = Image.IMAGE_STATUS_QUEUED;
 							image.increaseRetries();
-							ContentManager.saveImage(image);
 						}
+
+						image.save();
 					}
 				});
 			} catch (Exception e) {
@@ -174,7 +178,7 @@ public class DownloadingService extends BetterService {
 
 	private void downloadImage(final String imageUrl, final int imageId,
 			final DownloadCallback callback) {
-		if (ImageCache.isCached(imageUrl)) {
+		if (FileCache.isCached(imageUrl)) {
 			callback.onComplete();
 			return;
 		}
@@ -184,9 +188,6 @@ public class DownloadingService extends BetterService {
 				public void run() {
 					try {
 						if (downloading) {
-							if (Constants.DEBUG_MODE)
-								Log.d(Constants.LOG_TAG, "Download #" + imageId
-										+ "(" + imageUrl + ")");
 							ImageCache.downloadImage(imageUrl);
 							callback.onComplete();
 						} else {

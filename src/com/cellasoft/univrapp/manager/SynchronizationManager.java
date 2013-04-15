@@ -1,19 +1,21 @@
 package com.cellasoft.univrapp.manager;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import android.util.Log;
 
+import com.cellasoft.univrapp.ConnectivityReceiver;
+import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.model.Channel;
-import com.cellasoft.univrapp.utils.Application;
-import com.cellasoft.univrapp.utils.ConnectivityReceiver;
-import com.cellasoft.univrapp.utils.Constants;
-import com.cellasoft.univrapp.utils.Settings;
-import com.cellasoft.univrapp.utils.SynchronizationListener;
-import com.cellasoft.univrapp.utils.Utils;
+import com.cellasoft.univrapp.model.Item;
+import com.cellasoft.univrapp.widget.SynchronizationListener;
 
 public class SynchronizationManager {
+	private static final String TAG = SynchronizationManager.class.getName();
+	
 	private static SynchronizationManager instance;
 	private Object synRoot = new Object();
 	private boolean synchronizing = false;
@@ -53,18 +55,11 @@ public class SynchronizationManager {
 
 		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 
-			final long startMillis = System.currentTimeMillis();
-			try {
-				totalNewItems = syncFeeds();
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-
-			if (Constants.DEBUG_MODE)
-				Log.i(Constants.LOG_TAG,
-						"Sync channels to "
-								+ (System.currentTimeMillis() - startMillis)
-								/ 1000 + "s");
+			if (Constants.DEBUG_MODE) Log.d(TAG, "Start synchronization at " + new Date());
+			
+			totalNewItems = syncFeeds();			
+	      
+			if (Constants.DEBUG_MODE) Log.d(TAG, "Stop synchronization at " + new Date());
 		}
 
 		synchronized (synRoot) {
@@ -138,9 +133,10 @@ public class SynchronizationManager {
 					}
 
 					try {
-						int newItems = channel.update(maxItemsForChannel);
-						totalNewItems += newItems;
+						List<Item> newItems = channel.update(maxItemsForChannel);
+						totalNewItems += newItems.size();
 						channel.getItems().clear();
+						ContentManager.cleanUp(channel, Settings.getKeepMaxItems()); 
 					} catch (Throwable ex) {
 						ex.printStackTrace();
 					}

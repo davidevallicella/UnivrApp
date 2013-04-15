@@ -1,6 +1,6 @@
 package com.cellasoft.univrapp.loader;
 
-import java.util.Date;
+import java.sql.Timestamp;
 
 import android.database.Cursor;
 
@@ -14,6 +14,8 @@ public class FullItemLoader implements ItemLoader {
 			Items.TITLE, 
 			Items.DESCRIPTION,
 			Items.PUB_DATE, 
+			Items.UPDATE_TIME, 
+			Items.READ,
 			Items.LINK, 
 			Items.CHANNEL_ID, 
 			};	
@@ -30,9 +32,11 @@ public class FullItemLoader implements ItemLoader {
 		item.id = cursor.getInt(0);
 		item.title = cursor.getString(1);
 		item.description = cursor.getString(2);
-		item.pubDate = new Date(cursor.getLong(3));
-		item.link = cursor.getString(4);
-		item.channel = new Channel(cursor.getInt(5));
+		item.pubDate = new Timestamp(cursor.getLong(3));
+		item.updateTime = cursor.getLong(4);
+		item.read = cursor.getInt(5);
+		item.link = cursor.getString(6);
+		item.channel = new Channel(cursor.getInt(7));
 		return item;
 	}
 }

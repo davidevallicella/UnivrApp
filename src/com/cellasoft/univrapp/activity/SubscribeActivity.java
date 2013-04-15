@@ -9,47 +9,58 @@ import java.util.Map;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
-import android.app.Activity;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.text.Html;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.DatePicker;
-import android.widget.EditText;
-import android.widget.Spinner;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.cellasoft.univrapp.adapter.LecturerAdapter;
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.cellasoft.univrapp.Settings;
+import com.cellasoft.univrapp.adapter.LecturerSectionAdapter;
+import com.cellasoft.univrapp.exception.UnivrReaderException;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Lecturer;
-import com.cellasoft.univrapp.utils.Constants;
-import com.cellasoft.univrapp.utils.HtmlParser;
+import com.cellasoft.univrapp.reader.UnivrReader;
+import com.cellasoft.univrapp.utils.FileCache;
 import com.cellasoft.univrapp.utils.ImageLoader;
-import com.cellasoft.univrapp.utils.Settings;
+import com.cellasoft.univrapp.widget.LecturerView;
+import com.cellasoft.univrapp.widget.OnLecturerViewListener;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
+import com.google.ads.Ad;
+import com.google.ads.AdListener;
+import com.google.ads.AdRequest;
+import com.google.ads.AdRequest.ErrorCode;
+import com.google.ads.AdView;
 
-public class SubscribeActivity extends SherlockActivity {
-	static final int START_DATE_DIALOG_ID = 0;
-	static final int END_DATE_DIALOG_ID = 1;
-	private Spinner sp_lecturer;
-	private EditText startDate;
-	private EditText endDate;
+@SuppressLint("NewApi")
+public class SubscribeActivity extends SherlockListActivity {
+
 	private PostData post_data;
-	ArrayList<Lecturer> lecturers;
-	LecturerAdapter lctAdapter;
+	private ArrayList<Lecturer> lecturers;
+	private LecturerSectionAdapter sectionAdapter;
+	private AdView adView;
+
+	private boolean updated = true;
 
 	class PostData {
 		public static final int ALL = -1;
@@ -96,13 +107,22 @@ public class SubscribeActivity extends SherlockActivity {
 			}
 			return "";
 		}
-
 	}
+
+	OnLecturerViewListener lecturerListener = new OnLecturerViewListener() {
+		@Override
+		public void onSelected(LecturerView view, boolean selected) {
+			final int position = getListView().getPositionForView(view);
+			if (position != ListView.INVALID_POSITION) {
+				((Lecturer) sectionAdapter.getItem(position)).isSelected = selected;
+			}
+		}
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.subscribe);
+		setContentView(R.layout.lecturer_view);
 		ImageLoader.initialize(this);
 		init();
 	}
@@ -113,71 +133,12 @@ public class SubscribeActivity extends SherlockActivity {
 		loadData();
 	}
 
-	@Override
-	protected Dialog onCreateDialog(int id) {
-		switch (id) {
-		case START_DATE_DIALOG_ID:
-			return new DatePickerDialog(this, mStartDateSetListener,
-					post_data.ai, post_data.mi - 1, post_data.gi);
-		case END_DATE_DIALOG_ID:
-			return new DatePickerDialog(this, mEndDateSetListener,
-					post_data.af, post_data.mf - 1, post_data.gf);
-		default:
-			return super.onCreateDialog(id);
-		}
-	}
-
 	private void init() {
-		startDate = (EditText) findViewById(R.id.subscribe_etStartDate);
-		endDate = (EditText) findViewById(R.id.subscribe_etEndDate);
-		sp_lecturer = (Spinner) findViewById(R.id.subscribe_lecturer);
-
-		findViewById(R.id.subscribe_back).setOnClickListener(
-				new OnClickListener() {
-
-					@Override
-					public void onClick(View v) {
-						finish();
-					}
-				});
-
-		findViewById(R.id.subscribe_save).setOnClickListener(
-				new OnClickListener() {
-
-					@Override
-					public void onClick(View v) {
-
-						confirmBeforeSavingSubscriptions();
-						setResult(Activity.RESULT_OK);
-
-					}
-				});
-
-		findViewById(R.id.subscribe_btnStartDate).setOnClickListener(
-				new OnClickListener() {
-
-					@Override
-					public void onClick(View v) {
-						showDialog(START_DATE_DIALOG_ID);
-					}
-				});
-
-		findViewById(R.id.subscribe_btnEndDate).setOnClickListener(
-				new OnClickListener() {
-
-					@Override
-					public void onClick(View v) {
-						showDialog(END_DATE_DIALOG_ID);
-					}
-				});
-		findViewById(R.id.subscribe_reload).setOnClickListener(
-				new OnClickListener() {
-
-					@Override
-					public void onClick(View v) {
-						saveLecturers();
-					}
-				});
+		initListView();
+		initBanner();
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		getSupportActionBar().setTitle("Subscriptions");
+		getSupportActionBar().setSubtitle(Settings.getUniversity().name);
 
 		post_data = new PostData();
 		// get the current date
@@ -187,55 +148,113 @@ public class SubscribeActivity extends SherlockActivity {
 		post_data.ai = c.get(Calendar.YEAR);
 		post_data.gf = c.get(Calendar.DAY_OF_MONTH);
 		post_data.mf = c.get(Calendar.MONTH) + 1;
-		post_data.af = c.get(Calendar.YEAR) + 5;
-
-		updateStartDate();
-		updateEndDate();
+		post_data.af = c.get(Calendar.YEAR) + 7;
 	}
 
-	private void updateStartDate() {
-		startDate.setText(new StringBuilder().append(post_data.gi).append("/")
-				.append(post_data.mi).append("/").append(post_data.ai)
-				.append(" "));
+	private void initListView() {
+
+		getListView().setFastScrollEnabled(true);
+		getListView().setDivider(
+				getResources().getDrawable(
+						android.R.drawable.divider_horizontal_bright));
+
+		getListView().setSelector(R.drawable.list_selector_on_top);
+
+		getListView().setDrawSelectorOnTop(true);
+		getListView().invalidateViews();
+
 	}
 
-	private void updateEndDate() {
-		endDate.setText(new StringBuilder().append(post_data.gf).append("/")
-				.append(post_data.mf).append("/").append(post_data.af)
-				.append(" "));
+	private ImageButton closeAdmodButton;
+
+	private void initBanner() {
+		// Look up the AdView as a resource and load a request.
+		adView = (AdView) this.findViewById(R.id.adView);
+		adView.loadAd(new AdRequest());
+
+		adView.setAdListener(new AdListener() {
+			@Override
+			public void onReceiveAd(Ad arg0) {
+				if (closeAdmodButton == null) {
+					addCloseButtonTask(adView);
+				} else {
+					adView.setVisibility(View.VISIBLE);
+					closeAdmodButton.setVisibility(View.VISIBLE);
+				}
+			}
+
+			@Override
+			public void onPresentScreen(Ad arg0) {
+			}
+
+			@Override
+			public void onLeaveApplication(Ad arg0) {
+			}
+
+			@Override
+			public void onFailedToReceiveAd(Ad arg0, ErrorCode arg1) {
+			}
+
+			@Override
+			public void onDismissScreen(Ad arg0) {
+			}
+		});
 	}
 
-	private DatePickerDialog.OnDateSetListener mStartDateSetListener = new DatePickerDialog.OnDateSetListener() {
+	private void addCloseButtonTask(final AdView adView) {
+		new AsyncTask<Void, Void, Void>() {
 
-		@Override
-		public void onDateSet(DatePicker view, int year, int monthOfYear,
-				int dayOfMonth) {
-			post_data.gi = dayOfMonth;
-			post_data.mi = monthOfYear + 1;
-			post_data.ai = year;
-			updateStartDate();
-		}
-	};
-	private DatePickerDialog.OnDateSetListener mEndDateSetListener = new DatePickerDialog.OnDateSetListener() {
+			@Override
+			protected void onPostExecute(Void result) {
+				runOnUiThread(new Runnable() {
+					public void run() {
+						((RelativeLayout) findViewById(R.id.AdModLayout))
+								.addView(closeAdmodButton);
+					}
+				});
+			}
 
-		@Override
-		public void onDateSet(DatePicker view, int year, int monthOfYear,
-				int dayOfMonth) {
-			post_data.gf = dayOfMonth;
-			post_data.mf = monthOfYear + 1;
-			post_data.af = year;
-			updateEndDate();
-		}
-	};
+			@Override
+			protected Void doInBackground(Void... params) {
+				SystemClock.sleep(5000);
+
+				RelativeLayout.LayoutParams closeLayoutParams = new RelativeLayout.LayoutParams(
+						30, 30);
+				closeLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,
+						RelativeLayout.TRUE);
+				closeLayoutParams.addRule(RelativeLayout.ALIGN_LEFT,
+						RelativeLayout.TRUE);
+				closeLayoutParams.bottomMargin = (int) adView.getHeight() - 15;
+
+				closeAdmodButton = new ImageButton(getApplicationContext());
+				closeAdmodButton.setLayoutParams(closeLayoutParams);
+				closeAdmodButton.setImageResource(R.drawable.close_button);
+				closeAdmodButton
+						.setBackgroundResource(android.R.color.transparent);
+				closeAdmodButton.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						closeAdmodButton.setVisibility(View.GONE);
+						if (adView != null) {
+							adView.setVisibility(View.GONE);
+						}
+					}
+				});
+
+				return null;
+			}
+		}.execute();
+	}
 
 	private void loadData() {
 		loadLecturers();
-		lctAdapter = new LecturerAdapter(this, lecturers);
-		sp_lecturer.setAdapter(lctAdapter);
+		sectionAdapter = new LecturerSectionAdapter(this, lecturers,
+				lecturerListener, R.layout.section_header, R.id.title);
+		setListAdapter(sectionAdapter);
 	}
 
 	private void loadLecturers() {
-		int dest = Constants.UNIVERSITY.DEST.get(Settings.getUniversity());
+		int dest = Settings.getUniversity().dest;
 		lecturers = ContentManager.loadLecturersOfDest(dest,
 				ContentManager.FULL_LECTURER_LOADER);
 		if (lecturers == null || lecturers.isEmpty()) {
@@ -243,11 +262,44 @@ public class SubscribeActivity extends SherlockActivity {
 		}
 	}
 
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		Lecturer lecturer = (Lecturer) sectionAdapter.getItem(position);
+		showContact(lecturer);
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu) {
+		getSupportMenuInflater().inflate(R.menu.lecturer_menu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(
+			com.actionbarsherlock.view.MenuItem item) {
+
+		switch (item.getItemId()) {
+		case R.id.menu_subscribe:
+			confirmBeforeSavingSubscriptions();
+			return true;
+		case R.id.menu_reload:
+			refreshItem = item;
+			reloadLecturers();
+			return true;
+		case android.R.id.home:
+			finish();
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+
 	private void confirmBeforeSavingSubscriptions() {
+		Resources res = getResources();
 		AlertDialog dialog = new AlertDialog.Builder(this)
-				.setTitle("Subscribe")
-				.setMessage("Subscribe channel?")
-				.setPositiveButton("Yes",
+				.setTitle(res.getString(R.string.sub_channel_dialog_title))
+				.setMessage(res.getString(R.string.sub_channel_dialog))
+				.setPositiveButton(res.getString(R.string.yes),
 						new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog,
@@ -256,7 +308,7 @@ public class SubscribeActivity extends SherlockActivity {
 								saveSubscriptions();
 							}
 						})
-				.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				.setNegativeButton(res.getString(R.string.no), new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						dialog.dismiss();
@@ -267,21 +319,23 @@ public class SubscribeActivity extends SherlockActivity {
 
 	private void saveSubscriptions() {
 		final ProgressDialog progressDialog = new ProgressDialog(this);
-		progressDialog.setMessage("Unsubscribe selected channels");
+		progressDialog.setMessage(getResources().getString(R.string.sub_channel_dialog2));
 		BetterAsyncTask<Void, Void, Void> subscribingTask = new BetterAsyncTask<Void, Void, Void>(
 				this) {
 
 			@Override
 			protected void after(Context context, Void arg1) {
 				progressDialog.dismiss();
-				String message = "Successfull";
-				Toast.makeText(SubscribeActivity.this, message, 1000).show();
+				String message = getResources().getString(R.string.success);
+				Toast.makeText(SubscribeActivity.this, message,
+						Toast.LENGTH_LONG).show();
 			}
 
 			@Override
-			protected void handleError(Context context, Exception arg1) {
+			protected void handleError(Context context, Exception e) {
 				progressDialog.dismiss();
-				Toast.makeText(context, arg1.getMessage(), 1000).show();
+				Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG)
+						.show();
 			}
 		};
 
@@ -290,7 +344,19 @@ public class SubscribeActivity extends SherlockActivity {
 				.setCallable(new BetterAsyncTaskCallable<Void, Void, Void>() {
 					public Void call(BetterAsyncTask<Void, Void, Void> arg0)
 							throws Exception {
-						save();
+						for (Lecturer lecturer : lecturers) {
+							if (lecturer.isSelected) {
+								post_data.personeMittente = lecturer.key;
+								String description = lecturer.email;
+								String url = Settings.getUniversity().url
+										+ post_data.setParams();
+								new Channel(lecturer.id, lecturer.name, url,
+										lecturer.thumbnail, description)
+										.subscribe();
+							}
+						}
+
+						sectionAdapter.refresh();
 						return null;
 					}
 				});
@@ -298,71 +364,127 @@ public class SubscribeActivity extends SherlockActivity {
 		subscribingTask.execute();
 	}
 
-	private void save() {
-		Lecturer lecturer = (Lecturer) sp_lecturer.getSelectedItem();
-		post_data.personeMittente = lecturer.key;
-		new Channel(lecturer.name, Constants.UNIVERSITY.URL.get(Settings
-				.getUniversity()) + post_data.setParams(), lecturer.thumbnail)
-				.save();
-	}
-
-	private void saveLecturers() {
+	private void reloadLecturers() {
 		final ProgressDialog progressDialog = new ProgressDialog(this);
 		progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 		progressDialog.setMessage(Html
-				.fromHtml(getString(R.string.progress_txt).replace(
-						"{message}", "<b>Connect to </b>" + Settings.getUniversity())));
+				.fromHtml(getString(R.string.progress_txt).replace("{message}",
+						"<b>Connect to </b>" + Settings.getUniversity().name)));
 		BetterAsyncTask<Void, String, Void> saveLecturersTask = new BetterAsyncTask<Void, String, Void>(
 				this) {
 
 			@Override
+			protected void before(Context context) {
+				updated = false;
+				FileCache.clearCacheIfNecessary();
+				refreshAnim();
+			}
+
+			@Override
 			protected void after(Context context, Void arg1) {
+				updated = true;
 				loadData();
 				progressDialog.dismiss();
-				String message = "Successfull";
-				Toast.makeText(SubscribeActivity.this, message, 1000).show();
+				String message = getResources().getString(R.string.success);
+				Toast.makeText(SubscribeActivity.this, message,
+						Toast.LENGTH_LONG).show();
 			}
 
 			@Override
 			protected Void doCheckedInBackground(Context context,
 					Void... params) throws Exception {
-				Elements lecturers = HtmlParser.getLecturerElements();
-				progressDialog.setMax(lecturers.size());
 
-				for (Element option : lecturers) {
-					if (isCancelled())
-						break;
-					int id = Integer.parseInt(option.attr("value"));
-					if (id > 0) {
-						Lecturer lecturer = new Lecturer(option);
-						if (lecturer.save())
-							publishProgress("<b>Initialization Lecturer: </b>"
-									+ lecturer.name + "...");
-						else
-							publishProgress("");
+				List<Lecturer> lecturers = UnivrReader.getLecturers();
+				if (lecturers != null && !lecturers.isEmpty() && !isCancelled()) {
+					progressDialog.setMax(lecturers.size());
+					progressDialog.setCancelable(false);
+					for (Lecturer lecturer : lecturers) {
+						publishProgress("<b>Save Lecturer</b><br/>"
+								+ lecturer.name + "...");
+						lecturer.save();
 					}
+
+					lecturers.clear();
+					return null;
 				}
-				return null;
+
+				throw new UnivrReaderException(getResources().getString(R.string.univrapp_server_exception));
 			}
 
 			@Override
 			protected void onProgressUpdate(String... values) {
 				super.onProgressUpdate(values);
-				if (!values[0].isEmpty())
+				if (values[0].length() != 0)
 					progressDialog.setMessage(Html.fromHtml(getString(
-							R.string.progress_txt).replace("{message}", values[0])));
+							R.string.progress_txt).replace("{message}",
+							values[0])));
 				progressDialog.incrementProgressBy(1);
 			}
 
 			@Override
-			protected void handleError(Context context, Exception arg1) {
+			protected void handleError(Context context, Exception e) {
+				updated = true;
 				progressDialog.dismiss();
-				Toast.makeText(context, arg1.getMessage(), 1000).show();
+				Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG)
+						.show();
 			}
 		};
 
 		saveLecturersTask.disableDialog();
 		progressDialog.show();
 		saveLecturersTask.execute();
+	}
+
+	View refreshView;
+	ImageView refreshImage;
+	com.actionbarsherlock.view.MenuItem refreshItem;
+	Animation rotateClockwise;
+
+	private void refreshAnim() {
+		// Inflate our custom layout.
+		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+		refreshView = inflater.inflate(R.layout.refresh_actionview, null);
+
+		// Load the animation
+		final Animation rotateClockwise = AnimationUtils.loadAnimation(this,
+				R.anim.rotate);
+		rotateClockwise.setAnimationListener(new Animation.AnimationListener() {
+
+			@Override
+			public void onAnimationStart(Animation animation) {
+			}
+
+			@Override
+			public void onAnimationRepeat(Animation animation) {
+				if (updated)
+					rotateClockwise.setRepeatCount(0);
+			}
+
+			@Override
+			public void onAnimationEnd(Animation animation) {
+				if (updated) { // Download complete? Stop.
+					refreshView.clearAnimation();
+					refreshItem.setActionView(null);
+				} else { // Still downloading? Start again.
+					refreshView.startAnimation(rotateClockwise);
+				}
+			}
+		}); // Set the listener
+
+		// Apply the View to our MenuItem
+		refreshItem.setActionView(refreshView);
+		// Apply the animation to our View
+		refreshView.startAnimation(rotateClockwise);
+
+	}
+
+	private void showContact(Lecturer lecturer) {
+		Intent intent = new Intent(this, ContactActivity.class);
+		intent.putExtra(ContactActivity.LECTURER_ID_PARAM, lecturer.id);
+		intent.putExtra(ContactActivity.LECTURER_NAME_PARAM, lecturer.name);
+		intent.putExtra(ContactActivity.LECTURER_OFFICE_PARAM, lecturer.office);
+		intent.putExtra(ContactActivity.LECTURER_THUMB_PARAM,
+				lecturer.thumbnail);
+		startActivity(intent);
 	}
 }

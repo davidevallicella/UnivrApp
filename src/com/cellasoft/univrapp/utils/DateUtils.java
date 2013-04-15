@@ -1,119 +1,82 @@
 package com.cellasoft.univrapp.utils;
 
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 
+import android.content.Context;
 import android.util.Log;
 
+import com.cellasoft.univrapp.Application;
+import com.cellasoft.univrapp.Constants;
+
 /**
- * Utility class for formatting and parsing the various date formats we expect
- * to encounter.
+ * Internal helper class for date conversions.
+ * 
  */
-public class DateUtils {
+public final class DateUtils {
 	private static final String TAG = DateUtils.class.getSimpleName();
-
-	private static final SimpleDateFormat[] dateFormats;
-	private static final int dateFormat_default = 0;
-
+	/**
+	 * @see <a href="http://www.ietf.org/rfc/rfc0822.txt">RFC 822</a>
+	 */
+	private static final SimpleDateFormat RFC822 = new SimpleDateFormat(
+			"EEE, dd MMM yyyy HH:mm:ss Z", java.util.Locale.ENGLISH);
+	private static final DateFormat dateFormat = new SimpleDateFormat(
+			"d MMM yyyy',' HH:mm a");
+	
+	private static Context context;
 	static {
-		final String[] possibleDateFormats = {
-				"EEE, dd MMM yyyy HH:mm",
-				"EEE, dd MMM yyyy HH:mm:ss z", // RFC_822
-				"EEE, dd MMM yyyy HH:mm zzzz",
-				"yyyy-MM-dd'T'HH:mm:ssZ",
-				"yyyy-MM-dd'T'HH:mm:ss.SSSzzzz", // Blogger Atom feed has millisecs also
-				"yyyy-MM-dd'T'HH:mm:sszzzz",
-				"yyyy-MM-dd'T'HH:mm:ss z",
-				"yyyy-MM-dd'T'HH:mm:ssz", // ISO_8601
-				"yyyy-MM-dd'T'HH:mm:ss", 
-				"yyyy-MM-dd'T'HHmmss.SSSz",
-				"yyyy-MM-dd" };
+		context = Application.getInstance();
+	}
 
-		dateFormats = new SimpleDateFormat[possibleDateFormats.length];
-		TimeZone gmtTZ = TimeZone.getTimeZone("GMT+1");
-
-		for (int i = 0; i < possibleDateFormats.length; i++) {
-			dateFormats[i] = new SimpleDateFormat(possibleDateFormats[i]);
-			dateFormats[i].setTimeZone(gmtTZ);
-		}
+	/* Hide constructor */
+	private DateUtils() {
 	}
 
 	/**
-	 * Parse a date string. The format of RSS/Atom dates come in many different
-	 * forms, so this method is extremely flexible and attempts to understand
-	 * many different formats.
+	 * Parses string as an RFC 822 date/time.
 	 * 
-	 * Copied verbatim from Informa 0.7.0-alpha2, ParserUtils.java.
+	 * @throws Exception
 	 * 
-	 * @param strdate
-	 *            Date string to attempt to parse.
-	 * 
-	 * @return If successful, returns a {@link Date} object representing the
-	 *         parsed date; otherwise, null.
+	 * @throws RSSFault
+	 *             if the string is not a valid RFC 822 date/time
 	 */
-	public static Date parseDate(String strdate) {
-		Date result = null;
-		strdate = strdate.trim();
-		if (strdate.length() > 10) {
-
-			// TODO deal with +4:00 (no zero before hour)
-			if ((strdate.substring(strdate.length() - 5).indexOf("+") == 0 || strdate
-					.substring(strdate.length() - 5).indexOf("-") == 0)
-					&& strdate.substring(strdate.length() - 5).indexOf(":") == 2) {
-
-				String sign = strdate.substring(strdate.length() - 5,
-						strdate.length() - 4);
-
-				strdate = strdate.substring(0, strdate.length() - 5) + sign
-						+ "0" + strdate.substring(strdate.length() - 4);
-			}
-
-			String dateEnd = strdate.substring(strdate.length() - 6);
-
-			// try to deal with -05:00 or +02:00 at end of date
-			// replace with -0500 or +0200
-			if ((dateEnd.indexOf("-") == 0 || dateEnd.indexOf("+") == 0)
-					&& dateEnd.indexOf(":") == 3) {
-				// TODO deal with GMT-00:03
-				if ("GMT".equals(strdate.substring(strdate.length() - 9,
-						strdate.length() - 6))) {
-					Log.d(TAG, "General time zone with offset, no change");
-				} else {
-					// continue treatment
-					String oldDate = strdate;
-					String newEnd = dateEnd.substring(0, 3)
-							+ dateEnd.substring(4);
-					strdate = oldDate.substring(0, oldDate.length() - 6)
-							+ newEnd;
-				}
-			}
+	public static Date parseRfc822(String date) {
+		try {
+			return RFC822.parse(date.trim());
+		} catch (ParseException e) {
+			if (Constants.DEBUG_MODE)
+				Log.e(TAG, "No parser date " + date);
+			return new Date();
 		}
-		
-		int i = 0;
-		while (i < dateFormats.length) {
+	}
+	
+	public static String formatTimeMillis(long timeMillis) {
+		StringBuilder sb = new StringBuilder();
+		if (timeMillis > 0) {
 			try {
-				result = dateFormats[i].parse(strdate);
-				break;
-			} catch (java.text.ParseException e) {
-				i++;
+				sb.append(android.text.format.DateUtils.getRelativeDateTimeString(context, timeMillis, android.text.format.DateUtils.SECOND_IN_MILLIS, android.text.format.DateUtils.WEEK_IN_MILLIS, 0));
+			} catch (Throwable e) {
+				sb.append(dateFormat.format(new Date(timeMillis)));
 			}
 		}
-
-		return result;
+		return sb.toString();
 	}
 
-	/**
-	 * Format a date in a manner that would be most suitable for serialized
-	 * storage.
-	 * 
-	 * @param date
-	 *            {@link Date} object to format.
-	 * 
-	 * @return Robust, formatted date string.
-	 */
 	public static String formatDate(Date date) {
-		return dateFormats[dateFormat_default].format(date);
+		StringBuilder sb = new StringBuilder();
+		if (date != null) {
+			try {
+				sb.append(android.text.format.DateUtils.formatSameDayTime(
+						date.getTime(),
+						new Timestamp(System.currentTimeMillis()).getTime(),
+						DateFormat.MEDIUM, DateFormat.SHORT));
+			} catch (Throwable e) {
+				sb.append(dateFormat.format(date));
+			}
+		}
+		return sb.toString();
 	}
 }

@@ -1,39 +1,58 @@
 package com.cellasoft.univrapp.activity;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Map;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.view.View.OnClickListener;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
-import com.cellasoft.univrapp.adapter.ChannelAdapter;
+import com.cellasoft.univrapp.ConnectivityReceiver;
+import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Channel;
-import com.cellasoft.univrapp.utils.ActiveList;
-import com.cellasoft.univrapp.utils.ChannelView;
-import com.cellasoft.univrapp.utils.Constants;
-import com.cellasoft.univrapp.utils.OnChannelViewListener;
-import com.cellasoft.univrapp.utils.Settings;
+import com.cellasoft.univrapp.service.DownloadingService;
+import com.cellasoft.univrapp.service.SynchronizationService;
+import com.cellasoft.univrapp.utils.FileCache;
+import com.cellasoft.univrapp.utils.ImageCache;
+import com.cellasoft.univrapp.utils.ImageLoader;
+import com.cellasoft.univrapp.widget.ChannelListView;
+import com.cellasoft.univrapp.widget.ChannelView;
+import com.cellasoft.univrapp.widget.OnChannelViewListener;
+import com.github.droidfu.concurrent.BetterAsyncTask;
+import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
+import com.google.ads.Ad;
+import com.google.ads.AdListener;
 import com.google.ads.AdRequest;
-import com.google.ads.AdSize;
+import com.google.ads.AdRequest.ErrorCode;
 import com.google.ads.AdView;
 
 public class ChannelListActivity extends SherlockListActivity {
 
 	private static final String TAG = ChannelListActivity.class.getSimpleName();
 
+	private static final int FIRST_TIME = 1;
+	private static final int SUBSCRIBE = 2;
+
 	private ArrayList<Channel> channels = null;
-	private ChannelAdapter channelAdp;
+	private ChannelListView channelListView;
+	private AdView adView;
 
 	private OnChannelViewListener channelListener = new OnChannelViewListener() {
 
@@ -63,6 +82,7 @@ public class ChannelListActivity extends SherlockListActivity {
 		if (Constants.DEBUG_MODE)
 			Log.d(TAG, "onCreate()");
 		super.onCreate(savedInstanceState);
+		ImageLoader.initialize(this);
 		setContentView(R.layout.channel_view);
 		init();
 	}
@@ -73,44 +93,177 @@ public class ChannelListActivity extends SherlockListActivity {
 		loadData();
 	}
 
+	@Override
+	protected void onResume() {
+		super.onResume();
+		showAdmodBanner();
+	}
+
 	private void init() {
+		startServices();
+		if (Settings.getFirstTime()) {
+			onFirstTime();
+		}
+
+		cancelNotification();
 		// Init GUI
-		initListSelector();
+		channelListView = (ChannelListView) getListView();
+		channelListView.setChannelViewlistener(channelListener);
 		// Add the footer before adding the adapter, else the footer will not
 		// load!
 		initBanner();
 	}
 
-	private void initListSelector() {
-		getListView().setSelector(R.drawable.list_selector_on_top);
-		getListView().setDrawSelectorOnTop(true);
-		getListView().invalidateViews();
-	}
+	private ImageButton closeAdmodButton;
 
 	private void initBanner() {
-		AdView adView = new AdView(this, AdSize.BANNER, Settings.ID_EDITORE);
-		LinearLayout layout = (LinearLayout) findViewById(R.id.footer_banner);
-		layout.addView(adView);
+		// Look up the AdView as a resource and load a request.
+		adView = (AdView) this.findViewById(R.id.adView);
 		adView.loadAd(new AdRequest());
+
+		adView.setAdListener(new AdListener() {
+			@Override
+			public void onReceiveAd(Ad arg0) {
+				if (closeAdmodButton == null) {
+					addCloseButtonTask(adView);
+				} else {
+					adView.setVisibility(View.VISIBLE);
+					closeAdmodButton.setVisibility(View.VISIBLE);
+				}
+			}
+
+			@Override
+			public void onPresentScreen(Ad arg0) {
+			}
+
+			@Override
+			public void onLeaveApplication(Ad arg0) {
+			}
+
+			@Override
+			public void onFailedToReceiveAd(Ad arg0, ErrorCode arg1) {
+			}
+
+			@Override
+			public void onDismissScreen(Ad arg0) {
+			}
+		});
+	}
+
+	private void showAdmodBanner() {
+		if (adView != null && closeAdmodButton != null) {
+			adView.setVisibility(View.VISIBLE);
+			closeAdmodButton.setVisibility(View.VISIBLE);
+		}
+	}
+
+	private void addCloseButtonTask(final AdView adView) {
+		new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected void onPostExecute(Void result) {
+				runOnUiThread(new Runnable() {
+					public void run() {
+						((RelativeLayout) findViewById(R.id.AdModLayout))
+								.addView(closeAdmodButton);
+					}
+				});
+			}
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				while (adView.getHeight() == 0 && !isCancelled()) {
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+						cancel(true);
+					}
+				}
+
+				RelativeLayout.LayoutParams closeLayoutParams = new RelativeLayout.LayoutParams(
+						30, 30);
+				closeLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,
+						RelativeLayout.TRUE);
+				closeLayoutParams.addRule(RelativeLayout.ALIGN_LEFT,
+						RelativeLayout.TRUE);
+
+				closeLayoutParams.bottomMargin = (int) adView.getHeight() - 15;
+
+				closeAdmodButton = new ImageButton(getApplicationContext());
+				closeAdmodButton.setLayoutParams(closeLayoutParams);
+				closeAdmodButton.setImageResource(R.drawable.close_button);
+				closeAdmodButton
+						.setBackgroundResource(android.R.color.transparent);
+				closeAdmodButton.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						closeAdmodButton.setVisibility(View.GONE);
+						if (adView != null) {
+							adView.setVisibility(View.GONE);
+						}
+					}
+				});
+
+				return null;
+			}
+		}.execute();
+	}
+
+	private void onFirstTime() {
+		FileCache.clearCacheFolder();
+		Intent intent = new Intent(this, ChooseMainFeedActivity.class);
+		startActivityForResult(intent, FIRST_TIME);
+	}
+
+	private void cancelNotification() {
+		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		notificationManager.cancel(Constants.NOTIFICATION_ID);
+	}
+
+	private void startServices() {
+		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
+			if (Constants.DEBUG_MODE)
+				Log.d(Constants.LOG_TAG, "Begin startServices " + new Date());
+			Intent service = new Intent(this, SynchronizationService.class);
+			startService(service);
+
+			Intent downloadService = new Intent(this, DownloadingService.class);
+			startService(downloadService);
+			if (Constants.DEBUG_MODE)
+				Log.d(Constants.LOG_TAG, "End startServices " + new Date());
+		}
+	}
+
+	private void stopServices() {
+		if (Constants.DEBUG_MODE)
+			Log.d(Constants.LOG_TAG, "Begin startServices " + new Date());
+		Intent service = new Intent(this, SynchronizationService.class);
+		stopService(service);
+
+		Intent downloadService = new Intent(this, DownloadingService.class);
+		stopService(downloadService);
+		if (Constants.DEBUG_MODE)
+			Log.d(Constants.LOG_TAG, "End startServices " + new Date());
+
 	}
 
 	private void loadData() {
 		loadChannels();
-		channelAdp = new ChannelAdapter(this, channels, channelListener);
-		getListView().setAdapter(channelAdp);
+		channelListView.setChannels(channels);
+		refreshUnreadCounts();
 	}
 
 	private void loadChannels() {
 		channels = ContentManager
 				.loadAllChannels(ContentManager.FULL_CHANNEL_LOADER);
 		if (channels == null || channels.isEmpty()) {
-			channels = new ActiveList<Channel>();
+			channels = new ArrayList<Channel>();
 		}
 	}
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		Channel channel = (Channel) channelAdp.getItem(position);
+		Channel channel = channels.get(position);
 		showChannel(channel);
 	}
 
@@ -121,17 +274,25 @@ public class ChannelListActivity extends SherlockListActivity {
 		switch (item.getItemId()) {
 		case R.id.menu_subscribe:
 			showSubscriptions();
-			break;
+			return true;
 		case R.id.menu_unsubscribe:
 			confirmDeleteChannel();
-			break;
+			return true;
+		case R.id.menu_selectAll:
+			selectAll();
+			return true;
 		case R.id.menu_settings:
 			showSettings();
-			break;
+			return true;
+		case R.id.menu_reset:
+			confirmReset();
+			return true;
+		case R.id.menu_about:
+			showAboutScreen();
+			return true;
 		default:
-			break;
+			return super.onOptionsItemSelected(item);
 		}
-		return super.onOptionsItemSelected(item);
 	}
 
 	@Override
@@ -141,8 +302,27 @@ public class ChannelListActivity extends SherlockListActivity {
 	}
 
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		channelAdp.refresh();
+		if (requestCode == FIRST_TIME) {
+			if (resultCode == RESULT_OK) {
+				Settings.saveFirstTime();
+			}
+			if (resultCode == RESULT_CANCELED) {
+				finish();
+			}
+		}
 	};
+	
+	private void selectAll() {
+		for (int i=1; i<channels.size(); i++) {
+			channels.get(i).isSelected = true;
+		}
+		channelListView.refresh();
+	}
+	
+	private void showAboutScreen() {
+		Intent intent = new Intent(this, AboutScreen.class);
+		startActivity(intent);
+	}
 
 	private void showSettings() {
 		Intent intent = new Intent(this, SettingsActivity.class);
@@ -151,13 +331,12 @@ public class ChannelListActivity extends SherlockListActivity {
 
 	private void showSubscriptions() {
 		Intent intent = new Intent(this, SubscribeActivity.class);
-		startActivityForResult(intent, 1);
+		startActivityForResult(intent, SUBSCRIBE);
 	}
 
 	private void showChannel(Channel channel) {
 		Intent intent = new Intent(this, ItemListActivity.class);
 		intent.putExtra(ItemListActivity.CHANNEL_ID_PARAM, channel.id);
-		intent.putExtra(ItemListActivity.CHANNEL_TITLE_PARAM, channel.title);
 		startActivity(intent);
 	}
 
@@ -172,6 +351,27 @@ public class ChannelListActivity extends SherlockListActivity {
 									int which) {
 								dialog.dismiss();
 								deleteChannel();
+							}
+						})
+				.setNegativeButton("No", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}
+				}).create();
+		dialog.show();
+	}
+
+	private void confirmReset() {
+		String confirmMessage = "Reset all channels and settings, continue?";
+		AlertDialog dialog = new AlertDialog.Builder(this)
+				.setTitle("Reset")
+				.setMessage(confirmMessage)
+				.setPositiveButton("Yes",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								dialog.dismiss();
+								reset();
 							}
 						})
 				.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -213,5 +413,95 @@ public class ChannelListActivity extends SherlockListActivity {
 
 		progressDialog.show();
 		unsubscribingTask.execute();
+	}
+
+	private void reset() {
+		final ProgressDialog progressDialog = new ProgressDialog(this);
+		progressDialog.setMessage("Reset");
+		AsyncTask<Void, Void, Void> unsubscribingTask = new AsyncTask<Void, Void, Void>() {
+
+			@SuppressLint("ShowToast")
+			@Override
+			protected void onPostExecute(Void result) {
+				super.onPostExecute(result);
+				progressDialog.dismiss();
+
+				String message = "Successfull";
+				Toast.makeText(ChannelListActivity.this, message, 1000).show();
+
+				startServices();
+				onFirstTime();
+			}
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				stopServices();
+				cancelNotification();
+				
+				for (Channel channel : channels) {
+					channel.delete();
+				}
+
+				ContentManager.deleteAllLecturers();
+				ContentManager.deleteAllImages();
+
+				runOnUiThread(new Runnable() {
+					public void run() {
+						channels.clear();
+						channelListView.setChannels(channels);
+					}
+				});
+
+				ImageCache.getInstance().clear();
+				
+				return null;
+			}
+		};
+
+		progressDialog.show();
+		unsubscribingTask.execute();
+	}
+
+	private void refreshUnreadCounts() {
+		BetterAsyncTask<Void, Void, Void> task = new BetterAsyncTask<Void, Void, Void>(
+				this) {
+
+			@Override
+			protected void after(Context arg0, Void arg1) {
+				channelListView.refresh();
+			}
+
+			protected void handleError(Context context, Exception e) {
+				e.printStackTrace();
+				String message = getResources().getString(
+						R.string.not_load_notification);
+				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+			}
+
+		};
+		task.setCallable(new BetterAsyncTaskCallable<Void, Void, Void>() {
+			public Void call(BetterAsyncTask<Void, Void, Void> task)
+					throws Exception {
+
+				Map<Integer, Integer> unreadCounts = ContentManager
+						.countUnreadItemsForEachChannel();
+				for (Channel channel : channels) {
+					try {
+						if (unreadCounts.containsKey(channel.id)) {
+							channel.setUnreadItems(unreadCounts.get(channel.id));
+						} else {
+							channel.setUnreadItems(0);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						Log.e("ERROR", e.getMessage());
+					}
+				}
+
+				return null;
+			}
+		});
+		task.disableDialog();
+		task.execute();
 	}
 }

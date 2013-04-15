@@ -4,13 +4,13 @@ android:interpolator="@android:anim/bounce_interpolator">
 
 <translate android:fromYDelta="-100%"
  android:toYDelta="0%"
- android:duration="1450"
+ android:duration="1200"
 >
     
     </translate>
     <alpha android:fromAlpha="0"
         android:interpolator="@android:anim/accelerate_interpolator"
         android:toAlpha="1"
-        android:duration="1450" 
+        android:duration="1200" 
         />
 </set>

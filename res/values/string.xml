@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">UnivrApp</string>
+    <string name="app_version">Version: 1.0</string>
+    <string name="launcher_notes_feed">Feed</string>
+    <string name="progress_txt">
+<![CDATA[
+  			<small><font size="2" face="sans">{message}</font></small>
+    	]]>
+    </string>
+    <string name="desc"></string>
+    <string name="auto_update_key">auto_update</string>
+    <string name="download_images_key">download_images</string>
+    <string name="update_interval_key">update_interval</string>
+    <string name="max_items_for_channel_key">max_items_for_channel</string>
+    <string name="language_key">language</string>
+    <string name="show_updated_channels_key">show_updated_channels</string>
+    <string name="first_time_key">first_time</string>
+    <string name="last_update_notification">{date}</string>
+	<string name="info_about_me">Development by a student of \n\ Faculty Mathematical, Physical and Natural Sciences ,\n\ University of Verona 2012-2013</string>
+</resources>

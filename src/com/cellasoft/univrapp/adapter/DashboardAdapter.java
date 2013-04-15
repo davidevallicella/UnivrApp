@@ -7,8 +7,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.cellasoft.univrapp.activity.R;
-import com.cellasoft.univrapp.utils.DashboardEntry;
+import com.cellasoft.univrapp.widget.DashboardEntry;
 
 public class DashboardAdapter extends ArrayAdapter<DashboardEntry> {
 	private Context context;
@@ -30,10 +29,10 @@ public class DashboardAdapter extends ArrayAdapter<DashboardEntry> {
 	public View getView(int position, View convertView, ViewGroup parent) {
 		ViewHolder holder;
 		if (convertView == null) {
-			convertView = View.inflate(context, R.layout.dashboard_entry, null);
+//			convertView = View.inflate(context, R.layout.dashboard_entry, null);
 			holder = new ViewHolder();
-			holder.title = (TextView) convertView.findViewById(R.id.ItemText);
-			holder.image = (ImageView) convertView.findViewById(R.id.ItemImage);
+//			holder.title = (TextView) convertView.findViewById(R.id.ItemText);
+//			holder.image = (ImageView) convertView.findViewById(R.id.ItemImage);
 
 			convertView.setTag(holder);
 		} else

@@ -1,6 +1,6 @@
 package com.cellasoft.univrapp.loader;
 
-import java.util.Date;
+import java.sql.Timestamp;
 
 import android.database.Cursor;
 
@@ -13,6 +13,7 @@ public class LightweightItemLoader implements ItemLoader {
 			Items.ID,
 			Items.TITLE,
 			Items.PUB_DATE, 
+			Items.UPDATE_TIME, 
 			Items.CHANNEL_ID,
 			};
 
@@ -26,8 +27,9 @@ public class LightweightItemLoader implements ItemLoader {
 		Item item = new Item();
 		item.id = cursor.getInt(0);// cursor.getColumnIndex(Items.ID));
 		item.title = cursor.getString(1);// cursor.getColumnIndex(Items.TITLE));
-		item.pubDate = new Date(cursor.getLong(2));// cursor.getColumnIndex(Items.PUB_DATE));
-		item.channel = new Channel(cursor.getInt(3));
+		item.pubDate = new Timestamp(cursor.getLong(3));// cursor.getColumnIndex(Items.PUB_DATE));
+		item.updateTime = cursor.getLong(3);
+		item.channel = new Channel(cursor.getInt(4));
 		return item;
 	}
 

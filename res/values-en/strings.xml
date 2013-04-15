@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="new_items_notification">Find {total} news.</string>
+    <string name="not_load_notification">Cannot load the feed.</string>
+    <string name="loading">Loading ...</string>
+    <string name="save">Save</string>
+    <string name="back">Back</string>
+    <string name="change">Change</string>
+    <string name="lecturers">Lecturers</string>
+    <string name="clean">Removed {total} news</string>
+    <string name="sub_channel_dialog_title">Subscribe</string>
+    <string name="sub_channel_dialog">Subscribe channel?</string>
+    <string name="sub_channel_dialog2">Subscribe selected channels</string>
+    <string name="yes">yes</string>
+    <string name="no">no</string>
+    <string name="success">Successful</string>
+    <!-- EXCEPTION -->
+    <string name="univrapp_server_exception">The server is temporarily inactive. \ n \ Wait a few seconds and try again.</string>
+
+    <!-- MENU -->
+    <string name="subscribe">Subscribe</string>
+    <string name="unsubscribe">Unsubscribe</string>
+    <string name="select_all">Select all</string>
+    <string name="settings">Settings</string>
+    <string name="reset">Reset</string>
+    <string name="about">About</string>
+    <string name="clear">Clear</string>
+    <string name="view_contact">View contact</string>
+    <string name="reload">Reload</string>
+    <!-- CONTACT -->
+    <string name="contact_header">Contact</string>
+    <string name="info_header">Info</string>
+    <string name="contact_office">Call office</string>
+    <string name="contact_mail">Send e-mail</string>
+    <string name="contact_department">Department</string>
+    <!-- PREFERENCE -->
+    <string name="pref_categ_sync">Synchronization</string>
+    <string name="pref_categ_user_prof">User Profile</string>
+    <string name="pref_wify_only">Sync on WiFi only</string>
+    <string name="pref_wify_only_summary">Automatic refresh on WiFi Only</string>
+    <string name="pref_send_report">Send crash reports</string>
+    <string name="pref_send_report_summary">Helps to fix bugs</string>
+    <string name="pref_auto_update">Auto update</string>
+    <string name="pref_auto_update_summary">Automatic update of all subscriptions</string>
+    <string name="pref_update_interval">Updates interval</string>
+    <string name="pref_update_interval_summary">Define how often updates will be performed</string>
+    <string name="pref_downloads_lecturers">Lecturers thumbnail</string>
+    <string name="pref_downloads_lecturers_summary">Download and update lecturers thumbnail</string>
+    <string name="pref_keep_max_items">Number of latest items to keep</string>
+    <string name="pref_keep_max_items_summary">Maximum number of news to be taken during cleaning</string>
+    <string name="pref_max_items_for_channel">Max news for channel</string>
+    <string name="pref_max_items_for_channel_summary">Maximum number of news to load</string>
+
+    <!-- UPDATE INTERVAL -->
+    <string name="minute_1">Every 1 minute</string>
+    <string name="minutes_5">Every 5 minutes</string>
+    <string name="minutes_10">Every 10 minutes</string>
+    <string name="minutes_15">Every 15 minutes</string>
+    <string name="minutes_30">Every 30 minutes</string>
+    <!-- KEEP MAX -->
+    <string name="clearAll">Clear all</string>
+    <string name="keep_20">Keep Max 20 news</string>
+    <string name="keep_50">Keep Max 50 news</string>
+    <string name="keep_100">Keep Max 100 news</string>
+    <string name="keep_1000">Keep Max 1000 news</string>
+    <!-- MAX FOR CHANNEL -->
+    <string name="max_10">Max 10 news</string>
+    <string name="max_20">Max 20 news</string>
+    <string name="max_50">Max 50 news</string>
+    <string name="max_100">Max 100 news</string>
+    <string name="max_200">Max 200 news</string>
+
+</resources>
