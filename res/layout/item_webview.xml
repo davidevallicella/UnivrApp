@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/articleLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#303030"
+    android:gravity="center" >
+
+    <TextView
+        android:id="@+id/itemLoadingText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="2dp"
+        android:text="Loading..."
+        android:textSize="24sp"
+        android:visibility="gone" />
+
+    <WebView
+        android:id="@+id/itemWebView"
+        android:hardwareAccelerated="true"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="fill"
+        android:visibility="visible" />
+
+</LinearLayout>

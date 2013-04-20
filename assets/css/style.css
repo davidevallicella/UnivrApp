@@ -1,0 +1,47 @@
+@CHARSET "ISO-8859-1";
+
+#title {
+	text-transform: uppercase;
+	text-align: left;; margin-left : 20px;
+	font-size: 1.0em;
+	margin-left: 20px;
+}
+
+a {
+	text-decoration: none;
+}
+
+.footer {
+	text-align: center;
+	font-size: 0.8em;
+}
+
+.icon {
+	width: 30px;
+	height: 32px;
+	background: transparent;
+	float: left;
+}
+
+.file {
+	position: absolute;
+	display: table;
+	background: transparent;
+	float: left;
+	height: 32;
+	font-size: 1.1em;
+	padding: 5px;
+}
+
+.file a {
+	display: table-cell;
+	padding-left: 40px;
+	vertical-align: middle;
+	text-align: center;
+	font-family: monospace;
+}
+
+#attachment {
+	position: relative;
+	margin-top: 20px;
+}

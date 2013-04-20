@@ -19,7 +19,7 @@ public class Item implements ActionSupport, Comparable<Item>, Serializable {
 	public static final int KEPT_UNREAD = 3;
 
 	// All <item> node name
-	public long id;
+	public int id;
 	public String title;
 	public String link;
 	public String description;

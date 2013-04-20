@@ -24,14 +24,14 @@ import com.cellasoft.univrapp.widget.ChannelView;
 import com.cellasoft.univrapp.widget.OnChannelViewListener;
 
 public class ChannelAdapter extends BaseAdapter {
-	
+
 	private static final int REFRESH_MESSAGE = 1;
 	private static final int CORNER_RADIUS = 3; // dips
 	private static final int MARGIN = 1; // dips
 
 	public static int mCornerRadius;
 	public static int mMargin;
-	
+
 	public ArrayList<Channel> channels = new ArrayList<Channel>();
 	private OnChannelViewListener channelListener;
 
@@ -46,7 +46,7 @@ public class ChannelAdapter extends BaseAdapter {
 		TextView updated;
 		TextView unreadCount;
 	}
-	
+
 	Handler handler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
@@ -56,11 +56,11 @@ public class ChannelAdapter extends BaseAdapter {
 			}
 		}
 	};
-	
+
 	public ChannelAdapter(Context context) {
 		this.context = context;
 		ImageLoader.initialize(context);
-		
+
 		final float density = context.getResources().getDisplayMetrics().density;
 		mCornerRadius = (int) (CORNER_RADIUS * density + 0.5f);
 		mMargin = (int) (MARGIN * density + 0.5f);
@@ -96,14 +96,17 @@ public class ChannelAdapter extends BaseAdapter {
 		case 0:
 			RelativeLayout layout;
 			if (convertView == null || (convertView instanceof ChannelView)) {
-				layout = (RelativeLayout) View.inflate(context, R.layout.university_item, null);
+				layout = (RelativeLayout) View.inflate(context,
+						R.layout.university_item, null);
 				holder = new ViewHolder();
 				holder.position = position;
 				holder.title = (TextView) layout.findViewById(R.id.univr_name);
-				holder.thumbnail = (ImageView) layout.findViewById(R.id.univr_logo);
-				holder.title.setText(item.title); 
+				holder.thumbnail = (ImageView) layout
+						.findViewById(R.id.univr_logo);
+				holder.title.setText(item.title);
 				holder.position = position;
-				holder.thumbnail.setImageResource(Settings.getUniversity().logo_from_resource);
+				holder.thumbnail
+						.setImageResource(Settings.getUniversity().logo_from_resource);
 				layout.setTag(holder);
 			} else {
 				layout = (RelativeLayout) convertView;
@@ -115,16 +118,22 @@ public class ChannelAdapter extends BaseAdapter {
 			return layout;
 		default:
 			if (convertView == null || !(convertView instanceof ChannelView)) {
-				view = (ChannelView) View.inflate(context, R.layout.channel_item, null);
+				view = (ChannelView) View.inflate(context,
+						R.layout.channel_item, null);
 				view.setChannelListener(channelListener);
 				holder = new ViewHolder();
 				holder.position = position;
 				holder.title = (TextView) view.findViewById(R.id.channel_title);
-				holder.unreadCount = (TextView)view.findViewById(R.id.channel_unreadCount);
-				holder.updated = (TextView)view.findViewById(R.id.channel_updated);
-				holder.check = (ImageButton) view.findViewById(R.id.channel_chek);
-				holder.star = (ImageButton) view.findViewById(R.id.channel_star);
-				holder.thumbnail = (ImageView) view.findViewById(R.id.channel_image);
+				holder.unreadCount = (TextView) view
+						.findViewById(R.id.channel_unreadCount);
+				holder.updated = (TextView) view
+						.findViewById(R.id.channel_updated);
+				holder.check = (ImageButton) view
+						.findViewById(R.id.channel_chek);
+				holder.star = (ImageButton) view
+						.findViewById(R.id.channel_star);
+				holder.thumbnail = (ImageView) view
+						.findViewById(R.id.channel_image);
 				view.setTag(holder);
 			} else {
 				view = (ChannelView) convertView;
@@ -135,14 +144,16 @@ public class ChannelAdapter extends BaseAdapter {
 		view.setItemViewSelected(item.isSelected);
 		view.setItemViewStarred(item.starred);
 		int unreadItems = item.countUnreadItems();
-	    if (unreadItems > 0) {
-	      holder.unreadCount.setText(String.valueOf(unreadItems));
-	      holder.unreadCount.setVisibility(View.VISIBLE);
-	    } else {
-	      holder.unreadCount.setVisibility(View.GONE);
-	    }
+		if (unreadItems > 0) {
+			holder.unreadCount.setText(String.valueOf(unreadItems));
+			holder.unreadCount.setVisibility(View.VISIBLE);
+		} else {
+			holder.unreadCount.setVisibility(View.GONE);
+		}
 
-		holder.updated.setText("Upadted " + DateUtils.formatTimeMillis(item.updateTime));
+		holder.updated.setText(context.getResources().getString(
+				R.string.updated)
+				+ " " + DateUtils.formatTimeMillis(item.updateTime));
 		holder.title.setText(item.title);
 		imageLoader(holder, item.imageUrl);
 
@@ -153,7 +164,7 @@ public class ChannelAdapter extends BaseAdapter {
 		this.channels = channels;
 		this.notifyDataSetInvalidated();
 	}
-	
+
 	public void setChannelViewlistener(OnChannelViewListener channelListener) {
 		this.channelListener = channelListener;
 	}
@@ -172,7 +183,8 @@ public class ChannelAdapter extends BaseAdapter {
 					// 1st level cache
 					Bitmap bitmap = ImageLoader.get(imageUrl);
 					if (bitmap != null) {
-						StreamDrawable d = new StreamDrawable(bitmap, mCornerRadius, mMargin);
+						StreamDrawable d = new StreamDrawable(bitmap,
+								mCornerRadius, mMargin);
 						holder.thumbnail.setImageDrawable(d);
 					} else {
 						// 2st level cache

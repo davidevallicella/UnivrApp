@@ -224,13 +224,12 @@ public class ContentManager {
 		Item item = null;
 		if (cursor.moveToNext()) {
 			item = loader.load(cursor);
-			cursor.close();
 			if (channelLoader != null) {
 				item.channel = loadChannel(item.channel.id, channelLoader);
 			}
-		} else {
-			cursor.close();
 		}
+		cursor.close();
+
 		return item;
 	}
 

@@ -14,7 +14,6 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.widget.ImageButton;
@@ -158,6 +157,7 @@ public class ItemListActivity extends SherlockListActivity {
 		});
 
 		if (!channel.url.equals(Settings.getUniversity().url)) {
+
 			getSupportActionBar().setIcon(
 					new BitmapDrawable(getResources(),
 							imageLoader(channel.imageUrl)));
@@ -168,7 +168,7 @@ public class ItemListActivity extends SherlockListActivity {
 
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setTitle(channel.title);
-		
+
 		initAnimation();
 		initBanner();
 	}
@@ -186,7 +186,7 @@ public class ItemListActivity extends SherlockListActivity {
 				.loadLayoutAnimation(ItemListActivity.this,
 						R.anim.list_layout_controller);
 		controller.getAnimation().reset();
-		
+
 		itemListView.setLayoutAnimation(controller);
 	}
 
@@ -280,7 +280,13 @@ public class ItemListActivity extends SherlockListActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu) {
+
 		getSupportMenuInflater().inflate(R.menu.item_menu, menu);
+		if (channel.url.equals(Settings.getUniversity().url)) {
+
+			menu.findItem(R.id.menu_contact).setVisible(false);
+
+		}
 		return true;
 	}
 
@@ -353,7 +359,8 @@ public class ItemListActivity extends SherlockListActivity {
 				itemListView.onRefreshComplete();
 				String message = getResources().getString(
 						R.string.not_load_notification);
-				Toast.makeText(context, message + "\n" + e.getMessage(), Toast.LENGTH_SHORT).show();
+				Toast.makeText(context, message + "\n" + e.getMessage(),
+						Toast.LENGTH_SHORT).show();
 				refresh = false;
 			}
 		};
@@ -365,8 +372,7 @@ public class ItemListActivity extends SherlockListActivity {
 				if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 					return channel.update(maxItemsForChannel);
 				} else
-					throw new UnivrReaderException(
-							"Connessione non disponibile.");
+					throw new UnivrReaderException(getResources().getString(R.string.univrapp_connection_exception));
 			}
 		});
 		task.disableDialog();
@@ -472,18 +478,21 @@ public class ItemListActivity extends SherlockListActivity {
 		Toast.makeText(getApplicationContext(), item.title, Toast.LENGTH_SHORT)
 				.show();
 		in.putExtra("page_url", item.link);
+		in.putExtra(DisPlayWebPageActivity.ITEM_ID_PARAM, item.id);
 		startActivity(in);
 	}
-	
+
 	private void showContact() {
 		Intent intent = new Intent(this, ContactActivity.class);
-		
-		Lecturer lecturer = ContentManager.loadLecturer(channel.lecturerId, ContentManager.FULL_LECTURER_LOADER);	
-		
+
+		Lecturer lecturer = ContentManager.loadLecturer(channel.lecturerId,
+				ContentManager.FULL_LECTURER_LOADER);
+
 		intent.putExtra(ContactActivity.LECTURER_ID_PARAM, lecturer.id);
 		intent.putExtra(ContactActivity.LECTURER_NAME_PARAM, lecturer.name);
 		intent.putExtra(ContactActivity.LECTURER_OFFICE_PARAM, lecturer.office);
-		intent.putExtra(ContactActivity.LECTURER_THUMB_PARAM, lecturer.thumbnail);		
+		intent.putExtra(ContactActivity.LECTURER_THUMB_PARAM,
+				lecturer.thumbnail);
 		startActivity(intent);
 	}
 

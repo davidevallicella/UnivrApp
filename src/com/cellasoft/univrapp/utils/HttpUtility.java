@@ -67,9 +67,13 @@ public class HttpUtility {
 
 	public static void setHttpClient(boolean enableCache) {
 		BetterHttp.setHttpClient((AbstractHttpClient) getHttpClient());
-		if (enableCache)
-			BetterHttp.enableResponseCache(context, 32, 60, 2,
-					AbstractCache.DISK_CACHE_INTERNAL);
+		enableCache(enableCache);
+	}
+	
+	public static void enableCache(boolean enableCache) {
+		System.out.println("---------------------- cache " + enableCache);
+		BetterHttp.enableResponseCache(context, 32, 60, 2,
+				AbstractCache.DISK_CACHE_INTERNAL);
 	}
 
 	/**

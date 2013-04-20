@@ -57,7 +57,7 @@ public final class DateUtils {
 		StringBuilder sb = new StringBuilder();
 		if (timeMillis > 0) {
 			try {
-				sb.append(android.text.format.DateUtils.getRelativeDateTimeString(context, timeMillis, android.text.format.DateUtils.SECOND_IN_MILLIS, android.text.format.DateUtils.WEEK_IN_MILLIS, 0));
+				sb.append(android.text.format.DateUtils.getRelativeDateTimeString(context, timeMillis, android.text.format.DateUtils.MINUTE_IN_MILLIS, android.text.format.DateUtils.WEEK_IN_MILLIS, android.text.format.DateUtils.FORMAT_ABBREV_ALL));
 			} catch (Throwable e) {
 				sb.append(dateFormat.format(new Date(timeMillis)));
 			}

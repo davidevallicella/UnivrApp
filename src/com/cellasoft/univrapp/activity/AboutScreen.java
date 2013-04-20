@@ -3,13 +3,21 @@ package com.cellasoft.univrapp.activity;
 import java.math.BigDecimal;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Vibrator;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
+import android.view.animation.AnimationUtils;
 import android.view.Window;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.paypal.android.MEP.CheckoutButton;
@@ -23,6 +31,7 @@ public class AboutScreen extends Activity {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.about);
+		setProgressBarIndeterminateVisibility(true);
 		init();
 	}
 
@@ -31,12 +40,40 @@ public class AboutScreen extends Activity {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				PayPal pp = PayPal.initWithAppID(AboutScreen.this,
-						"APP-80W284485P519543T", PayPal.ENV_SANDBOX);
+				final Vibrator vib = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
-				final CheckoutButton launchSimplePayment = pp.getCheckoutButton(
-						AboutScreen.this, PayPal.BUTTON_194x37,
-						CheckoutButton.TEXT_DONATE);
+				findViewById(R.id.contact_email_action).setOnTouchListener(
+						new OnTouchListener() {
+
+							@Override
+							public boolean onTouch(View v, MotionEvent event) {
+								if (MotionEvent.ACTION_DOWN == event
+										.getAction()) {
+									vib.vibrate(50);
+									v.startAnimation(AnimationUtils
+											.loadAnimation(AboutScreen.this,
+													R.anim.image_click));
+									Intent email_intent = new Intent(
+											Intent.ACTION_SENDTO,
+											Uri.fromParts(
+													"mailto",
+													"vallicella.davide@gmail.com",
+													null));
+									startActivity(Intent.createChooser(
+											email_intent, "Send email..."));
+									return true;
+								}
+								return false;
+							}
+						});
+				
+				PayPal pp = PayPal.initWithAppID(AboutScreen.this,
+						"APP-02V829382W416122M", PayPal.ENV_LIVE);
+
+				final CheckoutButton launchSimplePayment = pp
+						.getCheckoutButton(AboutScreen.this,
+								PayPal.BUTTON_194x37,
+								CheckoutButton.TEXT_DONATE);
 
 				launchSimplePayment.setOnClickListener(new OnClickListener() {
 
@@ -44,7 +81,7 @@ public class AboutScreen extends Activity {
 					public void onClick(View view) {
 						PayPalPayment payment = new PayPalPayment();
 
-						payment.setSubtotal(new BigDecimal("1.00"));
+						payment.setSubtotal(new BigDecimal("0.90"));
 
 						payment.setCurrencyType("EUR");
 
@@ -63,13 +100,21 @@ public class AboutScreen extends Activity {
 				runOnUiThread(new Runnable() {
 					public void run() {
 						((LinearLayout) findViewById(R.id.paypal_layout))
-						.addView(launchSimplePayment);
+								.addView(launchSimplePayment);
+						findViewById(R.id.paypal_load).setVisibility(View.GONE);
 					}
 				});
-				
+
 				return null;
 			}
 		}.execute();
+	}
+	
+	@Override
+	@Deprecated
+	protected Dialog onCreateDialog(int id) {
+		// TODO Auto-generated method stub
+		return super.onCreateDialog(id);
 	}
 
 	@Override

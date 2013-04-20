@@ -60,7 +60,8 @@ public class ContactActivity extends SherlockActivity {
 
 		switch (item.getItemId()) {
 		case android.R.id.home:
-			finish();
+			// go back
+			this.finish();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);

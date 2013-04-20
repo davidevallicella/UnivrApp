@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>{university}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet"
+	href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+<link rel="stylesheet" href="css/style.css" />
+<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+<script
+	src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+</head>
+<body>
+	<div data-role="page" id="foo">
+		<div data-role="header" data-theme="c" data-position="fixed">
+			<h2 id="title"><a href="{title_url}">{title}</a></h2>
+			<span style="font-weight: bold; margin-left: 20px; font-size: 0.7em;">{date}</span>
+		</div>
+		<div data-role="content">
+			{content}
+			<div id="attachment" style="display: none" data-role="none">
+				<p>Allegato:</p>
+				<div class="icon">
+					<img style="width: 100%;" src="attachment.png" />
+				</div>
+				<div class="file">
+					<a href="{file_url}">{file_name}</a>
+				</div>
+			</div>
+		</div>
+		<div class="footer" data-role="footer" data-position="fixed">
+			2012-2013 By Davide Vallicella</div>
+	</div>
+</body>
+</html>
+
+*

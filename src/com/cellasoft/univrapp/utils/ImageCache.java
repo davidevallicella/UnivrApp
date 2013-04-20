@@ -233,7 +233,7 @@ public class ImageCache implements Map<String, Bitmap> {
 	}
 
 	private static ByteArrayInputStream bitmapToInputStream(Bitmap src) {
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		ByteArrayOutputStream os = new ByteArrayOutputStream(8 * 1024);
 		src.compress(compressedPNGImageFormat, cachedImageQuality, os);
 
 		byte[] array = os.toByteArray();

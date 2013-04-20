@@ -13,6 +13,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
+import com.cellasoft.univrapp.ConnectivityReceiver;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.adapter.UniversitylAdapter;
 import com.cellasoft.univrapp.exception.UnivrReaderException;
@@ -53,17 +54,18 @@ public class ChooseMainFeedActivity extends SherlockListActivity {
 	private void saveLecturers() {
 		final ProgressDialog progressDialog = new ProgressDialog(this);
 		progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-		Spanned message = Html.fromHtml(
-				getString(R.string.progress_txt).replace("{message}",
-				"<b>Connect to </b>" + Settings.getUniversity().name));
+		Spanned message = Html.fromHtml(getString(R.string.progress_txt)
+				.replace("{message}",
+						"<b>Connect to </b>" + Settings.getUniversity().name));
 		progressDialog.setMessage(message);
 		progressDialog.setCancelable(true);
-		progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-			public void onCancel(DialogInterface dialog) {
-					saveLecturersTask.cancel(true);
-					saveLecturersTask = null;
-				}
-			});
+		progressDialog
+				.setOnCancelListener(new DialogInterface.OnCancelListener() {
+					public void onCancel(DialogInterface dialog) {
+						saveLecturersTask.cancel(true);
+						saveLecturersTask = null;
+					}
+				});
 
 		saveLecturersTask = new BetterAsyncTask<Void, String, Void>(this) {
 
@@ -71,38 +73,47 @@ public class ChooseMainFeedActivity extends SherlockListActivity {
 			protected void after(Context context, Void arg1) {
 				progressDialog.dismiss();
 				String message = getResources().getString(R.string.success);
-				Toast.makeText(ChooseMainFeedActivity.this, message, Toast.LENGTH_SHORT).show();
+				Toast.makeText(ChooseMainFeedActivity.this, message,
+						Toast.LENGTH_SHORT).show();
 				setResult(RESULT_OK);
 				finish();
 			}
 
 			@Override
-			protected Void doCheckedInBackground(Context context, Void... params)
-					throws Exception {
+			protected Void doCheckedInBackground(Context context,
+					Void... params) throws Exception {
+				if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
+					List<Lecturer> lecturers = UnivrReader.getLecturers();
+					if (lecturers != null && !lecturers.isEmpty()
+							&& !isCancelled()) {
+						channel.save();
+						progressDialog.setMax(lecturers.size());
+						progressDialog.setCancelable(false);
+						for (Lecturer lecturer : lecturers) {
+							publishProgress("<b>Save Lecturer</b><br/>"
+									+ lecturer.name + "...");
+							lecturer.save();
+						}
 
-				List<Lecturer> lecturers = UnivrReader.getLecturers();
-				if (lecturers != null && !lecturers.isEmpty() && !isCancelled()) {
-					channel.save();
-					progressDialog.setMax(lecturers.size());
-					progressDialog.setCancelable(false);
-					for (Lecturer lecturer : lecturers) {
-						publishProgress("<b>Save Lecturer</b><br/>" + lecturer.name + "...");
-						lecturer.save();
-					}					
+						lecturers.clear();
+						return null;
+					}
 
-					lecturers.clear();
-					return null;
-				} 
-				
-				throw new UnivrReaderException(getResources().getString(R.string.univrapp_server_exception));
+					throw new UnivrReaderException(getResources().getString(
+							R.string.univrapp_server_exception));
+
+				} else {
+					throw new UnivrReaderException(getResources().getString(
+							R.string.univrapp_connection_exception));
+				}
 			}
 
 			@Override
 			protected void onProgressUpdate(String... values) {
 				super.onProgressUpdate(values);
 				if (values[0].length() != 0) {
-					Spanned message = Html.fromHtml(
-							getString(R.string.progress_txt).replace("{message}",
+					Spanned message = Html.fromHtml(getString(
+							R.string.progress_txt).replace("{message}",
 							values[0]));
 					progressDialog.setMessage(message);
 				}

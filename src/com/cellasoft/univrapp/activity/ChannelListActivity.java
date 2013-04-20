@@ -430,6 +430,7 @@ public class ChannelListActivity extends SherlockListActivity {
 				Toast.makeText(ChannelListActivity.this, message, 1000).show();
 
 				startServices();
+				Settings.setFirstTime(true);
 				onFirstTime();
 			}
 

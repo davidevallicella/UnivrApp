@@ -1,6 +1,5 @@
 package com.cellasoft.univrapp;
 
-
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -28,7 +27,7 @@ public class Settings {
 		return prefs.getBoolean(context.getString(R.string.first_time_key),
 				true);
 	}
-	
+
 	public static void setFirstTime(boolean value) {
 		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
 		SharedPreferences.Editor editor = prefs.edit();
@@ -56,7 +55,7 @@ public class Settings {
 		editor.putString(KEEP_MAX_ITEMS_KEY, "20");
 		editor.putBoolean(DOWNLOAD_IMAGES_KEY, false);
 		editor.putBoolean(WIFI_ONLY_KEY, false);
-		
+
 		editor.commit();
 	}
 
@@ -157,5 +156,10 @@ public class Settings {
 	public static boolean getNotificationLight() {
 		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
 		return prefs.getBoolean("notification_light", false);
+	}
+	
+	public static boolean isEnabledSandingBugRepport() {
+		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+		return prefs.getBoolean("acra.enable", true);
 	}
 }

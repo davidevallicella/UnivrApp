@@ -59,7 +59,8 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		this.url = url;
 	}
 
-	public Channel(int lecturerId, String title, String url, String imageUrl, String description) {
+	public Channel(int lecturerId, String title, String url, String imageUrl,
+			String description) {
 		this(title, url);
 		this.lecturerId = lecturerId;
 		this.imageUrl = imageUrl;
@@ -93,6 +94,7 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 				int position = 0;
 				for (Item currentItem : this.items) {
 					if (currentItem.updateTime < item.updateTime) {
+						System.out.println(position);
 						// if (currentItem.pubDate.before(item.pubDate)) {
 						items.add(position, item);
 						return;
@@ -138,7 +140,7 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 			this.setChanged();
 			this.notifyObservers(updating);
 		}
-
+		
 		return newItems;
 	}
 
@@ -162,9 +164,10 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 								}
 							}
 						});
-
+				
 				List<Item> entries = feed.getEntries();
 				for (Item item : entries) {
+					item.updateTime = System.currentTimeMillis();
 					this.addItem(item);
 				}
 
@@ -199,7 +202,6 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		if (items != null && !items.isEmpty()) {
 			if (exist()) {
 				for (Item item : items) {
-					item.updateTime = System.currentTimeMillis();
 					if (item.save()) {
 						newItems++;
 					}

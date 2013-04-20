@@ -15,8 +15,11 @@
     <string name="yes">si</string>
     <string name="no">no</string>
     <string name="success">Riuscito</string>
+    <string name="updated">Aggiornato</string>
     <!-- EXCEPTION -->
     <string name="univrapp_server_exception">Il server è momentaneamente inattivo. \n\ Attendere alcuni secondi e riprovare.</string>
+    <string name="univrapp_connection_exception">Connessione assente.</string>
+
     <!-- MENU -->
     <string name="subscribe">Sottoscriviti</string>
     <string name="unsubscribe">Annulla l\'iscrizioni</string>

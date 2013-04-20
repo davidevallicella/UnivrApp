@@ -33,6 +33,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
+import com.cellasoft.univrapp.ConnectivityReceiver;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.adapter.LecturerSectionAdapter;
 import com.cellasoft.univrapp.exception.UnivrReaderException;
@@ -308,18 +309,21 @@ public class SubscribeActivity extends SherlockListActivity {
 								saveSubscriptions();
 							}
 						})
-				.setNegativeButton(res.getString(R.string.no), new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.dismiss();
-					}
-				}).create();
+				.setNegativeButton(res.getString(R.string.no),
+						new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								dialog.dismiss();
+							}
+						}).create();
 		dialog.show();
 	}
 
 	private void saveSubscriptions() {
 		final ProgressDialog progressDialog = new ProgressDialog(this);
-		progressDialog.setMessage(getResources().getString(R.string.sub_channel_dialog2));
+		progressDialog.setMessage(getResources().getString(
+				R.string.sub_channel_dialog2));
 		BetterAsyncTask<Void, Void, Void> subscribingTask = new BetterAsyncTask<Void, Void, Void>(
 				this) {
 
@@ -393,22 +397,28 @@ public class SubscribeActivity extends SherlockListActivity {
 			@Override
 			protected Void doCheckedInBackground(Context context,
 					Void... params) throws Exception {
+				if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
+					List<Lecturer> lecturers = UnivrReader.getLecturers();
+					if (lecturers != null && !lecturers.isEmpty()
+							&& !isCancelled()) {
+						progressDialog.setMax(lecturers.size());
+						progressDialog.setCancelable(false);
+						for (Lecturer lecturer : lecturers) {
+							publishProgress("<b>Save Lecturer</b><br/>"
+									+ lecturer.name + "...");
+							lecturer.save();
+						}
 
-				List<Lecturer> lecturers = UnivrReader.getLecturers();
-				if (lecturers != null && !lecturers.isEmpty() && !isCancelled()) {
-					progressDialog.setMax(lecturers.size());
-					progressDialog.setCancelable(false);
-					for (Lecturer lecturer : lecturers) {
-						publishProgress("<b>Save Lecturer</b><br/>"
-								+ lecturer.name + "...");
-						lecturer.save();
+						lecturers.clear();
+						return null;
 					}
 
-					lecturers.clear();
-					return null;
+					throw new UnivrReaderException(getResources().getString(
+							R.string.univrapp_server_exception));
+				} else {
+					throw new UnivrReaderException(getResources().getString(
+							R.string.univrapp_connection_exception));
 				}
-
-				throw new UnivrReaderException(getResources().getString(R.string.univrapp_server_exception));
 			}
 
 			@Override

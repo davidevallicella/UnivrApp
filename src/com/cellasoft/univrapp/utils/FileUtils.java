@@ -7,7 +7,16 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
 
+import android.content.Context;
+
+import com.cellasoft.univrapp.Application;
+
 public class FileUtils {
+	private static Context context;
+	static {
+		context = Application.getInstance();
+	}
+
 	public static void copyFile(File sourceFile, File destFile)
 			throws IOException {
 		if (!destFile.exists()) {
@@ -32,5 +41,15 @@ public class FileUtils {
 		writer.write(content);
 		os.flush();
 		StreamUtils.closeQuietly(os);
+	}
+
+	public static String getFileFromAssets(String fileName) {
+		try {
+			return StreamUtils.readAllText(context.getAssets().open(fileName));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return "";
 	}
 }
