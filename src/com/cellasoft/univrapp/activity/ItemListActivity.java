@@ -257,6 +257,7 @@ public class ItemListActivity extends SherlockListActivity {
 				closeLayoutParams.addRule(RelativeLayout.ALIGN_LEFT,
 						RelativeLayout.TRUE);
 				closeLayoutParams.bottomMargin = (int) adView.getHeight() - 15;
+				closeLayoutParams.leftMargin = 15;
 
 				closeAdmodButton = new ImageButton(getApplicationContext());
 				closeAdmodButton.setLayoutParams(closeLayoutParams);
@@ -312,6 +313,9 @@ public class ItemListActivity extends SherlockListActivity {
 		case R.id.menu_contact:
 			showContact();
 			return true;
+		case R.id.menu_all_read:
+			markAllItemsRead();
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -337,8 +341,8 @@ public class ItemListActivity extends SherlockListActivity {
 				String size = "0";
 				if (newItems != null && newItems.size() > 0) {
 					new Runnable() {
-						public void run() {
-							itemListView.addItemsOnTop(newItems);
+						public void run() {							
+							itemListView.addItems(newItems);
 							itemListView.startLayoutAnimation();
 						}
 					}.run();
@@ -468,6 +472,11 @@ public class ItemListActivity extends SherlockListActivity {
 				});
 		loadMoreItemsTask.disableDialog();
 		loadMoreItemsTask.execute();
+	}
+	
+	private void markAllItemsRead() {
+		ContentManager.markAllItemsOfChannelAsRead(channel);
+		loadItems();
 	}
 
 	private void showItem(final Item item) {

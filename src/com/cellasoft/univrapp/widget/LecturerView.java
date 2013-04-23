@@ -136,9 +136,8 @@ public class LecturerView extends LinearLayout {
 			mTouchDelegateGroup.clearTouchDelegates();
 
 			// @formatter:off
-			addTouchDelegate(new Rect(width - mSelectButton.getWidth()
-					- mTouchAddition, 0, width, height), COLOR_SELECT_AREA,
-					mSelectButton);
+			addTouchDelegate(new Rect(0, 0, mSelectButton.getWidth()
+					+ mTouchAddition, height), COLOR_SELECT_AREA, mSelectButton);
 
 			// @formatter:on
 

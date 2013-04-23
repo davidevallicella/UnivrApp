@@ -16,6 +16,7 @@
     <string name="no">no</string>
     <string name="success">Successful</string>
     <string name="updated">Updated</string>
+    <string name="mark_all_read">Marl all read</string>
 
     <!-- EXCEPTION -->
     <string name="univrapp_server_exception">The server is temporarily inactive. \ n \ Wait a few seconds and try again.</string>

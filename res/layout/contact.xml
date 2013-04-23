@@ -27,8 +27,8 @@
                     android:id="@+id/contact_image"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
-                    android:adjustViewBounds="true"
                     android:contentDescription="@string/desc"
+                    android:adjustViewBounds="true"
                     android:scaleType="centerCrop"
                     android:src="@drawable/thumb" />
             </LinearLayout>

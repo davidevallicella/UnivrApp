@@ -18,9 +18,11 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.os.Handler;
 import android.util.Log;
 
+import com.cellasoft.univrapp.Application;
 import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.exception.UnivrReaderException;
 import com.github.droidfu.http.BetterHttpResponse;
@@ -278,5 +280,40 @@ public class ImageCache implements Map<String, Bitmap> {
 			cache.clear();
 		}
 
+	}
+	
+	private static int dpToPx(int dp)
+	{
+	    float density = Application.getInstance().getResources().getDisplayMetrics().density;
+	    return Math.round((float)dp * density);
+	}
+	
+	private static Bitmap imageScale(Bitmap bitmap ){
+
+	    // Get current dimensions AND the desired bounding box
+	    int width = bitmap.getWidth();
+	    int height = bitmap.getHeight();
+	    int bounding = dpToPx(70);
+	    Log.i("Test", "original width = " + Integer.toString(width));
+	    Log.i("Test", "original height = " + Integer.toString(height));
+	    Log.i("Test", "bounding = " + Integer.toString(bounding));
+
+	    // Determine how much to scale: the dimension requiring less scaling is
+	    // closer to the its side. This way the image always stays inside your
+	    // bounding box AND either x/y axis touches it.  
+	    float xScale = ((float) bounding) / width;
+	    float yScale = ((float) bounding) / height;
+	    float scale = (xScale <= yScale) ? xScale : yScale;
+	    Log.i("Test", "xScale = " + Float.toString(xScale));
+	    Log.i("Test", "yScale = " + Float.toString(yScale));
+	    Log.i("Test", "scale = " + Float.toString(scale));
+
+	    // Create a matrix for the scaling and add the scaling data
+	    Matrix matrix = new Matrix();
+	    matrix.postScale(scale, scale);
+
+	    // Create a new bitmap and convert it to a format understood by the ImageView 
+	    return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
+	  
 	}
 }

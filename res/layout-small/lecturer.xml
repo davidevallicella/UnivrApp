@@ -3,7 +3,15 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:padding="3dp" >
+    android:padding="3dp" >    
+    
+    <ImageButton
+        android:id="@+id/lecturer_check"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:background="@null"
+        android:src="@drawable/btn_check_off_normal" />
 
     <!-- ListRow Left sied Thumbnail image -->
 
@@ -11,8 +19,8 @@
         android:id="@+id/lecturer_thumbnail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_marginRight="5dp"
+        android:layout_marginLeft="20dip"
+        android:layout_marginRight="5dip"
         android:background="@drawable/image"
         android:padding="3dp" >
 
@@ -76,12 +84,5 @@
         </LinearLayout>
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/lecturer_check"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:background="@null"
-        android:src="@drawable/btn_check_off_normal" />
 
 </merge>

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_name">UnivrApp</string>
     <string name="app_version">Version: 1.0</string>
-    <string name="launcher_notes_feed">Feed</string>
     <string name="progress_txt">
 <![CDATA[
   			<small><font size="2" face="sans">{message}</font></small>
@@ -19,4 +18,81 @@
     <string name="first_time_key">first_time</string>
     <string name="last_update_notification">{date}</string>
 	<string name="info_about_me">Development by a student of \n\ Faculty Mathematical, Physical and Natural Sciences ,\n\ University of Verona 2012-2013</string>
+	
+	<string name="mark_all_read">Contrassegna tutto come letto</string>
+	<string name="new_items_notification">Trovate {total} avvisi.</string>
+    <string name="not_load_notification">Impossibile caricare il feed.</string>
+    <string name="loading">Caricamento ...</string>
+    <string name="save">Salva</string>
+    <string name="back">Indietro</string>
+    <string name="change">Cambia</string>
+    <string name="lecturers">Professori</string>
+    <string name="clean">Rimosse {total} avvisi</string>
+    <string name="sub_channel_dialog_title">Sottoscriviti</string>
+    <string name="sub_channel_dialog">Abbonarsi ai canali?</string>
+    <string name="sub_channel_dialog2">Iscrizione ai canali selezionati</string>
+    <string name="yes">si</string>
+    <string name="no">no</string>
+    <string name="success">Riuscito</string>
+    <string name="updated">Aggiornato</string>
+    <!-- EXCEPTION -->
+    <string name="univrapp_server_exception">Il server è momentaneamente inattivo. \n\ Attendere alcuni secondi e riprovare.</string>
+    <string name="univrapp_connection_exception">Connessione assente.</string>
+
+    <!-- MENU -->
+    <string name="subscribe">Sottoscriviti</string>
+    <string name="unsubscribe">Annulla l\'iscrizioni</string>
+    <string name="select_all">Seleziona tutto</string>
+    <string name="settings">Impostazioni</string>
+    <string name="reset">Reset</string>
+    <string name="about">About</string>
+    <string name="clear">Elimina</string>
+    <string name="view_contact">Mostra contatto</string>
+    <string name="reload">Ricarica</string>
+    <!-- CONTACT -->
+    <string name="contact_header">Contatti</string>
+    <string name="info_header">Info</string>
+    <string name="contact_office">Chiama ufficio</string>
+    <string name="contact_mail">Invia e-mail</string>
+    <string name="contact_department">Dipartimento</string>
+    <!-- PREFERENCE -->
+    <string name="pref_categ_sync">Sincronizzazione</string>
+    <string name="pref_categ_user_prof">Profilo Utente</string>
+    <string name="pref_wify_only">Aggiorna solo con WiFi</string>
+    <string name="pref_wify_only_summary">Aggiornamento automatico solo WiFi</string>
+    <string name="pref_send_report">Invia segnalazioni di errore</string>
+    <string name="pref_send_report_summary">Aiuta a correggere i bug</string>
+    <string name="pref_auto_update">Aggiornamento automatico</string>
+    <string name="pref_auto_update_summary">Aggiornamento automatico di tutte le sottoscrizioni</string>
+    <string name="pref_update_interval">Intervallo di aggiornamento</string>
+    <string name="pref_update_interval_summary">Definire la frequenza di aggiornamenti che verrà eseguita</string>
+    <string name="pref_downloads_lecturers">Miniature docenti</string>
+    <string name="pref_downloads_lecturers_summary">Scarica e aggiorna le miniature dei docenti in background</string>
+    <string name="pref_keep_max_items">Numero di elementi più recenti da mantenere</string>
+    <string name="pref_keep_max_items_summary">Massimo dumero di avvisi da tenere durante la pulitura del canale</string>
+    <string name="pref_max_items_for_channel">Max avvisi per sottoscrizione</string>
+    <string name="pref_max_items_for_channel_summary">Massimo dumero di avvisi da caricare per canale</string>
+    <!-- UPDATE INTERVAL -->
+    <string name="minute_1">Ogni minuto</string>
+    <string name="minutes_5">Ogni 5 minuti</string>
+    <string name="minutes_10">Ogni 10 minuti</string>
+    <string name="minutes_15">Ogni 15 minuti</string>
+    <string name="minutes_30">Ogni 30 minuti</string>
+    <!-- KEEP MAX -->
+    <string name="clearAll">Elimina tutto</string>
+    <string name="keep_20">Tieni Max 20 avvisi</string>
+    <string name="keep_50">Tieni Max 50 avvisi</string>
+    <string name="keep_100">Tieni Max 100 avvisi</string>
+    <string name="keep_1000">Tieni Max 1000 avvisi</string>
+    <!-- MAX FOR CHANNEL -->
+    <string name="max_10">Max 10 avvisi</string>
+    <string name="max_20">Max 20 avvisi</string>
+    <string name="max_50">Max 50 avvisi</string>
+    <string name="max_100">Max 100 avvisi</string>
+    <string name="max_200">Max 200 avvisi</string>
+    
+    <string name="pull_to_refresh_pull_label">Tirare per aggiornare...</string>
+    <string name="pull_to_refresh_release_label">Rilascia per aggiornare...</string>
+    <string name="pull_to_refresh_refreshing_label">Caricamento...</string>
+    <string name="pull_to_refresh_tap_label">Premere per aggiornare...</string>
 </resources>

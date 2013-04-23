@@ -1,5 +1,7 @@
 package com.cellasoft.univrapp.utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,17 +47,21 @@ public class Html {
 		return matcher.matches();
 	}
 
-	public static String getAttachment(String html) {
+	public static List<String> getAttachment(String html) {
+		List<String> attachment = new ArrayList<String>();
 		Document doc = Jsoup.parse(html);
 
-		Element file = doc.select("a.LinkContent").first();
+		Elements files = doc.select("a.LinkContent");
 
-		if (file != null && validateFileExtn(file.attr("href"))) {
-			return Settings.getUniversity().domain + file.attr("href");
+		for (Element file : files) {
+			if (file != null && validateFileExtn(file.attr("href"))) {
+				attachment.add(Settings.getUniversity().domain + file.attr("href"));
 
+			}
 		}
+		
 
-		return null;
+		return attachment;
 	}
 
 	public static String getFileNameToPath(String path) {
@@ -66,12 +72,17 @@ public class Html {
 
 	public static String parserPage(String html) {
 		String body = getBodyContent(html);
+		
 		Document doc = Jsoup.parse(body);
 
-		Element table = doc.select("body > table").get(1);
-		
-		Element article = table.select("tbody > tr > td:not(:has(a.LinkContent))").last();
-		
-		return article.html();
+		try {
+			Element table = doc.select("body > table").get(1);
+			Element article = table.select("table:has(th:contains(Content))")
+					.last().select("tr").get(1);
+			
+			return article.html();
+		} catch (Exception e) {
+			return "";
+		}
 	}
 }

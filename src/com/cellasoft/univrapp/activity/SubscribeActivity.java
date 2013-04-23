@@ -226,6 +226,7 @@ public class SubscribeActivity extends SherlockListActivity {
 				closeLayoutParams.addRule(RelativeLayout.ALIGN_LEFT,
 						RelativeLayout.TRUE);
 				closeLayoutParams.bottomMargin = (int) adView.getHeight() - 15;
+				closeLayoutParams.leftMargin = 15;
 
 				closeAdmodButton = new ImageButton(getApplicationContext());
 				closeAdmodButton.setLayoutParams(closeLayoutParams);

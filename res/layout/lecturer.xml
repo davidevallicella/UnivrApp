@@ -5,14 +5,22 @@
     android:gravity="center_vertical"
     android:padding="3dp" >
 
+    <ImageButton
+        android:id="@+id/lecturer_check"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:background="@null"
+        android:src="@drawable/btn_check_off_normal" />
+
     <!-- ListRow Left sied Thumbnail image -->
 
     <LinearLayout
         android:id="@+id/lecturer_thumbnail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_marginRight="3dip"
+        android:layout_marginLeft="20dip"
+        android:layout_marginRight="5dip"
         android:background="@drawable/image"
         android:padding="3dip" >
 
@@ -62,8 +70,8 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="2dp"
                 android:layout_gravity="center_vertical"
+                android:layout_marginLeft="2dp"
                 android:background="@drawable/sub_check" />
 
             <TextView
@@ -75,13 +83,5 @@
                 android:textAppearance="?android:attr/textAppearanceSmall" />
         </LinearLayout>
     </LinearLayout>
-
-    <ImageButton
-        android:id="@+id/lecturer_check"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:background="@null"
-        android:src="@drawable/btn_check_off_normal" />
 
 </merge>

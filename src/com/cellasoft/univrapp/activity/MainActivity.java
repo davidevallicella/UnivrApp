@@ -20,9 +20,9 @@ import com.cellasoft.univrapp.widget.DashboardEntry;
 public class MainActivity extends LocalizedActivity /*implements OnItemClickListener */{
 
 	private static final int SUCCESS = 1;
-	private DashboardEntry[] dashboardEntries = { new DashboardEntry(
-			R.string.launcher_notes_feed, R.drawable.ic_menu_feed,
-			ChannelListActivity.class) };
+//	private DashboardEntry[] dashboardEntries = { new DashboardEntry(
+//			R.string.launcher_notes_feed, R.drawable.ic_menu_feed,
+//			ChannelListActivity.class) };
 //	private GridView dashboardGridView;
 
 	@Override

@@ -188,6 +188,7 @@ public class ChannelListActivity extends SherlockListActivity {
 						RelativeLayout.TRUE);
 
 				closeLayoutParams.bottomMargin = (int) adView.getHeight() - 15;
+				closeLayoutParams.leftMargin = 15;
 
 				closeAdmodButton = new ImageButton(getApplicationContext());
 				closeAdmodButton.setLayoutParams(closeLayoutParams);

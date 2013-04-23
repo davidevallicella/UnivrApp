@@ -1,10 +1,87 @@
 @CHARSET "ISO-8859-1";
 
+body {
+	height: 99.9%;
+	background-image: url("bg_article.jpg");
+	background-repeat: repeat;
+}
+
+.page {
+	padding: 0;
+	margin: 0;
+	top: 0;
+	left: 0;
+	overflow: hidden;
+	width: 100%;
+	padding-top: 65px;
+}
+
+a {
+	font-family: Helvetica, Arial, sans-serif;
+}
+
+.header,.footer {
+	left: 0 !important;
+	right: 0 !important;
+	width: 100%;
+	position: fixed !important;
+	z-index: 999 !important;
+}
+
+.header {
+	border: 1px solid #b3b3b3;
+	background: #eee;
+	color: #3e3e3e;
+	font-weight: bold;
+	text-shadow: 0 1px 1px #fff;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#f0f0f0),
+		to(#ddd));
+	background-image: -webkit-linear-gradient(#f0f0f0, #ddd);
+	background-image: -moz-linear-gradient(#f0f0f0, #ddd);
+	background-image: -ms-linear-gradient(#f0f0f0, #ddd);
+	background-image: -o-linear-gradient(#f0f0f0, #ddd);
+	background-image: linear-gradient(#f0f0f0, #ddd);
+	top: 0 !important;
+}
+
+.footer {
+	border: 1px solid #044062;
+	background: #396b9e;
+	font-weight: bold;
+	color: #fff;
+	text-shadow: 0 1px 1px #194b7e;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#5f9cc5),
+		to(#396b9e));
+	background-image: -webkit-linear-gradient(#5f9cc5, #396b9e);
+	background-image: -moz-linear-gradient(#5f9cc5, #396b9e);
+	background-image: -ms-linear-gradient(#5f9cc5, #396b9e);
+	background-image: -o-linear-gradient(#5f9cc5, #396b9e);
+	background-image: linear-gradient(#5f9cc5, #396b9e);
+	bottom: 0 !important;
+}
+
+.content {
+	border-width: 0;
+	overflow: hidden;
+	overflow-x: hidden;
+	padding: 15px;
+	color: #333;
+	text-shadow: 0 1px 0 #fff;
+}
+
 #title {
 	text-transform: uppercase;
-	text-align: left;; margin-left : 20px;
+	text-align: left;;
+	margin-left: 15px;
+	margin-right: 15px;
 	font-size: 1.0em;
-	margin-left: 20px;
+	min-height: 1.1em;
+	font-size: 16px;
+	display: block;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	outline: 0 !important
 }
 
 a {
@@ -16,26 +93,8 @@ a {
 	font-size: 0.8em;
 }
 
-.icon {
-	width: 30px;
-	height: 32px;
-	background: transparent;
-	float: left;
-}
-
-.file {
-	position: absolute;
-	display: table;
-	background: transparent;
-	float: left;
-	height: 32;
-	font-size: 1.1em;
-	padding: 5px;
-}
-
 .file a {
-	display: table-cell;
-	padding-left: 40px;
+	padding-left: 5px;
 	vertical-align: middle;
 	text-align: center;
 	font-family: monospace;

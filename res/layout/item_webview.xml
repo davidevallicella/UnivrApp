@@ -17,7 +17,6 @@
 
     <WebView
         android:id="@+id/itemWebView"
-        android:hardwareAccelerated="true"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_gravity="fill"

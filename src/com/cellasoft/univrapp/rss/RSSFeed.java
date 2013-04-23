@@ -89,7 +89,7 @@ public class RSSFeed {
 	}
 
 	public void addItem(Item item) {
-		this.entries.add(0, item);
+		this.entries.add(item);
 	}
 
 	public static RSSFeed parse(InputStream is, int maxItems,
