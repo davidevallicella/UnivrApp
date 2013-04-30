@@ -54,7 +54,6 @@
         <PreferenceScreen
             android:key="app_version"
             android:selectable="false"
-            android:summary="@string/app_version"
             android:title="Application Version" />
         
     </PreferenceCategory>

@@ -9,26 +9,37 @@ import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceScreen;
+import android.view.ViewGroup;
 
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
 import com.cellasoft.univrapp.ConnectivityReceiver;
+import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.service.DownloadingService;
 import com.cellasoft.univrapp.service.SynchronizationService;
+import com.cellasoft.univrapp.utils.FontUtils;
 
 public class SettingsActivity extends SherlockPreferenceActivity implements
 		OnSharedPreferenceChangeListener {
 
 	private static final String TAG = SettingsActivity.class.getSimpleName();
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.settings);
-		
-		
+		findPreference("app_version").setSummary(Constants.getAppVersion());
+
 	}
 
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
+		super.onPostCreate(savedInstanceState);
+	}
+
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -39,6 +50,7 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 		showListPreferenceValues(getPreferenceScreen());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -65,7 +77,8 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 				DownloadingService.cancelScheduledDownloads();
 			}
 		}
-		
+
+		@SuppressWarnings("deprecation")
 		Preference pref = findPreference(key);
 		if (pref instanceof ListPreference) {
 			ListPreference listPref = (ListPreference) pref;

@@ -13,16 +13,13 @@
         android:orientation="vertical" >
 
         <TextView
-            android:id="@+id/AboutTextView00"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:background="@android:color/white"
             android:gravity="center"
             android:paddingBottom="5dip"
             android:paddingTop="5dip"
             android:text="@string/info_about_me"
-            android:textSize="14dp"
+            android:textSize="14sp"
             android:typeface="serif" />
 
         <TextView
@@ -52,9 +49,8 @@
                 android:id="@+id/contact_image"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
-                android:adjustViewBounds="true"
                 android:contentDescription="@string/desc"
-                android:scaleType="centerCrop"
+                android:scaleType="fitCenter"
                 android:src="@drawable/io" />
         </LinearLayout>
     </LinearLayout>
@@ -126,13 +122,13 @@
 
                 <ImageView
                     android:id="@+id/contact_email_action"
-                    android:layout_width="35dp"
-                    android:layout_height="35dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:clickable="true"
                     android:contentDescription="@string/desc"
                     android:focusable="true"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/mail" />
+                    android:scaleType="center"
+                    android:src="@drawable/ic_action_mail" />
             </LinearLayout>
         </RelativeLayout>
     </LinearLayout>

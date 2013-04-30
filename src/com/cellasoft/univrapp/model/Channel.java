@@ -36,6 +36,7 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 	public long updateTime;
 	public boolean isSelected;
 	public boolean starred;
+	public boolean mute = false;
 
 	public Channel() {
 		this.id = 0;
@@ -147,7 +148,7 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		int numberOfFetchedItems = 0;
 		RSSFeed feed = null;
 		try {
-			UnivrReader reader = UnivrReaderFactory.getGoogleReader();
+			UnivrReader reader = UnivrReaderFactory.getUnivrReader();
 			while (true) {
 				feed = reader.fetchEntriesOfFeed(this, maxItems,
 						new OnNewEntryCallback() {
@@ -203,6 +204,7 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 			if (exist()) {
 				for (Item item : items) {
 					if (item.save()) {
+						System.out.println("save: " + item.title);
 						newItems++;
 					}
 				}
@@ -230,6 +232,22 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 
 	public int indexOf(Item item) {
 		return getItems().indexOf(item);
+	}
+
+	public void markChannelToStarred() {
+		ContentManager.markChannelToStarred(this);
+	}
+
+	public void unmarkChannelToStarred() {
+		ContentManager.unmarkChannelToStarred(this);
+	}
+
+	public void markChannelToMute() {
+		ContentManager.markChannelToMute(this);
+	}
+
+	public void unmarkChannelToMute() {
+		ContentManager.unmarkChannelToMute(this);
 	}
 
 	public boolean subscribe() {
@@ -293,6 +311,7 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		public static final String UPDATE_TIME = "UPDATE_TIME";
 		public static final String UNREAD = "UNREAD";
 		public static final String STARRED = "STARRED";
+		public static final String MUTE = "MUTE";
 		public static final String IMAGE_URL = "IMAGE_URL";
 
 		private Channels() {

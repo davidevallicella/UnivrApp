@@ -78,17 +78,17 @@ public class LecturerView extends LinearLayout {
 		mPaint.setStyle(Style.FILL);
 
 		// Determine screen size
-		switch (Utils.getScreenSize()) {
-		case Configuration.SCREENLAYOUT_SIZE_LARGE:
-		case Configuration.SCREENLAYOUT_SIZE_NORMAL:
-			TOUCH_ADDITION = 20;
-			break;
-		case Configuration.SCREENLAYOUT_SIZE_SMALL:
-			TOUCH_ADDITION = 15;
-			break;
-		default:
-			TOUCH_ADDITION = 20;
-		}
+//		switch (Utils.getScreenSize()) {
+//		case Configuration.SCREENLAYOUT_SIZE_LARGE:
+//		case Configuration.SCREENLAYOUT_SIZE_NORMAL:
+//			TOUCH_ADDITION = 20;
+//			break;
+//		case Configuration.SCREENLAYOUT_SIZE_SMALL:
+//			TOUCH_ADDITION = 15;
+//			break;
+//		default:
+//			TOUCH_ADDITION = 20;
+//		}
 
 		final float density = context.getResources().getDisplayMetrics().density;
 		mTouchAddition = (int) (density * TOUCH_ADDITION + 0.5f);

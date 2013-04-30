@@ -6,16 +6,20 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.support.v4.app.NavUtils;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnTouchListener;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockActivity;
+import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.adapter.ItemImageLoaderHandler;
 import com.cellasoft.univrapp.model.Lecturer;
+import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageLoader;
 import com.cellasoft.univrapp.utils.StreamDrawable;
 import com.github.droidfu.concurrent.BetterAsyncTask;
@@ -51,7 +55,23 @@ public class ContactActivity extends SherlockActivity {
 			loadContactInfo(lecturerId, lecturerName, lecturerOffice,
 					lecturerThumb);
 		}
+
+		getSupportActionBar().setTitle(
+				getResources().getString(R.string.contact_title));
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+	}
+	
+	
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
+		super.onPostCreate(savedInstanceState);
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu) {
+		getSupportMenuInflater().inflate(R.menu.contact_menu, menu);
+		return true;
 	}
 
 	@Override
@@ -61,7 +81,15 @@ public class ContactActivity extends SherlockActivity {
 		switch (item.getItemId()) {
 		case android.R.id.home:
 			// go back
-			this.finish();
+			NavUtils.navigateUpFromSameTask(this);
+			return true;
+		case R.id.menu_web_page:
+			// go back
+			Intent browserIntent = new Intent(
+					Intent.ACTION_VIEW,
+					Uri.parse(Settings.getUniversity().domain + "/fol/main?ent=persona&id="
+							+ lecturer.key));
+			startActivity(browserIntent);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);

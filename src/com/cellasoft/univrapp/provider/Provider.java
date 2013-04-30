@@ -262,6 +262,7 @@ public class Provider extends ContentProvider {
 		channelsProjectionMap.put(Channels.DESCRIPTION, Channels.DESCRIPTION);
 		channelsProjectionMap.put(Channels.UPDATE_TIME, Channels.UPDATE_TIME);
 		channelsProjectionMap.put(Channels.STARRED, Channels.STARRED);
+		channelsProjectionMap.put(Channels.MUTE, Channels.MUTE);
 		channelsProjectionMap.put(Channels.IMAGE_URL, Channels.IMAGE_URL);
 		channelsProjectionMap.put(Channels.UNREAD, "(SELECT COUNT(*) FROM "
 				+ DatabaseHelper.ITEMS_TABLE_NAME + " WHERE "

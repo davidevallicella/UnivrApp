@@ -15,7 +15,7 @@ import com.cellasoft.univrapp.widget.SynchronizationListener;
 
 public class SynchronizationManager {
 	private static final String TAG = SynchronizationManager.class.getName();
-	
+
 	private static SynchronizationManager instance;
 	private Object synRoot = new Object();
 	private boolean synchronizing = false;
@@ -50,22 +50,24 @@ public class SynchronizationManager {
 			synchronizing = true;
 		}
 
-		onSynchronizationStart();  
+		onSynchronizationStart();
 		int totalNewItems = 0;
 
 		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 
-			if (Constants.DEBUG_MODE) Log.d(TAG, "Start synchronization at " + new Date());
-			
-			totalNewItems = syncFeeds();			
-	      
-			if (Constants.DEBUG_MODE) Log.d(TAG, "Stop synchronization at " + new Date());
+			if (Constants.DEBUG_MODE)
+				Log.d(TAG, "Start synchronization at " + new Date());
+
+			totalNewItems = syncFeeds();
+
+			if (Constants.DEBUG_MODE)
+				Log.d(TAG, "Stop synchronization at " + new Date());
 		}
 
 		synchronized (synRoot) {
 			synchronizing = false;
 		}
-		
+
 		onSynchronizationFinish(totalNewItems);
 
 		return totalNewItems;
@@ -133,10 +135,12 @@ public class SynchronizationManager {
 					}
 
 					try {
-						List<Item> newItems = channel.update(maxItemsForChannel);
-						totalNewItems += newItems.size();
+						List<Item> newItems = channel
+								.update(maxItemsForChannel);
+						if (!channel.mute)
+							totalNewItems += newItems.size();
 						channel.getItems().clear();
-						ContentManager.cleanUp(channel, Settings.getKeepMaxItems()); 
+						//ContentManager.cleanUp(channel, Settings.getKeepMaxItems());
 					} catch (Throwable ex) {
 						ex.printStackTrace();
 					}

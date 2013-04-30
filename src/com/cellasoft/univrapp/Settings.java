@@ -157,7 +157,7 @@ public class Settings {
 		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
 		return prefs.getBoolean("notification_light", false);
 	}
-	
+
 	public static boolean isEnabledSandingBugRepport() {
 		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
 		return prefs.getBoolean("acra.enable", true);

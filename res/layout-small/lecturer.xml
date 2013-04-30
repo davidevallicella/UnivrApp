@@ -37,7 +37,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_alignParentLeft="true"
-        android:layout_marginRight="20dp"
+        android:layout_marginRight="10dp"
         android:layout_toRightOf="@+id/lecturer_thumbnail"
         android:layout_weight="1"
         android:background="@drawable/image"

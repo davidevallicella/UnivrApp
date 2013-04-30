@@ -14,7 +14,9 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -26,15 +28,18 @@ import com.cellasoft.univrapp.ConnectivityReceiver;
 import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.manager.ContentManager;
+import com.cellasoft.univrapp.manager.SynchronizationManager;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.service.DownloadingService;
 import com.cellasoft.univrapp.service.SynchronizationService;
 import com.cellasoft.univrapp.utils.FileCache;
+import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageCache;
 import com.cellasoft.univrapp.utils.ImageLoader;
 import com.cellasoft.univrapp.widget.ChannelListView;
 import com.cellasoft.univrapp.widget.ChannelView;
 import com.cellasoft.univrapp.widget.OnChannelViewListener;
+import com.cellasoft.univrapp.widget.SynchronizationListener;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
 import com.google.ads.Ad;
@@ -54,6 +59,24 @@ public class ChannelListActivity extends SherlockListActivity {
 	private ChannelListView channelListView;
 	private AdView adView;
 
+	private SynchronizationListener synchronizationListener = new SynchronizationListener() {
+		public void onStart() {
+		}
+
+		public void onProgress(String progressText) {
+		}
+
+		public void onFinish(final int totalNewItems) {
+
+			if (totalNewItems > 0) {
+				if (Constants.DEBUG_MODE)
+					Log.d(TAG, "Synchronization Listener, refresh");
+				refreshUnreadCounts();
+			}
+
+		}
+	};
+
 	private OnChannelViewListener channelListener = new OnChannelViewListener() {
 
 		@Override
@@ -69,10 +92,9 @@ public class ChannelListActivity extends SherlockListActivity {
 			final int position = getListView().getPositionForView(view);
 			if (position != ListView.INVALID_POSITION) {
 				if (starred)
-					ContentManager.markChannelToStarred(channels.get(position));
+					channels.get(position).markChannelToStarred();
 				else
-					ContentManager.unmarkChannelToStarred(channels
-							.get(position));
+					channels.get(position).unmarkChannelToStarred();
 			}
 		}
 	};
@@ -84,7 +106,15 @@ public class ChannelListActivity extends SherlockListActivity {
 		super.onCreate(savedInstanceState);
 		ImageLoader.initialize(this);
 		setContentView(R.layout.channel_view);
+		getSupportActionBar().setTitle(
+				getResources().getString(R.string.channel_title));
 		init();
+	}
+
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
+		super.onPostCreate(savedInstanceState);
 	}
 
 	@Override
@@ -96,7 +126,16 @@ public class ChannelListActivity extends SherlockListActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		SynchronizationManager.getInstance().registerSynchronizationListener(
+				synchronizationListener);
 		showAdmodBanner();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		SynchronizationManager.getInstance().unregisterSynchronizationListener(
+				synchronizationListener);
 	}
 
 	private void init() {
@@ -279,6 +318,9 @@ public class ChannelListActivity extends SherlockListActivity {
 		case R.id.menu_unsubscribe:
 			confirmDeleteChannel();
 			return true;
+		case R.id.menu_reload:
+			refreshAllChannels();
+			return true;
 		case R.id.menu_selectAll:
 			selectAll();
 			return true;
@@ -306,20 +348,21 @@ public class ChannelListActivity extends SherlockListActivity {
 		if (requestCode == FIRST_TIME) {
 			if (resultCode == RESULT_OK) {
 				Settings.saveFirstTime();
+				infoDialog();
 			}
 			if (resultCode == RESULT_CANCELED) {
 				finish();
 			}
 		}
 	};
-	
+
 	private void selectAll() {
-		for (int i=1; i<channels.size(); i++) {
+		for (int i = 1; i < channels.size(); i++) {
 			channels.get(i).isSelected = true;
 		}
 		channelListView.refresh();
 	}
-	
+
 	private void showAboutScreen() {
 		Intent intent = new Intent(this, AboutScreen.class);
 		startActivity(intent);
@@ -360,6 +403,23 @@ public class ChannelListActivity extends SherlockListActivity {
 					}
 				}).create();
 		dialog.show();
+	}
+
+	private void infoDialog() {
+		LayoutInflater inflater = LayoutInflater.from(this);
+		View addView = inflater.inflate(R.layout.info_dialog, null);
+		String infoMessage = "Ancora pochi passi e ci siamo ;)";
+		AlertDialog dialog = new AlertDialog.Builder(ChannelListActivity.this)
+				.setView(addView).setTitle("Benvenuto").setMessage(infoMessage)
+				.setIcon(android.R.drawable.ic_dialog_info)
+				.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						dialog.dismiss();
+					}
+				}).create();
+
+		dialog.show();
+
 	}
 
 	private void confirmReset() {
@@ -439,7 +499,7 @@ public class ChannelListActivity extends SherlockListActivity {
 			protected Void doInBackground(Void... params) {
 				stopServices();
 				cancelNotification();
-				
+
 				for (Channel channel : channels) {
 					channel.delete();
 				}
@@ -455,7 +515,7 @@ public class ChannelListActivity extends SherlockListActivity {
 				});
 
 				ImageCache.getInstance().clear();
-				
+
 				return null;
 			}
 		};
@@ -505,5 +565,33 @@ public class ChannelListActivity extends SherlockListActivity {
 		});
 		task.disableDialog();
 		task.execute();
+	}
+
+	private void refreshAllChannels() {
+		BetterAsyncTask<Void, Void, Void> task = new BetterAsyncTask<Void, Void, Void>(
+				this) {
+			
+			protected void handleError(Context context, Exception e) {
+				e.printStackTrace();
+				String message = getResources().getString(
+						R.string.not_load_notification);
+				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+			}
+
+			@Override
+			protected void after(Context arg0, Void arg1) {	
+			}
+
+		};
+		task.setCallable(new BetterAsyncTaskCallable<Void, Void, Void>() {
+			public Void call(BetterAsyncTask<Void, Void, Void> task)
+					throws Exception {
+				SynchronizationManager.getInstance().startSynchronizing();
+				return null;
+			}
+		});
+		task.disableDialog();
+		task.execute();
+		
 	}
 }

@@ -11,9 +11,12 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.widget.ImageButton;
@@ -22,6 +25,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
 import com.cellasoft.univrapp.ConnectivityReceiver;
 import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.Settings;
@@ -36,6 +40,7 @@ import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.service.SynchronizationService;
 import com.cellasoft.univrapp.utils.ActiveList;
 import com.cellasoft.univrapp.utils.DateUtils;
+import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageLoader;
 import com.cellasoft.univrapp.widget.ItemListView;
 import com.cellasoft.univrapp.widget.SynchronizationListener;
@@ -104,6 +109,20 @@ public class ItemListActivity extends SherlockListActivity {
 					ContentManager.FULL_CHANNEL_LOADER);
 			init();
 		}
+
+		if (android.os.Build.VERSION.SDK_INT >= 11) {
+			System.out.println("----- ENABLE");
+			getWindow().setFlags(
+					WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+					WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+		}
+	}
+	
+	
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
+		super.onPostCreate(savedInstanceState);
 	}
 
 	@Override
@@ -280,13 +299,19 @@ public class ItemListActivity extends SherlockListActivity {
 	}
 
 	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		menu.findItem(R.id.menu_keep_silence).setVisible(!channel.mute);
+		menu.findItem(R.id.menu_up).setVisible(channel.mute);
+
+		return super.onPrepareOptionsMenu(menu);
+	}
+
+	@Override
 	public boolean onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu) {
 
 		getSupportMenuInflater().inflate(R.menu.item_menu, menu);
 		if (channel.url.equals(Settings.getUniversity().url)) {
-
 			menu.findItem(R.id.menu_contact).setVisible(false);
-
 		}
 		return true;
 	}
@@ -308,13 +333,19 @@ public class ItemListActivity extends SherlockListActivity {
 				cleanList();
 			return true;
 		case android.R.id.home:
-			finish();
+			NavUtils.navigateUpFromSameTask(this);
 			return true;
 		case R.id.menu_contact:
 			showContact();
 			return true;
 		case R.id.menu_all_read:
 			markAllItemsRead();
+			return true;
+		case R.id.menu_keep_silence:
+			channel.markChannelToMute();
+			return true;
+		case R.id.menu_up:
+			channel.unmarkChannelToMute();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -329,7 +360,7 @@ public class ItemListActivity extends SherlockListActivity {
 
 	}
 
-	private void refresh() {
+	private void refresh() {			
 		refresh = true;
 		final int maxItemsForChannel = Settings.getMaxItemsForChannel();
 
@@ -341,7 +372,7 @@ public class ItemListActivity extends SherlockListActivity {
 				String size = "0";
 				if (newItems != null && newItems.size() > 0) {
 					new Runnable() {
-						public void run() {							
+						public void run() {
 							itemListView.addItems(newItems);
 							itemListView.startLayoutAnimation();
 						}
@@ -376,7 +407,8 @@ public class ItemListActivity extends SherlockListActivity {
 				if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 					return channel.update(maxItemsForChannel);
 				} else
-					throw new UnivrReaderException(getResources().getString(R.string.univrapp_connection_exception));
+					throw new UnivrReaderException(getResources().getString(
+							R.string.univrapp_connection_exception));
 			}
 		});
 		task.disableDialog();
@@ -473,12 +505,12 @@ public class ItemListActivity extends SherlockListActivity {
 		loadMoreItemsTask.disableDialog();
 		loadMoreItemsTask.execute();
 	}
-	
+
 	private void markAllItemsRead() {
 		ContentManager.markAllItemsOfChannelAsRead(channel);
 		loadItems();
 	}
-
+	
 	private void showItem(final Item item) {
 		Intent in = new Intent(getApplicationContext(),
 				DisPlayWebPageActivity.class);

@@ -113,6 +113,7 @@ public class ContentManager {
 			values.put(Channels.URL, channel.url);
 			values.put(Channels.DESCRIPTION, channel.description);
 			values.put(Channels.STARRED, channel.starred);
+			values.put(Channels.MUTE, channel.mute);
 			values.put(Channels.UPDATE_TIME, channel.updateTime);
 			values.put(Channels.IMAGE_URL, channel.imageUrl);
 			Uri contentUri = cr.insert(Channels.CONTENT_URI, values);
@@ -553,6 +554,32 @@ public class ContentManager {
 		ContentValues values = new ContentValues();
 		if (channel.id != 0) {
 			values.put(Channels.STARRED, 0);
+			cr.update(Channels.CONTENT_URI, values, Provider.WHERE_ID,
+					new String[] { String.valueOf(channel.id) });
+		}
+	}
+
+	public static void markChannelToMute(Channel channel) {
+		if (channel.mute)
+			return;
+
+		channel.mute = true;
+		ContentValues values = new ContentValues();
+		if (channel.id != 0) {
+			values.put(Channels.MUTE, 1);
+			cr.update(Channels.CONTENT_URI, values, Provider.WHERE_ID,
+					new String[] { String.valueOf(channel.id) });
+		}
+	}
+
+	public static void unmarkChannelToMute(Channel channel) {
+		if (!channel.mute)
+			return;
+
+		channel.mute = false;
+		ContentValues values = new ContentValues();
+		if (channel.id != 0) {
+			values.put(Channels.MUTE, 0);
 			cr.update(Channels.CONTENT_URI, values, Provider.WHERE_ID,
 					new String[] { String.valueOf(channel.id) });
 		}

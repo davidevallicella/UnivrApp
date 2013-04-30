@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.text.Html;
 import android.text.Spanned;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -21,6 +22,7 @@ import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.model.University;
 import com.cellasoft.univrapp.reader.UnivrReader;
+import com.cellasoft.univrapp.utils.FontUtils;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 
 public class ChooseMainFeedActivity extends SherlockListActivity {
@@ -34,6 +36,12 @@ public class ChooseMainFeedActivity extends SherlockListActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.university_list);
 		init();
+	}
+
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
+		super.onPostCreate(savedInstanceState);
 	}
 
 	private void init() {
@@ -82,13 +90,15 @@ public class ChooseMainFeedActivity extends SherlockListActivity {
 			@Override
 			protected Void doCheckedInBackground(Context context,
 					Void... params) throws Exception {
+				Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+
 				if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 					List<Lecturer> lecturers = UnivrReader.getLecturers();
-					if (lecturers != null && !lecturers.isEmpty()
-							&& !isCancelled()) {
-						channel.save();
-						progressDialog.setMax(lecturers.size());
+					if (!isCancelled()) {
 						progressDialog.setCancelable(false);
+						progressDialog.setMax(lecturers.size());
+						channel.save();
+
 						for (Lecturer lecturer : lecturers) {
 							publishProgress("<b>Save Lecturer</b><br/>"
 									+ lecturer.name + "...");
@@ -96,16 +106,12 @@ public class ChooseMainFeedActivity extends SherlockListActivity {
 						}
 
 						lecturers.clear();
-						return null;
 					}
-
-					throw new UnivrReaderException(getResources().getString(
-							R.string.univrapp_server_exception));
-
 				} else {
 					throw new UnivrReaderException(getResources().getString(
 							R.string.univrapp_connection_exception));
 				}
+				return null;
 			}
 
 			@Override

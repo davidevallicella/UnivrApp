@@ -3,13 +3,13 @@
 
     <item
         android:id="@+id/menu_subscribe"
-        android:icon="@drawable/ic_menu_save"
+        android:icon="@drawable/ic_action_tick"
         android:showAsAction="ifRoom"
         android:title="@string/subscribe"/>
     
      <item
         android:id="@+id/menu_reload"
-        android:icon="@drawable/ic_menu_refresh"
+        android:icon="@drawable/ic_action_reload"
         android:showAsAction="ifRoom"
         android:title="@string/reload"/>
 

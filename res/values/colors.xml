@@ -2,7 +2,6 @@
 <resources>
 
     <color name="aliceBlue">#E5F2F7</color>
-    <color name="white">#FFFFFF</color>
     <color name="honeycombish_blue">#FF58BAED</color>
     <color name="soft_grey">#FF777777</color>
     <color name="background">#FFEFEFEF</color>
@@ -15,6 +14,7 @@
     <color name="scineze_mm.ff.nn">#B2E1D0</color>
     <color name="shadow_dark">#5000</color>
     <color name="shadow_light">#0000</color>
+    <color name="transparent">#00000000</color>
 
     <color name="btn_text_selected">#99CCFF</color>
     <color name="btn_text_normal">#FFF</color>

@@ -14,6 +14,7 @@ public class FullChannelLoader implements ChannelLoader {
 			Channels.DESCRIPTION,
 			Channels.UPDATE_TIME,
 			Channels.STARRED,
+			Channels.MUTE,
 			Channels.IMAGE_URL
 			};
 
@@ -32,7 +33,8 @@ public class FullChannelLoader implements ChannelLoader {
 		channel.description = cursor.getString(4);// cursor.getColumnIndex(Channels.DESCRIPTION));
 		channel.updateTime = cursor.getLong(5);
 		channel.starred = (cursor.getInt(6) != 0);
-		channel.imageUrl = cursor.getString(7);
+		channel.mute = (cursor.getInt(7) != 0);
+		channel.imageUrl = cursor.getString(8);
 		return channel;
 	}
 

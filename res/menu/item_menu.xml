@@ -3,19 +3,31 @@
 
     <item
         android:id="@+id/menu_clear"
-        android:icon="@drawable/ic_menu_delete"
+        android:icon="@drawable/ic_action_trash"
         android:showAsAction="ifRoom"
         android:title="@string/clear"/>
     <item
         android:id="@+id/menu_contact"
-        android:icon="@drawable/contact"
+        android:icon="@drawable/ic_action_user"
         android:showAsAction="never"
         android:title="@string/view_contact"/>
     
     <item
         android:id="@+id/menu_all_read"
-        android:icon="@drawable/ic_menu_all_read"
+        android:icon="@drawable/ic_action_tick"
         android:showAsAction="never"
         android:title="@string/mark_all_read"/>
+    
+    <item
+        android:id="@+id/menu_keep_silence"
+        android:icon="@drawable/ic_action_volume_mute"
+        android:showAsAction="never"
+        android:title="@string/mute"/>
+    
+    <item
+        android:id="@+id/menu_up"
+        android:icon="@drawable/ic_action_volume_up"
+        android:showAsAction="never"
+        android:title="@string/up"/>
 
 </menu>

@@ -2,18 +2,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string-array name="updateInterval">
-        <item name="1">@string/minute_1</item>
-        <item name="5">@string/minutes_5</item>
-        <item name="10">@string/minutes_10</item>
         <item name="15">@string/minutes_15</item>
         <item name="30">@string/minutes_30</item>
+        <item name="60">@string/each_hour</item>
+        <item name="180">@string/hours_3</item>
+        <item name="300">@string/hours_5</item>
+        <item name="420">@string/hours_7</item>
     </string-array>
     <string-array name="updateIntervalValues">
-        <item name="1">1</item>
-        <item name="5">5</item>
-        <item name="10">10</item>
         <item name="15">15</item>
         <item name="30">30</item>
+        <item name="60">60</item>
+        <item name="180">180</item>
+        <item name="300">300</item>
+        <item name="420">420</item>
     </string-array>
     
     <string-array name="keepMaxItem">

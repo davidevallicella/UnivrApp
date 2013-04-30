@@ -20,9 +20,11 @@ import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.v4.app.NavUtils;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -42,6 +44,7 @@ import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.reader.UnivrReader;
 import com.cellasoft.univrapp.utils.FileCache;
+import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageLoader;
 import com.cellasoft.univrapp.widget.LecturerView;
 import com.cellasoft.univrapp.widget.OnLecturerViewListener;
@@ -129,6 +132,12 @@ public class SubscribeActivity extends SherlockListActivity {
 	}
 
 	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
+		super.onPostCreate(savedInstanceState);
+	}
+
+	@Override
 	protected void onStart() {
 		super.onStart();
 		loadData();
@@ -138,7 +147,9 @@ public class SubscribeActivity extends SherlockListActivity {
 		initListView();
 		initBanner();
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-		getSupportActionBar().setTitle("Subscriptions");
+		getSupportActionBar().setIcon(R.drawable.rss);
+		getSupportActionBar().setTitle(
+				getResources().getString(R.string.subscribe_title));
 		getSupportActionBar().setSubtitle(Settings.getUniversity().name);
 
 		post_data = new PostData();
@@ -289,7 +300,7 @@ public class SubscribeActivity extends SherlockListActivity {
 			reloadLecturers();
 			return true;
 		case android.R.id.home:
-			finish();
+			NavUtils.navigateUpFromSameTask(this);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -398,12 +409,16 @@ public class SubscribeActivity extends SherlockListActivity {
 			@Override
 			protected Void doCheckedInBackground(Context context,
 					Void... params) throws Exception {
+				Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+
 				if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
+
 					List<Lecturer> lecturers = UnivrReader.getLecturers();
-					if (lecturers != null && !lecturers.isEmpty()
-							&& !isCancelled()) {
-						progressDialog.setMax(lecturers.size());
+
+					if (!isCancelled()) {
 						progressDialog.setCancelable(false);
+						progressDialog.setMax(lecturers.size());
+
 						for (Lecturer lecturer : lecturers) {
 							publishProgress("<b>Save Lecturer</b><br/>"
 									+ lecturer.name + "...");
@@ -411,15 +426,13 @@ public class SubscribeActivity extends SherlockListActivity {
 						}
 
 						lecturers.clear();
-						return null;
 					}
-
-					throw new UnivrReaderException(getResources().getString(
-							R.string.univrapp_server_exception));
 				} else {
 					throw new UnivrReaderException(getResources().getString(
 							R.string.univrapp_connection_exception));
 				}
+
+				return null;
 			}
 
 			@Override

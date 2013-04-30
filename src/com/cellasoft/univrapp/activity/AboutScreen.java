@@ -13,13 +13,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.view.animation.AnimationUtils;
+import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.cellasoft.univrapp.utils.FontUtils;
 import com.paypal.android.MEP.CheckoutButton;
 import com.paypal.android.MEP.PayPal;
 import com.paypal.android.MEP.PayPalActivity;
@@ -29,10 +30,18 @@ public class AboutScreen extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.about);
 		setProgressBarIndeterminateVisibility(true);
 		init();
+	}
+
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
+		super.onPostCreate(savedInstanceState);
 	}
 
 	private void init() {
@@ -40,6 +49,7 @@ public class AboutScreen extends Activity {
 
 			@Override
 			protected Void doInBackground(Void... params) {
+				Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 				final Vibrator vib = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
 				findViewById(R.id.contact_email_action).setOnTouchListener(
@@ -66,7 +76,7 @@ public class AboutScreen extends Activity {
 								return false;
 							}
 						});
-				
+
 				PayPal pp = PayPal.initWithAppID(AboutScreen.this,
 						"APP-02V829382W416122M", PayPal.ENV_LIVE);
 
@@ -109,7 +119,7 @@ public class AboutScreen extends Activity {
 			}
 		}.execute();
 	}
-	
+
 	@Override
 	@Deprecated
 	protected Dialog onCreateDialog(int id) {

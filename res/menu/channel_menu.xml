@@ -3,36 +3,39 @@
 
     <item
         android:id="@+id/menu_subscribe"
-        android:icon="@drawable/ic_menu_add"
+        style="@style/Widget.Sherlock.ActionButton"
+        android:icon="@drawable/ic_action_add"
         android:showAsAction="ifRoom"
         android:title="@string/subscribe"/>
     <item
         android:id="@+id/menu_unsubscribe"
-        android:icon="@drawable/ic_menu_delete"
+        style="@style/Widget.Sherlock.ActionButton"
+        android:icon="@drawable/ic_action_trash"
         android:showAsAction="ifRoom"
         android:title="@string/unsubscribe"/>
-    
-     <item
+    <item
+        android:id="@+id/menu_reload"
+        android:icon="@drawable/ic_action_reload"
+        android:showAsAction="never"
+        android:title="@string/reload"/>
+    <item
         android:id="@+id/menu_selectAll"
-        android:icon="@drawable/ic_menu_select_all"
+        android:icon="@drawable/ic_action_list_2"
         android:showAsAction="never"
         android:title="@string/select_all"/>
-    
     <item
         android:id="@+id/menu_settings"
-        android:icon="@drawable/ic_menu_preferences"
+        android:icon="@drawable/ic_action_settings"
         android:showAsAction="never"
         android:title="@string/settings"/>
-    
     <item
         android:id="@+id/menu_reset"
-        android:icon="@drawable/trash"
+        android:icon="@drawable/ic_action_exit"
         android:showAsAction="never"
         android:title="@string/reset"/>
-    
     <item
         android:id="@+id/menu_about"
-        android:icon="@drawable/ic_menu_info_details"
+        android:icon="@drawable/ic_action_info"
         android:showAsAction="never"
         android:title="@string/about"/>
 

@@ -5,6 +5,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.apache.http.HttpResponse;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -14,7 +16,6 @@ import android.util.Log;
 
 import com.cellasoft.univrapp.Constants;
 import com.github.droidfu.adapters.WebGalleryAdapter;
-import com.github.droidfu.http.BetterHttpResponse;
 import com.github.droidfu.widgets.WebImageView;
 
 public class ImageLoader implements Runnable {
@@ -151,8 +152,8 @@ public class ImageLoader implements Runnable {
 		while (timesTried <= numRetries) {
 			try {
 				// The bitmap isn't cached so download from the web
-				BetterHttpResponse response = HttpUtility.get(imageUrl);
-				InputStream is = response.getResponseBody();
+				HttpResponse response = HttpUtility.get(imageUrl);
+				InputStream is = response.getEntity().getContent();
 				bitmap = ImageCache.decodeStream(is);
 
 				// save in 1st level cache hit (memory)

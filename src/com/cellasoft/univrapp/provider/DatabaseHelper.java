@@ -3,6 +3,7 @@ package com.cellasoft.univrapp.provider;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.cellasoft.univrapp.model.Channel.Channels;
 import com.cellasoft.univrapp.model.Image.Images;
@@ -10,8 +11,10 @@ import com.cellasoft.univrapp.model.Item.Items;
 import com.cellasoft.univrapp.model.Lecturer.Lecturers;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
+	public static final String TAG = DatabaseHelper.class.getName();
+	
 	public static final String DATABASE_NAME = "univrapp.db";
-	public static final int DATABASE_VERSION = 1;
+	public static final int DATABASE_VERSION = 2;
 	public static final String CHANNELS_TABLE_NAME = "channels";
 	public static final String ITEMS_TABLE_NAME = "items";
 	public static final String LECTURERS_TABLE_NAME = "lecturers";
@@ -31,6 +34,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				+ Channels.DESCRIPTION 	+ " VARCHAR(255)," 
 				+ Channels.UPDATE_TIME 	+ " BIGINT," 
 				+ Channels.IMAGE_URL	+ " VARCHAR(255)," 
+				+ Channels.MUTE			+ " INTEGER,"
 				+ Channels.STARRED 		+ " INTEGER );");
 
 		db.execSQL("CREATE TABLE " + ITEMS_TABLE_NAME + " (" 
@@ -66,7 +70,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		if (oldVersion == 1 && newVersion == 2) {
-
+			Log.i(TAG, "Database version 1 upgrade to 2 : Add MUTE column");
+	            final String ALTER_TBL = 
+	                "ALTER TABLE " + CHANNELS_TABLE_NAME +
+	                " ADD COLUMN MUTE INTEGER;";
+	            db.execSQL(ALTER_TBL);
+	        
 		}
 
 		if (oldVersion == 2 && newVersion == 3) {

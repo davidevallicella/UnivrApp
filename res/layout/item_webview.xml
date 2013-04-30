@@ -15,11 +15,22 @@
         android:textSize="24sp"
         android:visibility="gone" />
 
-    <WebView
-        android:id="@+id/itemWebView"
+    <FrameLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_gravity="fill"
-        android:visibility="visible" />
+        android:layout_height="fill_parent" >
+
+        <WebView
+            android:id="@+id/itemWebView"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
+
+        <ProgressBar
+            android:id="@+id/web_progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            style="?android:attr/progressBarStyleLarge" />
+
+    </FrameLayout>
 
 </LinearLayout>

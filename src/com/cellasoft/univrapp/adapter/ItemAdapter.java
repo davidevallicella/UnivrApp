@@ -20,7 +20,7 @@ import com.cellasoft.univrapp.utils.ImageLoader;
 public class ItemAdapter extends BaseAdapter {
 	
 	private static final int REFRESH_MESSAGE = 1;
-	private final int[] bgColors = new int[] { R.color.aliceBlue, R.color.white };
+	private final int[] bgColors = new int[] { R.color.aliceBlue, android.R.color.white };
 	private ActiveList<Item> items = new ActiveList<Item>();
 	private int lastRequestPosition = -1;
 	private Context context;

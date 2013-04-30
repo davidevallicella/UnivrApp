@@ -4,7 +4,7 @@ import com.cellasoft.univrapp.reader.UnivrReader;
 
 public class UnivrReaderFactory {
 
-	public static UnivrReader getGoogleReader() {
+	public static UnivrReader getUnivrReader() {
 		UnivrReader reader = new UnivrReader();
 		return reader;
 	}

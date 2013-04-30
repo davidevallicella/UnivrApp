@@ -2,7 +2,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_name">UnivrApp</string>
-    <string name="app_version">Version: 1.0</string>
+    <string name="channel_title">Sottoscrizioni</string>
+    <string name="subscribe_title">Docenti</string>
     <string name="progress_txt">
 <![CDATA[
   			<small><font size="2" face="sans">{message}</font></small>
@@ -17,10 +18,9 @@
     <string name="show_updated_channels_key">show_updated_channels</string>
     <string name="first_time_key">first_time</string>
     <string name="last_update_notification">{date}</string>
-	<string name="info_about_me">Development by a student of \n\ Faculty Mathematical, Physical and Natural Sciences ,\n\ University of Verona 2012-2013</string>
-	
-	<string name="mark_all_read">Contrassegna tutto come letto</string>
-	<string name="new_items_notification">Trovate {total} avvisi.</string>
+    <string name="info_about_me">Development by a student of \n\ Faculty Mathematical, Physical and Natural Sciences ,\n\ University of Verona 2012-2013</string>
+    <string name="mark_all_read">Contrassegna tutto come letto</string>
+    <string name="new_items_notification">Trovati {total} avvisi.</string>
     <string name="not_load_notification">Impossibile caricare il feed.</string>
     <string name="loading">Caricamento ...</string>
     <string name="save">Salva</string>
@@ -49,7 +49,11 @@
     <string name="clear">Elimina</string>
     <string name="view_contact">Mostra contatto</string>
     <string name="reload">Ricarica</string>
+    <string name="up">Attiva notifiche</string>    
+    <string name="mute">Mantieni silenzioso</string>
+    <string name="web_page">Pagina Web</string>
     <!-- CONTACT -->
+    <string name="contact_title">Contatto</string>
     <string name="contact_header">Contatti</string>
     <string name="info_header">Info</string>
     <string name="contact_office">Chiama ufficio</string>
@@ -73,11 +77,12 @@
     <string name="pref_max_items_for_channel">Max avvisi per sottoscrizione</string>
     <string name="pref_max_items_for_channel_summary">Massimo dumero di avvisi da caricare per canale</string>
     <!-- UPDATE INTERVAL -->
-    <string name="minute_1">Ogni minuto</string>
-    <string name="minutes_5">Ogni 5 minuti</string>
-    <string name="minutes_10">Ogni 10 minuti</string>
     <string name="minutes_15">Ogni 15 minuti</string>
     <string name="minutes_30">Ogni 30 minuti</string>
+    <string name="each_hour">Ogni ora</string>
+    <string name="hours_3">Ogni 3 ore</string>
+    <string name="hours_5">Ogni 5 ore</string>
+    <string name="hours_7">Ogni 7 ore</string>
     <!-- KEEP MAX -->
     <string name="clearAll">Elimina tutto</string>
     <string name="keep_20">Tieni Max 20 avvisi</string>
@@ -90,9 +95,9 @@
     <string name="max_50">Max 50 avvisi</string>
     <string name="max_100">Max 100 avvisi</string>
     <string name="max_200">Max 200 avvisi</string>
-    
     <string name="pull_to_refresh_pull_label">Tirare per aggiornare...</string>
     <string name="pull_to_refresh_release_label">Rilascia per aggiornare...</string>
     <string name="pull_to_refresh_refreshing_label">Caricamento...</string>
     <string name="pull_to_refresh_tap_label">Premere per aggiornare...</string>
+
 </resources>

@@ -27,8 +27,8 @@
                     android:id="@+id/contact_image"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
-                    android:contentDescription="@string/desc"
                     android:adjustViewBounds="true"
+                    android:contentDescription="@string/desc"
                     android:scaleType="centerCrop"
                     android:src="@drawable/thumb" />
             </LinearLayout>
@@ -85,7 +85,7 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:orientation="vertical"
-            android:visibility="gone" >
+            android:visibility="visible" >
 
             <TextView
                 android:layout_width="wrap_content"
@@ -131,13 +131,13 @@
 
                     <ImageView
                         android:id="@+id/contact_phone_action"
-                        android:layout_width="35dp"
-                        android:layout_height="35dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:clickable="true"
                         android:contentDescription="@string/desc"
                         android:focusable="true"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/phone" />
+                        android:scaleType="center"
+                        android:src="@drawable/ic_action_phone_start" />
                 </LinearLayout>
             </RelativeLayout>
         </LinearLayout>
@@ -147,7 +147,7 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:orientation="vertical"
-            android:visibility="gone" >
+            android:visibility="visible" >
 
             <TextView
                 android:layout_width="wrap_content"
@@ -194,13 +194,13 @@
 
                     <ImageView
                         android:id="@+id/contact_email_action"
-                        android:layout_width="35dp"
-                        android:layout_height="35dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:clickable="true"
                         android:contentDescription="@string/desc"
                         android:focusable="true"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/mail" />
+                        android:scaleType="center"
+                        android:src="@drawable/ic_action_mail" />
                 </LinearLayout>
             </RelativeLayout>
         </LinearLayout>

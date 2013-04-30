@@ -19,6 +19,7 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 		Intent downloadingService = new Intent(context,
 				DownloadingService.class);
 
+		@SuppressWarnings("deprecation")
 		NetworkInfo info = intent
 				.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 		if (hasGoodEnoughNetworkConnection(info, context)) {

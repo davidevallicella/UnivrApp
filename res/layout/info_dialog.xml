@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:padding="15dp" >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="6dp" >
+
+            <ImageButton
+                android:id="@+id/info_add"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="10dp"
+                android:background="@null"
+                android:contentDescription="@string/desc"
+                android:src="@drawable/ic_menu_add" />
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Aggiungi nuove sottoscrizioni"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Abbonati subito ai canali dei docenti del tuo corso di studi."
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="6dp" >
+
+            <ImageButton
+                android:id="@+id/info_star"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:layout_marginRight="10dp"
+                android:layout_weight="0.81"
+                android:background="@null"
+                android:contentDescription="@string/desc"
+                android:src="@drawable/btn_star_on_normal" />
+
+            <TextView
+                android:id="@+id/TextView01"
+                android:layout_width="172dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4.03"
+                android:text="Imposta i canali preferiti dei quali vuoi rimanere aggiornato."
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Solo i preferiti verranno aggiornati automaticamente e in caso di nuovi avvisi sarà notificato all&apos;utente"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+    </LinearLayout>
+
+</ScrollView>

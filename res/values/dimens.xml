@@ -6,4 +6,5 @@
     <dimen name="btn_paddingRight">15dp</dimen>
     <dimen name="btn_paddingLeft">15dp</dimen>
     <dimen name="btn_strokeWidth">0dp</dimen>
+    <dimen name="body_progressbar_width">50dip</dimen>
 </resources>
