@@ -23,12 +23,9 @@ import com.cellasoft.univrapp.utils.Utils;
 
 public class ChannelView extends LinearLayout {
 
-	private static int TOUCH_ADDITION = 20;
-	private static final int COLOR_SELECT_AREA = Color.TRANSPARENT;// Color.argb(50,
-																			// 255,
-																			// 0,
-																			// 0);
-	private static final int COLOR_STAR_AREA = COLOR_SELECT_AREA;/// Color.argb(50, 0, 0, 255);
+	private static int TOUCH_ADDITION = 90;
+	private static final int COLOR_SELECT_AREA = Color.TRANSPARENT;
+	private static final int COLOR_STAR_AREA = COLOR_SELECT_AREA;
 
 	private static class TouchDelegateRecord {
 		public Rect rect;
@@ -81,13 +78,13 @@ public class ChannelView extends LinearLayout {
 		switch (Utils.getScreenSize()) {
 		case Configuration.SCREENLAYOUT_SIZE_LARGE:
 		case Configuration.SCREENLAYOUT_SIZE_NORMAL:
-			TOUCH_ADDITION = 20;
+			TOUCH_ADDITION = 90;
 			break;
 		case Configuration.SCREENLAYOUT_SIZE_SMALL:
-			TOUCH_ADDITION = 15;
+			TOUCH_ADDITION = 85;
 			break;
 		default:
-			TOUCH_ADDITION = 20;
+			TOUCH_ADDITION = 90;
 		}
 
 		final float density = context.getResources().getDisplayMetrics().density;

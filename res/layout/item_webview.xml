@@ -6,15 +6,6 @@
     android:background="#303030"
     android:gravity="center" >
 
-    <TextView
-        android:id="@+id/itemLoadingText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingBottom="2dp"
-        android:text="Loading..."
-        android:textSize="24sp"
-        android:visibility="gone" />
-
     <FrameLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" >

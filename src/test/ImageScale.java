@@ -1,9 +1,6 @@
-package com.cellasoft.univrapp.utils;
-
-import java.io.FileOutputStream;
+package test;
 
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -11,7 +8,6 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.media.FaceDetector;
 import android.media.FaceDetector.Face;
-import android.os.Environment;
 import android.util.Log;
 
 /**

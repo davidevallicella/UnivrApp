@@ -19,7 +19,6 @@ public class SynchronizationManager {
 	private static SynchronizationManager instance;
 	private Object synRoot = new Object();
 	private boolean synchronizing = false;
-	private String progress;
 	private List<SynchronizationListener> synchronizationListeners;
 
 	public SynchronizationManager() {
@@ -50,7 +49,6 @@ public class SynchronizationManager {
 			synchronizing = true;
 		}
 
-		onSynchronizationStart();
 		int totalNewItems = 0;
 
 		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
@@ -83,9 +81,9 @@ public class SynchronizationManager {
 			SynchronizationListener listener) {
 		if (!synchronizationListeners.contains(listener)) {
 			synchronizationListeners.add(listener);
-			if (progress != null) {
-				listener.onProgress(progress);
-			}
+			// if (progress != null) {
+			// listener.onProgress(progress);
+			// }
 		}
 	}
 
@@ -96,21 +94,19 @@ public class SynchronizationManager {
 		}
 	}
 
-	protected void onSynchronizationStart() {
+	public void onSynchronizationStart(int id) {
 		for (SynchronizationListener listener : synchronizationListeners) {
-			listener.onStart();
+			listener.onStart(id);
 		}
 	}
 
-	protected void onSynchronizationProgress(String progressText) {
-		this.progress = progressText;
+	protected void onSynchronizationProgress(int id, long updateTime) {
 		for (SynchronizationListener listener : synchronizationListeners) {
-			listener.onProgress(progressText);
+			listener.onProgress(id, updateTime);
 		}
 	}
 
 	protected void onSynchronizationFinish(int totalNewItems) {
-		progress = null;
 		for (SynchronizationListener listener : synchronizationListeners) {
 			listener.onFinish(totalNewItems);
 		}
@@ -135,15 +131,19 @@ public class SynchronizationManager {
 					}
 
 					try {
+
 						List<Item> newItems = channel
 								.update(maxItemsForChannel);
 						if (!channel.mute)
 							totalNewItems += newItems.size();
 						channel.getItems().clear();
-						//ContentManager.cleanUp(channel, Settings.getKeepMaxItems());
+						// ContentManager.cleanUp(channel,
+						// Settings.getKeepMaxItems());
 					} catch (Throwable ex) {
 						ex.printStackTrace();
 					}
+
+					onSynchronizationProgress(channel.id, channel.updateTime);
 
 					try {
 						Thread.sleep(1000);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-     xmlns:switchpref="http://schemas.android.com/apk/res-auto"  >
+    xmlns:switchpref="http://schemas.android.com/apk/res-auto" >
 
     <PreferenceCategory android:title="@string/pref_categ_sync" >
         <CheckBoxPreference
@@ -23,12 +23,20 @@
             android:summary="@string/pref_update_interval_summary"
             android:title="@string/pref_update_interval" />
 
-        <org.jraf.android.backport.switchwidget.SwitchPreference
-            android:key="download_images"
-            android:summary="@string/pref_downloads_lecturers_summary"
-            android:switchTextOff="NO"
-            android:switchTextOn="YES"
-            android:title="@string/pref_downloads_lecturers" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_categ_user_notify" >
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="notification_sound"
+            android:title="@string/pref_notification_sound" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="notification_vibrate"
+            android:title="@string/pref_notification_vibrate" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="notification_light"
+            android:title="@string/pref_notification_light" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_categ_user_prof" >
         <ListPreference
@@ -37,14 +45,13 @@
             android:key="max_items_for_channel"
             android:summary="@string/pref_max_items_for_channel_summary"
             android:title="@string/pref_max_items_for_channel" />
-        
         <ListPreference
             android:entries="@array/keepMaxItem"
             android:entryValues="@array/keepMaxItemValues"
             android:key="keep_max_items"
             android:summary="@string/pref_keep_max_items_summary"
             android:title="@string/pref_keep_max_items" />
-        
+
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="acra.enable"
@@ -55,7 +62,6 @@
             android:key="app_version"
             android:selectable="false"
             android:title="Application Version" />
-        
     </PreferenceCategory>
 
 </PreferenceScreen>

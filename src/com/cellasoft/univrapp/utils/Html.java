@@ -17,7 +17,7 @@ public class Html {
 			"<body[^>]*?>([\\s\\S]*?)</body>", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern fileExtnPtrn = Pattern
-			.compile("([^\\s]+(\\.(?i)(txt|doc|docx|odt|pdf|xls|zip|rar|R))$)");
+			.compile("([^\\s]+(\\.(?i)(txt|rtf|doc|docx|docm|odt|ppt|pptx|xlt|xltx|xltm|pps|ppsx|ods|pdf|xls|zip|rar|tar|7z|R))$)");
 
 	public static String getBodyContent(String dirtyHtml) {
 		Matcher matcher = bodyPattern.matcher(dirtyHtml);
@@ -55,11 +55,15 @@ public class Html {
 
 		for (Element file : files) {
 			if (file != null && validateFileExtn(file.attr("href"))) {
-				attachment.add(Settings.getUniversity().domain + file.attr("href"));
+				String path = Settings.getUniversity().domain
+						+ file.attr("href");
+				String attach = "<a href=\"" + path + "\">"
+						+ getFileNameToPath(path) + "</a></div><br/><small>"
+						+ decode(file.text()).trim() + "</small></td>";
+				attachment.add(attach);
 
 			}
 		}
-		
 
 		return attachment;
 	}
@@ -72,14 +76,14 @@ public class Html {
 
 	public static String parserPage(String html) {
 		String body = getBodyContent(html);
-		
+
 		Document doc = Jsoup.parse(body);
 
 		try {
 			Element table = doc.select("body > table").get(1);
 			Element article = table.select("table:has(th:contains(Content))")
 					.last().select("tr").get(1);
-			
+
 			return article.html();
 		} catch (Exception e) {
 			return "";

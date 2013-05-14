@@ -11,31 +11,32 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
-import com.cellasoft.univrapp.ConnectivityReceiver;
+import com.cellasoft.univrapp.Application;
 import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.manager.SynchronizationManager;
 import com.cellasoft.univrapp.model.Channel;
-import com.cellasoft.univrapp.service.DownloadingService;
 import com.cellasoft.univrapp.service.SynchronizationService;
-import com.cellasoft.univrapp.utils.FileCache;
+import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.FontUtils;
-import com.cellasoft.univrapp.utils.ImageCache;
-import com.cellasoft.univrapp.utils.ImageLoader;
+import com.cellasoft.univrapp.utils.ImageFetcher;
+import com.cellasoft.univrapp.utils.Utils;
 import com.cellasoft.univrapp.widget.ChannelListView;
 import com.cellasoft.univrapp.widget.ChannelView;
 import com.cellasoft.univrapp.widget.OnChannelViewListener;
@@ -60,17 +61,33 @@ public class ChannelListActivity extends SherlockListActivity {
 	private AdView adView;
 
 	private SynchronizationListener synchronizationListener = new SynchronizationListener() {
-		public void onStart() {
+		public void onStart(int id) {
+			if(channels == null)
+				return;
+			for (Channel channel : channels) {
+				if (channel.id == id) {
+					channel.updating = true;
+					channelListView.refresh();
+					break;
+				}
+			}
 		}
 
-		public void onProgress(String progressText) {
+		public void onProgress(int id, long updateTime) {
+			if(channels == null)
+				return;
+			for (Channel channel : channels) {
+				if (channel.id == id) {
+					channel.updating = false;
+					channel.updateTime = updateTime;
+					channelListView.refresh();
+					break;
+				}
+			}
 		}
 
-		public void onFinish(final int totalNewItems) {
-
+		public void onFinish(int totalNewItems) {
 			if (totalNewItems > 0) {
-				if (Constants.DEBUG_MODE)
-					Log.d(TAG, "Synchronization Listener, refresh");
 				refreshUnreadCounts();
 			}
 
@@ -91,23 +108,40 @@ public class ChannelListActivity extends SherlockListActivity {
 		public void onStarred(ChannelView view, boolean starred) {
 			final int position = getListView().getPositionForView(view);
 			if (position != ListView.INVALID_POSITION) {
-				if (starred)
-					channels.get(position).markChannelToStarred();
-				else
-					channels.get(position).unmarkChannelToStarred();
+				enableChannelUpdating(position, starred);
 			}
 		}
 	};
 
+	private void enableChannelUpdating(final int position, boolean value) {
+		new AsyncTask<Boolean, Void, Void>() {
+
+			protected void onPostExecute(Void result) {
+				channelListView.refresh();
+			};
+
+			@Override
+			protected Void doInBackground(Boolean... isStarred) {
+				if (isStarred[0])
+					channels.get(position).markChannelToStarred();
+				else
+					channels.get(position).unmarkChannelToStarred();
+				return null;
+			}
+
+		}.execute(value);
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		if (Constants.DEBUG_MODE)
+		if (Constants.DEBUG_MODE) {
 			Log.d(TAG, "onCreate()");
+			Utils.enableStrictMode();
+		}
 		super.onCreate(savedInstanceState);
-		ImageLoader.initialize(this);
+		ImageFetcher.inizialize(this);
 		setContentView(R.layout.channel_view);
-		getSupportActionBar().setTitle(
-				getResources().getString(R.string.channel_title));
+
 		init();
 	}
 
@@ -120,7 +154,14 @@ public class ChannelListActivity extends SherlockListActivity {
 	@Override
 	protected void onStart() {
 		super.onStart();
+		Application.parents.clear();
 		loadData();
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		ImageFetcher.getInstance().closeCache();
 	}
 
 	@Override
@@ -128,12 +169,17 @@ public class ChannelListActivity extends SherlockListActivity {
 		super.onResume();
 		SynchronizationManager.getInstance().registerSynchronizationListener(
 				synchronizationListener);
+		ImageFetcher.getInstance().setExitTasksEarly(false);
+		channelListView.refresh();
 		showAdmodBanner();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
+		ImageFetcher.getInstance().setPauseWork(false);
+		ImageFetcher.getInstance().setExitTasksEarly(true);
+		ImageFetcher.getInstance().flushCache();
 		SynchronizationManager.getInstance().unregisterSynchronizationListener(
 				synchronizationListener);
 	}
@@ -145,9 +191,30 @@ public class ChannelListActivity extends SherlockListActivity {
 		}
 
 		cancelNotification();
+		getSupportActionBar().setTitle(
+				getResources().getString(R.string.channel_title));
+
 		// Init GUI
 		channelListView = (ChannelListView) getListView();
 		channelListView.setChannelViewlistener(channelListener);
+		channelListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+			@Override
+			public void onScrollStateChanged(AbsListView absListView,
+					int scrollState) {
+				// Pause fetcher to ensure smoother scrolling when flinging
+				if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
+					ImageFetcher.getInstance().setPauseWork(true);
+				} else {
+					ImageFetcher.getInstance().setPauseWork(false);
+				}
+			}
+
+			@Override
+			public void onScroll(AbsListView absListView, int firstVisibleItem,
+					int visibleItemCount, int totalItemCount) {
+			}
+		});
+
 		// Add the footer before adding the adapter, else the footer will not
 		// load!
 		initBanner();
@@ -158,7 +225,13 @@ public class ChannelListActivity extends SherlockListActivity {
 	private void initBanner() {
 		// Look up the AdView as a resource and load a request.
 		adView = (AdView) this.findViewById(R.id.adView);
-		adView.loadAd(new AdRequest());
+
+		(new Thread() {
+			public void run() {
+				Looper.prepare();
+				adView.loadAd(new AdRequest());
+			}
+		}).start();
 
 		adView.setAdListener(new AdListener() {
 			@Override
@@ -169,6 +242,7 @@ public class ChannelListActivity extends SherlockListActivity {
 					adView.setVisibility(View.VISIBLE);
 					closeAdmodButton.setVisibility(View.VISIBLE);
 				}
+
 			}
 
 			@Override
@@ -185,6 +259,8 @@ public class ChannelListActivity extends SherlockListActivity {
 
 			@Override
 			public void onDismissScreen(Ad arg0) {
+				adView.stopLoading();
+				adView = null;
 			}
 		});
 	}
@@ -250,7 +326,6 @@ public class ChannelListActivity extends SherlockListActivity {
 	}
 
 	private void onFirstTime() {
-		FileCache.clearCacheFolder();
 		Intent intent = new Intent(this, ChooseMainFeedActivity.class);
 		startActivityForResult(intent, FIRST_TIME);
 	}
@@ -261,17 +336,10 @@ public class ChannelListActivity extends SherlockListActivity {
 	}
 
 	private void startServices() {
-		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
-			if (Constants.DEBUG_MODE)
-				Log.d(Constants.LOG_TAG, "Begin startServices " + new Date());
-			Intent service = new Intent(this, SynchronizationService.class);
-			startService(service);
-
-			Intent downloadService = new Intent(this, DownloadingService.class);
-			startService(downloadService);
-			if (Constants.DEBUG_MODE)
-				Log.d(Constants.LOG_TAG, "End startServices " + new Date());
-		}
+		if (Constants.DEBUG_MODE)
+			Log.d(Constants.LOG_TAG, "Begin startServices " + new Date());
+		Intent service = new Intent(this, SynchronizationService.class);
+		startService(service);
 	}
 
 	private void stopServices() {
@@ -279,26 +347,33 @@ public class ChannelListActivity extends SherlockListActivity {
 			Log.d(Constants.LOG_TAG, "Begin startServices " + new Date());
 		Intent service = new Intent(this, SynchronizationService.class);
 		stopService(service);
-
-		Intent downloadService = new Intent(this, DownloadingService.class);
-		stopService(downloadService);
-		if (Constants.DEBUG_MODE)
-			Log.d(Constants.LOG_TAG, "End startServices " + new Date());
-
 	}
 
 	private void loadData() {
 		loadChannels();
-		channelListView.setChannels(channels);
-		refreshUnreadCounts();
 	}
 
 	private void loadChannels() {
-		channels = ContentManager
-				.loadAllChannels(ContentManager.FULL_CHANNEL_LOADER);
-		if (channels == null || channels.isEmpty()) {
-			channels = new ArrayList<Channel>();
-		}
+		new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected void onPostExecute(Void result) {
+				super.onPostExecute(result);
+				channelListView.setChannels(channels);
+				refreshUnreadCounts();
+			}
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				channels = ContentManager
+						.loadAllChannels(ContentManager.FULL_CHANNEL_LOADER);
+				if (channels == null || channels.isEmpty()) {
+					channels = new ArrayList<Channel>();
+				}
+				return null;
+			}
+		}.execute();
+
 	}
 
 	@Override
@@ -347,14 +422,29 @@ public class ChannelListActivity extends SherlockListActivity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == FIRST_TIME) {
 			if (resultCode == RESULT_OK) {
-				Settings.saveFirstTime();
-				infoDialog();
+				saveFirstTime();
 			}
 			if (resultCode == RESULT_CANCELED) {
 				finish();
 			}
 		}
 	};
+
+	private void saveFirstTime() {
+		new AsyncTask<Void, Void, Void>() {
+
+			protected void onPostExecute(Void result) {
+				infoDialog();
+			};
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				Settings.saveFirstTime();
+				return null;
+			}
+
+		}.execute((Void[]) null);
+	}
 
 	private void selectAll() {
 		for (int i = 1; i < channels.size(); i++) {
@@ -375,21 +465,27 @@ public class ChannelListActivity extends SherlockListActivity {
 
 	private void showSubscriptions() {
 		Intent intent = new Intent(this, SubscribeActivity.class);
-		startActivityForResult(intent, SUBSCRIBE);
+		startActivity(intent);
 	}
 
 	private void showChannel(Channel channel) {
 		Intent intent = new Intent(this, ItemListActivity.class);
 		intent.putExtra(ItemListActivity.CHANNEL_ID_PARAM, channel.id);
+		intent.putExtra(ItemListActivity.CHANNEL_LECTURER_ID_PARAM,
+				channel.lecturerId);
+		intent.putExtra(ItemListActivity.CHANNEL_TITLE_PARAM, channel.title);
+		intent.putExtra(ItemListActivity.CHANNEL_URL_PARAM, channel.url);
+		intent.putExtra(ItemListActivity.CHANNEL_THUMB_PARAM, channel.imageUrl);
 		startActivity(intent);
 	}
 
 	private void confirmDeleteChannel() {
-		String confirmMessage = "The selected channels will be removed, continue?";
+		Resources res = getResources();
+		String confirmMessage = res.getString(R.string.unsub_channel_dialog);
 		AlertDialog dialog = new AlertDialog.Builder(this)
-				.setTitle("Unsubscribe channels")
+				.setTitle(res.getString(R.string.unsub_channel_dialog_title))
 				.setMessage(confirmMessage)
-				.setPositiveButton("Yes",
+				.setPositiveButton(res.getString(R.string.yes),
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog,
 									int which) {
@@ -397,11 +493,13 @@ public class ChannelListActivity extends SherlockListActivity {
 								deleteChannel();
 							}
 						})
-				.setNegativeButton("No", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.dismiss();
-					}
-				}).create();
+				.setNegativeButton(res.getString(R.string.no),
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								dialog.dismiss();
+							}
+						}).create();
 		dialog.show();
 	}
 
@@ -444,9 +542,17 @@ public class ChannelListActivity extends SherlockListActivity {
 	}
 
 	private void deleteChannel() {
-		final ProgressDialog progressDialog = new ProgressDialog(this);
-		progressDialog.setMessage("Unsubscribe selected channels");
-		AsyncTask<Void, Void, Void> unsubscribingTask = new AsyncTask<Void, Void, Void>() {
+		new AsyncTask<Void, Void, Void>() {
+			ProgressDialog progressDialog;
+
+			@Override
+			protected void onPreExecute() {
+				super.onPreExecute();
+				progressDialog = new ProgressDialog(ChannelListActivity.this);
+				progressDialog.setMessage(getResources().getString(
+						R.string.unsub_channel_dialog2));
+				progressDialog.show();
+			}
 
 			@SuppressLint("ShowToast")
 			@Override
@@ -454,7 +560,7 @@ public class ChannelListActivity extends SherlockListActivity {
 				super.onPostExecute(result);
 				progressDialog.dismiss();
 
-				String message = "Successfull";
+				String message = getResources().getString(R.string.success);
 				Toast.makeText(ChannelListActivity.this, message, 1000).show();
 
 				loadData();
@@ -470,16 +576,20 @@ public class ChannelListActivity extends SherlockListActivity {
 
 				return null;
 			}
-		};
-
-		progressDialog.show();
-		unsubscribingTask.execute();
+		}.execute((Void[]) null);
 	}
 
 	private void reset() {
-		final ProgressDialog progressDialog = new ProgressDialog(this);
-		progressDialog.setMessage("Reset");
-		AsyncTask<Void, Void, Void> unsubscribingTask = new AsyncTask<Void, Void, Void>() {
+		new AsyncTask<Void, Void, Void>() {
+			ProgressDialog progressDialog;
+
+			@Override
+			protected void onPreExecute() {
+				super.onPreExecute();
+				progressDialog = new ProgressDialog(ChannelListActivity.this);
+				progressDialog.setMessage("Reset");
+				progressDialog.show();
+			}
 
 			@SuppressLint("ShowToast")
 			@Override
@@ -487,11 +597,13 @@ public class ChannelListActivity extends SherlockListActivity {
 				super.onPostExecute(result);
 				progressDialog.dismiss();
 
-				String message = "Successfull";
+				channels.clear();
+				channelListView.setChannels(channels);
+
+				String message = getResources().getString(R.string.success);
 				Toast.makeText(ChannelListActivity.this, message, 1000).show();
 
 				startServices();
-				Settings.setFirstTime(true);
 				onFirstTime();
 			}
 
@@ -506,22 +618,13 @@ public class ChannelListActivity extends SherlockListActivity {
 
 				ContentManager.deleteAllLecturers();
 				ContentManager.deleteAllImages();
+				ImageFetcher.getInstance().clearCache();
 
-				runOnUiThread(new Runnable() {
-					public void run() {
-						channels.clear();
-						channelListView.setChannels(channels);
-					}
-				});
-
-				ImageCache.getInstance().clear();
+				Settings.setFirstTime(true);
 
 				return null;
 			}
-		};
-
-		progressDialog.show();
-		unsubscribingTask.execute();
+		}.execute((Void[]) null);
 	}
 
 	private void refreshUnreadCounts() {
@@ -564,13 +667,17 @@ public class ChannelListActivity extends SherlockListActivity {
 			}
 		});
 		task.disableDialog();
-		task.execute();
+		if (Utils.hasHoneycomb()) {
+			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+					(Void[]) null);
+		} else
+			task.execute((Void[]) null);
 	}
 
 	private void refreshAllChannels() {
 		BetterAsyncTask<Void, Void, Void> task = new BetterAsyncTask<Void, Void, Void>(
 				this) {
-			
+
 			protected void handleError(Context context, Exception e) {
 				e.printStackTrace();
 				String message = getResources().getString(
@@ -579,7 +686,7 @@ public class ChannelListActivity extends SherlockListActivity {
 			}
 
 			@Override
-			protected void after(Context arg0, Void arg1) {	
+			protected void after(Context arg0, Void arg1) {
 			}
 
 		};
@@ -591,7 +698,11 @@ public class ChannelListActivity extends SherlockListActivity {
 			}
 		});
 		task.disableDialog();
-		task.execute();
-		
+		if (Utils.hasHoneycomb()) {
+			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+					(Void[]) null);
+		} else
+			task.execute((Void[]) null);
+
 	}
 }

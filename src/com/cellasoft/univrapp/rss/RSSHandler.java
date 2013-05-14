@@ -138,7 +138,6 @@ public class RSSHandler extends DefaultHandler {
 			break;
 		case TITLE:
 			if (currentState == RSS_ITEM_TITLE) {
-				System.out.println("----"+theFullText);
 				currentItem.setTitle(Html.decode(theFullText));
 				currentState = RSS_ITEM;
 			} else if (currentState == RSS_CHANNEL_TITLE) {

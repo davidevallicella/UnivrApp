@@ -1,11 +1,10 @@
-package com.cellasoft.univrapp.utils;
+package test;
 
-import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
-
-import org.apache.http.HttpResponse;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -138,27 +137,29 @@ public class ImageLoader implements Runnable {
 		notifyImageLoaded(bitmap);
 	}
 
-	private Bitmap downloadImage(String imageUrl) {
-		if (imageUrl == null || imageUrl.equals("")) {
+	private Bitmap downloadImage(String url) {
+		if (url == null || url.equals("")) {
 			return null;
 		}
 
 		Bitmap bitmap = null;
 		if (Constants.DEBUG_MODE)
-			Log.d("ImageLoader", "Download (" + imageUrl + ")");
+			Log.d("ImageLoader", "Download (" + url + ")");
 
 		int timesTried = 1;
 
 		while (timesTried <= numRetries) {
 			try {
 				// The bitmap isn't cached so download from the web
-				HttpResponse response = HttpUtility.get(imageUrl);
-				InputStream is = response.getEntity().getContent();
-				bitmap = ImageCache.decodeStream(is);
+				URL imgUrl = new URL(url);
+				URLConnection con = imgUrl.openConnection();
+				con.setConnectTimeout(READ_TIMEOUT);
+				con.setReadTimeout(READ_TIMEOUT);
+				bitmap = ImageCache.decodeStream(con.getInputStream());
 
 				// save in 1st level cache hit (memory)
 				synchronized (imageCache) {
-					imageCache.put(imageUrl, bitmap);
+					imageCache.put(url, bitmap);
 				}
 				break;
 			} catch (Throwable e) {

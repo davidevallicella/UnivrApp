@@ -17,8 +17,7 @@
         android:maxLines="2"
         android:padding="3dp"        
         android:textColor="#0E4D87"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/item_description"
@@ -50,7 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:padding="3dp"
-            android:textColor="#232323"
+            android:textColor="#99BCD2"
             android:textSize="13sp" />
     </LinearLayout>
 

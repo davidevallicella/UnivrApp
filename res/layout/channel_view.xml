@@ -18,7 +18,8 @@
             android:id="@+id/android:list"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:background="#ffffff"
+            android:dividerHeight="0dp"
+            android:background="@android:color/transparent"
             android:cacheColorHint="@android:color/transparent" />
     </LinearLayout>
 
@@ -31,6 +32,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         ads:adSize="SMART_BANNER"
+        ads:testDevices="31D7E63BA7A8656AFB10DF1C9D5E2216"
         ads:adUnitId="a14fcb4caab6d83"
         ads:loadAdOnCreate="true" />
 

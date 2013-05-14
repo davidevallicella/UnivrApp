@@ -24,7 +24,7 @@ public final class DateUtils {
 	private static final SimpleDateFormat RFC822 = new SimpleDateFormat(
 			"EEE, dd MMM yyyy HH:mm:ss Z", java.util.Locale.ENGLISH);
 	private static final DateFormat dateFormat = new SimpleDateFormat(
-			"d MMM yyyy',' HH:mm a");
+			"d MMM',' yyyy 'at' HH:mm a");
 	
 	private static Context context;
 	static {

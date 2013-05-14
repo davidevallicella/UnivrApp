@@ -2,23 +2,28 @@
 <html>
 <head>
 <title>{university}</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 	<div class="page">
 		<div class="header">
-			<div class="title">
-				<h2 id="title">
-					<a href="{title_url}">{title}</a>
-				</h2>
-			</div>
+			<table border="1"
+				style="margin-top: 5px; width: 100%; white-space: nowrap; table-layout: fixed;">
+				<tr>
+					<td style="width: 26px"><img style="margin-left: 5px;"
+						src="globe.png"></td>
+					<td class="title"><a style="margin-left: 5px;"
+						href="{title_url}"> {title} </a></td>
+				</tr>
+			</table>
 			<span style="font-weight: bold; margin-left: 20px; font-size: 0.9em;">{date}</span>
 		</div>
 		<div class="content">
 			{content}
 			<div id="attachment" style="display: none">
-				<table>{files}
+				<table id="attach" cellpadding="1" cellspacing="1">{files}
 				</table>
 			</div>
 		</div>

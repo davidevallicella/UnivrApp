@@ -1,27 +1,28 @@
 package com.cellasoft.univrapp.activity;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
-import android.support.v4.app.NavUtils;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockActivity;
 import com.cellasoft.univrapp.Settings;
-import com.cellasoft.univrapp.adapter.ItemImageLoaderHandler;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.utils.FontUtils;
-import com.cellasoft.univrapp.utils.ImageLoader;
-import com.cellasoft.univrapp.utils.StreamDrawable;
+import com.cellasoft.univrapp.utils.ImageFetcher;
+import com.cellasoft.univrapp.utils.Utils;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
 
@@ -41,8 +42,7 @@ public class ContactActivity extends SherlockActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		ImageLoader.initialize(this);
-
+		ImageFetcher.inizialize(this);
 		setContentView(R.layout.contact);
 
 		if (getIntent().hasExtra(LECTURER_ID_PARAM)) {
@@ -60,8 +60,7 @@ public class ContactActivity extends SherlockActivity {
 				getResources().getString(R.string.contact_title));
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 	}
-	
-	
+
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
@@ -81,14 +80,13 @@ public class ContactActivity extends SherlockActivity {
 		switch (item.getItemId()) {
 		case android.R.id.home:
 			// go back
-			NavUtils.navigateUpFromSameTask(this);
+			finish();
 			return true;
 		case R.id.menu_web_page:
 			// go back
-			Intent browserIntent = new Intent(
-					Intent.ACTION_VIEW,
-					Uri.parse(Settings.getUniversity().domain + "/fol/main?ent=persona&id="
-							+ lecturer.key));
+			Intent browserIntent = new Intent(Intent.ACTION_VIEW,
+					Uri.parse(Settings.getUniversity().domain
+							+ "/fol/main?ent=persona&id=" + lecturer.key));
 			startActivity(browserIntent);
 			return true;
 		default:
@@ -96,34 +94,8 @@ public class ContactActivity extends SherlockActivity {
 		}
 	}
 
-	private void imageLoader(ImageView image, String imageUrl) {
-		if (imageUrl != null && imageUrl.length() > 0) {
-
-			// default image
-			image.setImageResource(R.drawable.thumb);
-			image.setTag(imageUrl);
-			try {
-				// 1st level cache
-				Bitmap bitmap = ImageLoader.get(imageUrl);
-				if (bitmap != null) {
-					StreamDrawable d = new StreamDrawable(bitmap,
-							mCornerRadius, mMargin);
-					image.setImageDrawable(d);
-				} else {
-					// 2st level cache
-					// 3st downloading
-					ImageLoader.start(imageUrl, new ItemImageLoaderHandler(
-							image, imageUrl));
-				}
-			} catch (RuntimeException e) {
-			}
-
-		} else {
-			image.setTag(null);
-			// default image
-			image.setImageResource(R.drawable.thumb);
-		}
-	}
+	private String tellOffice;
+	private String tellLab;
 
 	private void loadContactInfo(final int lecturerId,
 			final String lecturerName, final String lecturerOffice,
@@ -138,7 +110,11 @@ public class ContactActivity extends SherlockActivity {
 				mMargin = (int) (MARGIN * density + 0.5f);
 
 				ImageView image = (ImageView) findViewById(R.id.contact_image);
-				imageLoader(image, lecturerThumb);
+
+				try {
+					ImageFetcher.getInstance().loadImage(lecturerThumb, image);
+				} catch (Exception e) {
+				}
 
 				((TextView) findViewById(R.id.contact_title))
 						.setText(lecturerName);
@@ -168,8 +144,17 @@ public class ContactActivity extends SherlockActivity {
 					public void run() {
 						if (lecturer.telephone != null
 								&& lecturer.telephone.length() > 0) {
+
+							tellOffice = lecturer.telephone;
+
+							if (tellOffice.contains("/")) {
+								String[] tells = tellOffice.split("/");
+								tellOffice = tells[0].trim();
+								tellLab = tells[1].trim();
+							}
+
 							((TextView) findViewById(R.id.contact_phone))
-									.setText(lecturer.telephone);
+									.setText(tellOffice);
 							findViewById(R.id.contact_phone_action)
 									.setOnTouchListener(new OnTouchListener() {
 
@@ -183,12 +168,8 @@ public class ContactActivity extends SherlockActivity {
 														.loadAnimation(
 																ContactActivity.this,
 																R.anim.image_click));
-												Intent callIntent = new Intent(
-														Intent.ACTION_CALL);
-												callIntent.setData(Uri
-														.parse("tel:"
-																+ lecturer.telephone));
-												startActivity(callIntent);
+
+												callNumber(tellOffice);
 												return true;
 											}
 											return false;
@@ -196,8 +177,39 @@ public class ContactActivity extends SherlockActivity {
 									});
 							findViewById(R.id.contact_phone_row_view)
 									.setVisibility(View.VISIBLE);
+
+							if (tellLab != null && tellLab.length() > 0) {
+								((TextView) findViewById(R.id.contact_phone_lab))
+										.setText(tellLab);
+								findViewById(R.id.contact_phone_lab_action)
+										.setOnTouchListener(
+												new OnTouchListener() {
+
+													@Override
+													public boolean onTouch(
+															View v,
+															MotionEvent event) {
+														if (MotionEvent.ACTION_DOWN == event
+																.getAction()) {
+															vib.vibrate(50);
+															v.startAnimation(AnimationUtils
+																	.loadAnimation(
+																			ContactActivity.this,
+																			R.anim.image_click));
+
+															callNumber(tellLab);
+															return true;
+														}
+														return false;
+													}
+												});
+								findViewById(R.id.contact_phone_lab_row_view)
+										.setVisibility(View.VISIBLE);
+							}
 						} else {
 							findViewById(R.id.contact_phone_row_view)
+									.setVisibility(View.GONE);
+							findViewById(R.id.contact_phone_lab_row_view)
 									.setVisibility(View.GONE);
 						}
 
@@ -256,6 +268,36 @@ public class ContactActivity extends SherlockActivity {
 			}
 		});
 		task.disableDialog();
-		task.execute();
+		if (Utils.hasHoneycomb())
+			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+					(Void[]) null);
+		else
+			task.execute((Void[]) null);
 	}
+
+	private void callNumber(String telephone) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this)
+				.setTitle(getResources().getString(
+						R.string.contact_dialog_title));
+
+		if (telephone.contains("-")) {
+			final String[] name = telephone.split(" - ");
+			builder.setItems(name, new OnClickListener() {
+
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+					Intent callIntent = new Intent(Intent.ACTION_CALL);
+					callIntent.setData(Uri.parse("tel:" + name[which].trim()));
+					startActivity(callIntent);
+				}
+
+			});
+			builder.show();
+		} else {
+			Intent callIntent = new Intent(Intent.ACTION_CALL);
+			callIntent.setData(Uri.parse("tel:" + telephone));
+			startActivity(callIntent);
+		}
+	}
+
 }

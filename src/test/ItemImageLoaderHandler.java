@@ -1,12 +1,11 @@
-package com.cellasoft.univrapp.adapter;
+package test;
 
 import java.lang.ref.WeakReference;
 
 import android.os.Message;
 import android.widget.ImageView;
 
-import com.cellasoft.univrapp.utils.ImageLoader;
-import com.cellasoft.univrapp.utils.ImageLoaderHandler;
+import com.cellasoft.univrapp.adapter.LecturerAdapter;
 import com.cellasoft.univrapp.utils.StreamDrawable;
 
 public class ItemImageLoaderHandler extends ImageLoaderHandler {
@@ -26,7 +25,7 @@ public class ItemImageLoaderHandler extends ImageLoaderHandler {
 				return;
 
 			if (imageUrl.equals((String) imageView.getTag())) {
-				StreamDrawable d = new StreamDrawable(super.getImage(), LecturerAdapter.mCornerRadius, LecturerAdapter.mMargin);
+				StreamDrawable d = new StreamDrawable(getImage(), LecturerAdapter.mCornerRadius, LecturerAdapter.mMargin);
 				imageView.setImageDrawable(d);
 			}
 		}

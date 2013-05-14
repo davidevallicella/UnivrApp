@@ -11,23 +11,25 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 
 import android.annotation.SuppressLint;
+import android.app.ActivityOptions;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.NavUtils;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
+import android.widget.AbsListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -35,7 +37,9 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
+import com.cellasoft.univrapp.Application;
 import com.cellasoft.univrapp.ConnectivityReceiver;
+import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.adapter.LecturerSectionAdapter;
 import com.cellasoft.univrapp.exception.UnivrReaderException;
@@ -43,9 +47,10 @@ import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.reader.UnivrReader;
-import com.cellasoft.univrapp.utils.FileCache;
+import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.FontUtils;
-import com.cellasoft.univrapp.utils.ImageLoader;
+import com.cellasoft.univrapp.utils.ImageFetcher;
+import com.cellasoft.univrapp.utils.Utils;
 import com.cellasoft.univrapp.widget.LecturerView;
 import com.cellasoft.univrapp.widget.OnLecturerViewListener;
 import com.github.droidfu.concurrent.BetterAsyncTask;
@@ -125,9 +130,13 @@ public class SubscribeActivity extends SherlockListActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		if (Constants.DEBUG_MODE) {
+			Utils.enableStrictMode();
+		}
 		super.onCreate(savedInstanceState);
+		ImageFetcher.inizialize(this);
+		Application.parents.push(getClass());
 		setContentView(R.layout.lecturer_view);
-		ImageLoader.initialize(this);
 		init();
 	}
 
@@ -143,8 +152,23 @@ public class SubscribeActivity extends SherlockListActivity {
 		loadData();
 	}
 
+	@Override
+	protected void onPause() {
+		super.onPause();
+		ImageFetcher.getInstance().setPauseWork(false);
+		ImageFetcher.getInstance().setExitTasksEarly(true);
+		ImageFetcher.getInstance().flushCache();
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		ImageFetcher.getInstance().setExitTasksEarly(false);
+	}
+
 	private void init() {
 		initListView();
+		initAnimation();
 		initBanner();
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setIcon(R.drawable.rss);
@@ -163,18 +187,38 @@ public class SubscribeActivity extends SherlockListActivity {
 		post_data.af = c.get(Calendar.YEAR) + 7;
 	}
 
+	private void initAnimation() {
+		LayoutAnimationController controller = AnimationUtils
+				.loadLayoutAnimation(SubscribeActivity.this,
+						R.anim.list_layout_controller);
+		controller.getAnimation().reset();
+
+		getListView().setLayoutAnimation(controller);
+	}
+
 	private void initListView() {
 
 		getListView().setFastScrollEnabled(true);
-		getListView().setDivider(
-				getResources().getDrawable(
-						android.R.drawable.divider_horizontal_bright));
-
-		getListView().setSelector(R.drawable.list_selector_on_top);
-
 		getListView().setDrawSelectorOnTop(true);
+		getListView().setSelector(R.drawable.list_selector_on_top);
 		getListView().invalidateViews();
+		getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
+			@Override
+			public void onScrollStateChanged(AbsListView absListView,
+					int scrollState) {
+				// Pause fetcher to ensure smoother scrolling when flinging
+				if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
+					ImageFetcher.getInstance().setPauseWork(true);
+				} else {
+					ImageFetcher.getInstance().setPauseWork(false);
+				}
+			}
 
+			@Override
+			public void onScroll(AbsListView absListView, int firstVisibleItem,
+					int visibleItemCount, int totalItemCount) {
+			}
+		});
 	}
 
 	private ImageButton closeAdmodButton;
@@ -261,24 +305,37 @@ public class SubscribeActivity extends SherlockListActivity {
 
 	private void loadData() {
 		loadLecturers();
-		sectionAdapter = new LecturerSectionAdapter(this, lecturers,
-				lecturerListener, R.layout.section_header, R.id.title);
-		setListAdapter(sectionAdapter);
 	}
 
 	private void loadLecturers() {
-		int dest = Settings.getUniversity().dest;
-		lecturers = ContentManager.loadLecturersOfDest(dest,
-				ContentManager.FULL_LECTURER_LOADER);
-		if (lecturers == null || lecturers.isEmpty()) {
-			lecturers = new ArrayList<Lecturer>();
-		}
+		new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected void onPostExecute(Void result) {
+				super.onPostExecute(result);
+				sectionAdapter = new LecturerSectionAdapter(
+						SubscribeActivity.this, lecturers, lecturerListener,
+						R.layout.section_header, R.id.title);
+				setListAdapter(sectionAdapter);
+			}
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				int dest = Settings.getUniversity().dest;
+				lecturers = ContentManager.loadLecturersOfDest(dest,
+						ContentManager.FULL_LECTURER_LOADER);
+				if (lecturers == null || lecturers.isEmpty()) {
+					lecturers = new ArrayList<Lecturer>();
+				}
+				return null;
+			}
+		}.execute();
 	}
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		Lecturer lecturer = (Lecturer) sectionAdapter.getItem(position);
-		showContact(lecturer);
+		showContact(lecturer, v);
 	}
 
 	@Override
@@ -300,7 +357,13 @@ public class SubscribeActivity extends SherlockListActivity {
 			reloadLecturers();
 			return true;
 		case android.R.id.home:
-			NavUtils.navigateUpFromSameTask(this);
+			//NavUtils.navigateUpFromSameTask(this);
+			finish();
+			return true;
+		case R.id.clear_cache:
+			ImageFetcher.getInstance().clearCache();
+			Toast.makeText(this, R.string.clear_cache_complete_toast,
+					Toast.LENGTH_SHORT).show();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -377,7 +440,11 @@ public class SubscribeActivity extends SherlockListActivity {
 					}
 				});
 		progressDialog.show();
-		subscribingTask.execute();
+		if (Utils.hasHoneycomb())
+			subscribingTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+					(Void[]) null);
+		else
+			subscribingTask.execute((Void[]) null);
 	}
 
 	private void reloadLecturers() {
@@ -392,7 +459,7 @@ public class SubscribeActivity extends SherlockListActivity {
 			@Override
 			protected void before(Context context) {
 				updated = false;
-				FileCache.clearCacheIfNecessary();
+				ImageFetcher.getInstance().clearCache();
 				refreshAnim();
 			}
 
@@ -426,6 +493,8 @@ public class SubscribeActivity extends SherlockListActivity {
 						}
 
 						lecturers.clear();
+					} else {
+						updated = true;
 					}
 				} else {
 					throw new UnivrReaderException(getResources().getString(
@@ -456,7 +525,11 @@ public class SubscribeActivity extends SherlockListActivity {
 
 		saveLecturersTask.disableDialog();
 		progressDialog.show();
-		saveLecturersTask.execute();
+		if (Utils.hasHoneycomb()) {
+			saveLecturersTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+					(Void[]) null);
+		} else
+			saveLecturersTask.execute((Void[]) null);
 	}
 
 	View refreshView;
@@ -502,13 +575,23 @@ public class SubscribeActivity extends SherlockListActivity {
 
 	}
 
-	private void showContact(Lecturer lecturer) {
+	private void showContact(Lecturer lecturer, View v) {
 		Intent intent = new Intent(this, ContactActivity.class);
 		intent.putExtra(ContactActivity.LECTURER_ID_PARAM, lecturer.id);
 		intent.putExtra(ContactActivity.LECTURER_NAME_PARAM, lecturer.name);
 		intent.putExtra(ContactActivity.LECTURER_OFFICE_PARAM, lecturer.office);
 		intent.putExtra(ContactActivity.LECTURER_THUMB_PARAM,
 				lecturer.thumbnail);
-		startActivity(intent);
+		if (Utils.hasJellyBean()) {
+			// makeThumbnailScaleUpAnimation() looks kind of ugly here as the
+			// loading spinner may
+			// show plus the thumbnail image in GridView is cropped. so using
+			// makeScaleUpAnimation() instead.
+			ActivityOptions options = ActivityOptions.makeScaleUpAnimation(v,
+					0, 0, v.getWidth(), v.getHeight());
+			startActivity(intent, options.toBundle());
+		} else {
+			startActivity(intent);
+		}
 	}
 }

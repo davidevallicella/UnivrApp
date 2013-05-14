@@ -3,19 +3,20 @@ package com.cellasoft.univrapp.adapter;
 import java.util.ArrayList;
 
 import android.content.Context;
-import android.graphics.Bitmap;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.cellasoft.univrapp.activity.R;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Lecturer;
-import com.cellasoft.univrapp.utils.ImageLoader;
-import com.cellasoft.univrapp.utils.StreamDrawable;
+import com.cellasoft.univrapp.utils.ImageFetcher;
+import com.cellasoft.univrapp.utils.RecyclingImageView;
 import com.cellasoft.univrapp.widget.LecturerView;
 import com.cellasoft.univrapp.widget.OnLecturerViewListener;
 
@@ -31,7 +32,8 @@ public class LecturerAdapter extends BaseAdapter {
 	private OnLecturerViewListener lecturerListener;
 
 	static class ViewHolder {
-		ImageView thumbnail;
+		RecyclingImageView thumbnail;
+		ImageButton checkBox;
 		LinearLayout subscribed;
 		TextView name;
 		TextView email;
@@ -40,7 +42,7 @@ public class LecturerAdapter extends BaseAdapter {
 
 	public LecturerAdapter(Context context, ArrayList<Lecturer> lecturers,
 			OnLecturerViewListener lecturerListener) {
-		ImageLoader.initialize(context);
+		ImageFetcher.inizialize(context);
 		this.context = context;
 		this.lecturers = lecturers;
 		this.lecturerListener = lecturerListener;
@@ -78,25 +80,23 @@ public class LecturerAdapter extends BaseAdapter {
 			view.setLecturerListener(lecturerListener);
 			holder = new ViewHolder();
 			holder.name = (TextView) view.findViewById(R.id.lecturer_name);
-			holder.thumbnail = (ImageView) view
+			holder.checkBox = (ImageButton) view
+					.findViewById(R.id.lecturer_check);
+			holder.thumbnail = (RecyclingImageView) view
 					.findViewById(R.id.lecturer_image);
-			holder.subscribed = (LinearLayout) view.findViewById(R.id.lecturer_subscribed);
-			//holder.email = (TextView) view.findViewById(R.id.lecturer_description);
+			holder.subscribed = (LinearLayout) view
+					.findViewById(R.id.lecturer_subscribed);
 			view.setTag(holder);
 		} else {
 			view = (LecturerView) convertView;
 			holder = (ViewHolder) view.getTag();
 		}
-		if(ContentManager.existSubscription(lecturer.id)) {
-			holder.subscribed.setVisibility(View.VISIBLE);
-		} else {
-			holder.subscribed.setVisibility(View.GONE);
-		}
 
 		view.setItemViewSelected(lecturer.isSelected);
 		holder.name.setText(lecturer.name);
+		holder.subscribed.setVisibility(View.GONE);
+		checked(holder, lecturer.id);
 		imageLoader(holder, lecturer.thumbnail);
-
 		return view;
 	}
 
@@ -114,27 +114,34 @@ public class LecturerAdapter extends BaseAdapter {
 		notifyDataSetChanged();
 	}
 
+	private void checked(final ViewHolder holder, int id) {
+		AsyncTask<Integer, Void, Boolean> checkTask = new AsyncTask<Integer, Void, Boolean>() {
+
+			protected void onPostExecute(Boolean exist) {
+				if (exist) {
+					holder.subscribed.setVisibility(View.VISIBLE);
+				}
+			};
+
+			@Override
+			protected Boolean doInBackground(Integer... id) {
+				return ContentManager.existSubscription(id[0]);
+			}
+		};
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+			checkTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, id);
+		else
+			checkTask.execute(id);
+	}
+
 	private void imageLoader(ViewHolder holder, String imageUrl) {
 		if (imageUrl != null && imageUrl.length() > 0) {
 			if (!imageUrl.equals((String) holder.thumbnail.getTag())) {
-				holder.thumbnail.setImageResource(R.drawable.thumb);
 				holder.thumbnail.setTag(imageUrl);
-				try {
-					// 1st level cache
-					Bitmap bitmap = ImageLoader.get(imageUrl);
 
-					if (bitmap != null) {
-						StreamDrawable d = new StreamDrawable(bitmap,
-								mCornerRadius, mMargin);
-						holder.thumbnail.setImageDrawable(d);
-					} else {
-						// 2st level cache
-						// 3st downloading
-						ImageLoader.start(imageUrl, new ItemImageLoaderHandler(
-								holder.thumbnail, imageUrl));
-					}
-				} catch (RuntimeException e) {
-				}
+				ImageFetcher.getInstance()
+						.loadImage(imageUrl, holder.thumbnail);
 			}
 		} else if (holder.thumbnail.getTag() != null) {
 			holder.thumbnail.setTag(null);

@@ -511,10 +511,12 @@ public class ContentManager {
 			item.read = Item.UNREAD;
 			markItemAsRead(item);
 		}
+		
+		cursor.close();
 		for (Item channelItem : channel.getItems()) {
 			channelItem.read = Item.READ;
 		}
-		cursor.close();
+		
 	}
 
 	public static void saveItemReadState(Item item, int readState) {

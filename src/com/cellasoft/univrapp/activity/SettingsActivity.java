@@ -15,7 +15,6 @@ import com.actionbarsherlock.app.SherlockPreferenceActivity;
 import com.cellasoft.univrapp.ConnectivityReceiver;
 import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.Settings;
-import com.cellasoft.univrapp.service.DownloadingService;
 import com.cellasoft.univrapp.service.SynchronizationService;
 import com.cellasoft.univrapp.utils.FontUtils;
 
@@ -70,14 +69,6 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 			}
 		}
 
-		if (Settings.DOWNLOAD_IMAGES_KEY.equals(key)) {
-			if (Settings.getDownloadImages()) {
-				startDownloadingService();
-			} else {
-				DownloadingService.cancelScheduledDownloads();
-			}
-		}
-
 		@SuppressWarnings("deprecation")
 		Preference pref = findPreference(key);
 		if (pref instanceof ListPreference) {
@@ -90,13 +81,6 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 			Intent service = new Intent(this, SynchronizationService.class);
 			startService(service);
-		}
-	}
-
-	private void startDownloadingService() {
-		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
-			Intent downloadService = new Intent(this, DownloadingService.class);
-			startService(downloadService);
 		}
 	}
 

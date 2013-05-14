@@ -1,4 +1,4 @@
-package com.cellasoft.univrapp.utils;
+package test;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;

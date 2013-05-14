@@ -11,18 +11,25 @@
     <string name="change">Change</string>
     <string name="lecturers">Lecturers</string>
     <string name="clean">Removed {total} news</string>
+    <string name="unsub_channel_dialog_title">Unsubscribe channels</string>
+    <string name="unsub_channel_dialog">The selected channels will be removed, continue?</string>
+    <string name="unsub_channel_dialog2">Unsubscribe selected channels</string>
     <string name="sub_channel_dialog_title">Subscribe</string>
     <string name="sub_channel_dialog">Subscribe channel?</string>
     <string name="sub_channel_dialog2">Subscribe selected channels</string>
+    <string name="contact_dialog_title">Choose number</string>
     <string name="yes">yes</string>
     <string name="no">no</string>
     <string name="success">Successful</string>
     <string name="updated">Updated</string>
+    <string name="updating">Updating now...</string>
     <string name="mark_all_read">Mark all read</string>
+    <string name="clear_cache_menu">Clear Caches</string>
+    <string name="clear_cache_complete_toast">Caches have been cleared</string>
 
     <!-- EXCEPTION -->
     <string name="univrapp_server_exception">The server is temporarily inactive. \n\ Wait a few seconds and try again.</string>
-    <string name="univrapp_connection_exception">Connection is not aviable.</string>
+    <string name="univrapp_connection_exception">Limited or no connectivity</string>
 
     <!-- MENU -->
     <string name="subscribe">Subscribe</string>
@@ -37,17 +44,19 @@
     <string name="up">Enable notifications</string>
     <string name="mute">keep silent</string>
     <string name="web_page">Web page</string>
-    
+
     <!-- CONTACT -->
     <string name="contact_title">Contact</string>
     <string name="contact_header">Contacts</string>
     <string name="info_header">Info</string>
     <string name="contact_office">Call office</string>
+    <string name="contact_lab">Call Laboratory</string>
     <string name="contact_mail">Send e-mail</string>
     <string name="contact_department">Department</string>
     <!-- PREFERENCE -->
     <string name="pref_categ_sync">Synchronization</string>
     <string name="pref_categ_user_prof">User Profile</string>
+    <string name="pref_categ_user_notify">Notification</string>
     <string name="pref_wify_only">Sync on WiFi only</string>
     <string name="pref_wify_only_summary">Automatic refresh on WiFi Only</string>
     <string name="pref_send_report">Send crash reports</string>
@@ -62,6 +71,9 @@
     <string name="pref_keep_max_items_summary">Maximum number of news to be taken during cleaning</string>
     <string name="pref_max_items_for_channel">Max news for channel</string>
     <string name="pref_max_items_for_channel_summary">Maximum number of news to load</string>
+    <string name="pref_notification_sound">Enable sound</string>
+    <string name="pref_notification_vibrate">Enable vibration</string>
+    <string name="pref_notification_light">Enable light led</string>
 
     <!-- UPDATE INTERVAL -->
     <string name="minutes_15">Every 15 minutes</string>

@@ -3,8 +3,8 @@ package com.cellasoft.univrapp.widget;
 import java.util.ArrayList;
 
 import android.content.Context;
-import android.content.res.Configuration;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Rect;
@@ -17,20 +17,12 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.cellasoft.univrapp.Application;
-import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.activity.R;
-import com.cellasoft.univrapp.utils.Utils;
 
 public class LecturerView extends LinearLayout {
 
-	private static int TOUCH_ADDITION = 20;
-	private static final int COLOR_SELECT_AREA = Application.getInstance()
-			.getResources()
-			.getColor(Settings.getUniversity().color_from_resource);;// Color.argb(50,
-																		// 255,
-																		// 0,
-																		// 0);
+	private static int TOUCH_ADDITION = 90;
+	private static final int COLOR_SELECT_AREA = Color.TRANSPARENT;
 
 	private static class TouchDelegateRecord {
 		public Rect rect;
@@ -76,19 +68,6 @@ public class LecturerView extends LinearLayout {
 
 		mTouchDelegateGroup = new TouchDelegateGroup(this);
 		mPaint.setStyle(Style.FILL);
-
-		// Determine screen size
-//		switch (Utils.getScreenSize()) {
-//		case Configuration.SCREENLAYOUT_SIZE_LARGE:
-//		case Configuration.SCREENLAYOUT_SIZE_NORMAL:
-//			TOUCH_ADDITION = 20;
-//			break;
-//		case Configuration.SCREENLAYOUT_SIZE_SMALL:
-//			TOUCH_ADDITION = 15;
-//			break;
-//		default:
-//			TOUCH_ADDITION = 20;
-//		}
 
 		final float density = context.getResources().getDisplayMetrics().density;
 		mTouchAddition = (int) (density * TOUCH_ADDITION + 0.5f);

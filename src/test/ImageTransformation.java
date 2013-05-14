@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.cellasoft.univrapp.utils;
+package test;
 
 import android.graphics.Bitmap;
 

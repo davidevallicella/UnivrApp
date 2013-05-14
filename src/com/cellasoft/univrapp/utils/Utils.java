@@ -1,54 +1,23 @@
 package com.cellasoft.univrapp.utils;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
 
-import android.content.Context;
+import android.annotation.TargetApi;
 import android.content.res.Configuration;
-import android.util.Log;
+import android.os.Build;
+import android.os.StrictMode;
 
 import com.cellasoft.univrapp.Application;
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.activity.ChannelListActivity;
+import com.cellasoft.univrapp.activity.ChooseMainFeedActivity;
+import com.cellasoft.univrapp.activity.ContactActivity;
+import com.cellasoft.univrapp.activity.DisPlayWebPageActivity;
+import com.cellasoft.univrapp.activity.ItemListActivity;
+import com.cellasoft.univrapp.activity.SubscribeActivity;
 
 public class Utils {
-
-	private static Context context;
-	static {
-		context = Application.getInstance();
-	}
-
-	public static void appendToLogFile(String tag, String error) {
-		File log = Utils.getBestCacheDir(context, "univrapp-log.txt");
-		FileOutputStream fos = null;
-
-		String s = "<ERROR date=\""
-				+ DateFormat.getDateTimeInstance().format(new Date())
-				+ "\" name=\"" + tag + "\">\n" + error + "\n</ERROR>\n";
-
-		try {
-			fos = new FileOutputStream(log, true);
-			fos.write(s.getBytes());
-		} catch (Exception ex) {
-			if (Constants.DEBUG_MODE)
-				Log.e(Constants.LOG_TAG, "Error log file: " + ex.getMessage());
-		} finally {
-			StreamUtils.closeQuietly(fos);
-		}
-	}
-
-	public static Date timeInMillisecondsToDate(long time) {
-		GregorianCalendar calendar = new GregorianCalendar(
-				TimeZone.getTimeZone("GMT+1"));
-		calendar.setTimeInMillis(time);
-		return calendar.getTime();
-	}
 
 	public static void copyStream(final InputStream is, final OutputStream os)
 			throws IOException {
@@ -61,28 +30,52 @@ public class Utils {
 		}
 	}
 
-	public static File getBestCacheDir(final Context context,
-			final String cache_dir_name) {
-		final File ext_cache_dir = EnvironmentAccessor
-				.getExternalCacheDir(context);
-		if (ext_cache_dir != null && ext_cache_dir.isDirectory()) {
-			final File cache_dir = new File(ext_cache_dir + cache_dir_name);
-			if (!cache_dir.exists())
-				cache_dir.mkdirs();
-			return cache_dir;
-		} else {
-			final File int_cache_dir = new File(context.getCacheDir()
-					+ cache_dir_name);
-			if (!int_cache_dir.exists())
-				int_cache_dir.mkdirs();
-
-			return int_cache_dir;
-		}
-	}
-
 	public static int getScreenSize() {
-		return context.getResources().getConfiguration().screenLayout
+		return Application.getInstance().getResources().getConfiguration().screenLayout
 				& Configuration.SCREENLAYOUT_SIZE_MASK;
 	}
 
+	@TargetApi(11)
+	public static void enableStrictMode() {
+		if (Utils.hasGingerbread()) {
+			StrictMode.ThreadPolicy.Builder threadPolicyBuilder = new StrictMode.ThreadPolicy.Builder()
+					.detectAll().penaltyLog()
+			        .penaltyDialog();
+			StrictMode.VmPolicy.Builder vmPolicyBuilder = new StrictMode.VmPolicy.Builder()
+					.detectAll().penaltyLog();
+
+			if (Utils.hasHoneycomb()) {
+				threadPolicyBuilder.penaltyFlashScreen();
+				vmPolicyBuilder
+						.setClassInstanceLimit(ChannelListActivity.class, 1)
+						.setClassInstanceLimit(SubscribeActivity.class, 1)
+						.setClassInstanceLimit(DisPlayWebPageActivity.class, 1);
+			}
+			StrictMode.setThreadPolicy(threadPolicyBuilder.build());
+			StrictMode.setVmPolicy(vmPolicyBuilder.build());
+		}
+	}
+
+	public static boolean hasFroyo() {
+		// Can use static final constants like FROYO, declared in later versions
+		// of the OS since they are inlined at compile time. This is guaranteed
+		// behavior.
+		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO;
+	}
+
+	public static boolean hasGingerbread() {
+		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD;
+	}
+
+	public static boolean hasHoneycomb() {
+		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
+	}
+
+	public static boolean hasHoneycombMR1() {
+		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1;
+	}
+
+	public static boolean hasJellyBean() {
+		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN;
+	}
 }

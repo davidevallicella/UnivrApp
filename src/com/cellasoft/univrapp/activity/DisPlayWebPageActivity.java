@@ -28,17 +28,22 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.cellasoft.univrapp.ConnectivityReceiver;
+import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.exception.UnivrReaderException;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Item;
+import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.FileUtils;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.Html;
 import com.cellasoft.univrapp.utils.StreamUtils;
+import com.cellasoft.univrapp.utils.Utils;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
 
 public class DisPlayWebPageActivity extends Activity {
+	private static final String TAG = DisPlayWebPageActivity.class
+			.getSimpleName();
 
 	public static final String ITEM_ID_PARAM = "ItemId";
 	public static final String CHANNEL_ID_PARAM = "ChannelId";
@@ -51,6 +56,10 @@ public class DisPlayWebPageActivity extends Activity {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		if (Constants.DEBUG_MODE) {
+			Log.d(TAG, "onCreate()");
+			Utils.enableStrictMode();
+		}
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.item_webview);
@@ -60,7 +69,7 @@ public class DisPlayWebPageActivity extends Activity {
 		itemId = in.getIntExtra(ITEM_ID_PARAM, 0);
 		webview = (WebView) findViewById(R.id.itemWebView);
 
-		if (android.os.Build.VERSION.SDK_INT >= 11) {
+		if (Utils.hasHoneycomb()) {
 			getWindow().setFlags(
 					WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
 					WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
@@ -83,6 +92,7 @@ public class DisPlayWebPageActivity extends Activity {
 		webview.getSettings().setAllowFileAccess(true);
 		webview.getSettings().setRenderPriority(RenderPriority.HIGH);
 		webview.getSettings().setAppCacheEnabled(true);
+		webview.getSettings().setLightTouchEnabled(true);
 		webview.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
 		webview.setScrollBarStyle(0);
 		webview.setWebViewClient(new MyWebViewClient());
@@ -134,20 +144,25 @@ public class DisPlayWebPageActivity extends Activity {
 			@Override
 			public String call(BetterAsyncTask<Void, Void, String> task)
 					throws Exception {
-				Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-
-				if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
+				if (ConnectivityReceiver.isOnline()) {
 					currentItem = ContentManager.loadItem(itemId,
 							ContentManager.FULL_ITEM_LOADER,
 							ContentManager.LIGHTWEIGHT_CHANNEL_LOADER);
-					return StreamUtils.readFromUrl(page_url, "utf-8");
+					String html = StreamUtils.readFromUrl(page_url, "UTF-8");
+					return modifyHtml(html);
 				} else
 					throw new UnivrReaderException(getResources().getString(
 							R.string.univrapp_connection_exception));
 			}
 		});
 		task.disableDialog();
-		task.execute();
+
+		if (Utils.hasHoneycomb()) {
+			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+					(Void[]) null);
+		} else {
+			task.execute((Void[]) null);
+		}
 	}
 
 	@Override
@@ -160,7 +175,7 @@ public class DisPlayWebPageActivity extends Activity {
 	}
 
 	private String modifyHtml(String html) {
-		DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy  HH:mm");
+		DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy 'at' HH:mm");
 		String article = FileUtils.getFileFromAssets("article.html");
 
 		article = article.replace("{content}", Html.parserPage(html))
@@ -175,12 +190,9 @@ public class DisPlayWebPageActivity extends Activity {
 			article = doc.html();
 			StringBuilder attach = new StringBuilder();
 			for (String file : files) {
-				System.out.println("----" + file);
 				attach.append("<tr>");
 				attach.append("<td><img style=\"width: 100%;\" src=\"attachment.png\" /></td>");
-				attach.append("<td><div class=\"file\"><a href=\"" + file
-						+ "\">" + Html.getFileNameToPath(file)
-						+ "</a></div></td>");
+				attach.append("<td>" + file + "</td>");
 				attach.append("</tr>");
 			}
 
@@ -191,10 +203,8 @@ public class DisPlayWebPageActivity extends Activity {
 	}
 
 	private void showArticle(String html) {
-		// parse the html, load it in the webview
-		String parsedHtml = modifyHtml(html);
-		webview.loadDataWithBaseURL("file:///android_asset/", parsedHtml,
-				"text/html", "utf-8", null);
+		webview.loadDataWithBaseURL("file:///android_asset/", html,
+				"text/html", "UTF-8", null);
 
 		// scroll the webview up to the top
 		webview.scrollTo(0, 0);

@@ -18,8 +18,11 @@
             android:id="@+id/android:list"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:background="#ffffff"
-            android:cacheColorHint="@android:color/transparent" />
+            android:background="@android:color/transparent"
+            android:cacheColorHint="@android:color/transparent"
+            android:dividerHeight="0dip"
+            android:persistentDrawingCache="scrolling"
+            android:scrollingCache="false" />
     </LinearLayout>
 
     <!-- FOOTER -->

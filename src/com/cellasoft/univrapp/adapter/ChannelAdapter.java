@@ -3,14 +3,12 @@ package com.cellasoft.univrapp.adapter;
 import java.util.ArrayList;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -18,8 +16,8 @@ import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.activity.R;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.utils.DateUtils;
-import com.cellasoft.univrapp.utils.ImageLoader;
-import com.cellasoft.univrapp.utils.StreamDrawable;
+import com.cellasoft.univrapp.utils.ImageFetcher;
+import com.cellasoft.univrapp.utils.RecyclingImageView;
 import com.cellasoft.univrapp.widget.ChannelView;
 import com.cellasoft.univrapp.widget.OnChannelViewListener;
 
@@ -41,7 +39,7 @@ public class ChannelAdapter extends BaseAdapter {
 		int position;
 		ImageButton check;
 		ImageButton star;
-		ImageView thumbnail;
+		RecyclingImageView thumbnail;
 		TextView title;
 		TextView updated;
 		TextView unreadCount;
@@ -59,7 +57,7 @@ public class ChannelAdapter extends BaseAdapter {
 
 	public ChannelAdapter(Context context) {
 		this.context = context;
-		ImageLoader.initialize(context);
+		ImageFetcher.inizialize(context);
 
 		final float density = context.getResources().getDisplayMetrics().density;
 		mCornerRadius = (int) (CORNER_RADIUS * density + 0.5f);
@@ -101,7 +99,7 @@ public class ChannelAdapter extends BaseAdapter {
 				holder = new ViewHolder();
 				holder.position = position;
 				holder.title = (TextView) layout.findViewById(R.id.univr_name);
-				holder.thumbnail = (ImageView) layout
+				holder.thumbnail = (RecyclingImageView) layout
 						.findViewById(R.id.univr_logo);
 				holder.title.setText(item.title);
 				holder.position = position;
@@ -132,7 +130,7 @@ public class ChannelAdapter extends BaseAdapter {
 						.findViewById(R.id.channel_chek);
 				holder.star = (ImageButton) view
 						.findViewById(R.id.channel_star);
-				holder.thumbnail = (ImageView) view
+				holder.thumbnail = (RecyclingImageView) view
 						.findViewById(R.id.channel_image);
 				view.setTag(holder);
 			} else {
@@ -150,10 +148,15 @@ public class ChannelAdapter extends BaseAdapter {
 		} else {
 			holder.unreadCount.setVisibility(View.GONE);
 		}
+		if (item.updating) {
+			holder.updated.setText(context.getResources().getString(
+					R.string.updating));
+		} else {
+			holder.updated.setText(context.getResources().getString(
+					R.string.updated)
+					+ " " + DateUtils.formatTimeMillis(item.updateTime));
+		}
 
-		holder.updated.setText(context.getResources().getString(
-				R.string.updated)
-				+ " " + DateUtils.formatTimeMillis(item.updateTime));
 		holder.title.setText(item.title);
 		imageLoader(holder, item.imageUrl);
 
@@ -177,23 +180,35 @@ public class ChannelAdapter extends BaseAdapter {
 		if (imageUrl != null && imageUrl.length() > 0) {
 			if (!imageUrl.equals((String) holder.thumbnail.getTag())) {
 				// default image
-				holder.thumbnail.setImageResource(R.drawable.thumb);
+				// holder.thumbnail.setImageResource(R.drawable.thumb);
 				holder.thumbnail.setTag(imageUrl);
-				try {
-					// 1st level cache
-					Bitmap bitmap = ImageLoader.get(imageUrl);
-					if (bitmap != null) {
-						StreamDrawable d = new StreamDrawable(bitmap,
-								mCornerRadius, mMargin);
-						holder.thumbnail.setImageDrawable(d);
-					} else {
-						// 2st level cache
-						// 3st downloading
-						ImageLoader.start(imageUrl, new ItemImageLoaderHandler(
-								holder.thumbnail, imageUrl));
-					}
-				} catch (RuntimeException e) {
-				}
+				ImageFetcher.getInstance()
+						.loadImage(imageUrl, holder.thumbnail);
+				// try {
+				// // 1st level cache
+				// Bitmap bitmap = ImageLoader.get(imageUrl);
+				//
+				// if (bitmap != null) {
+				// switch (Utils.getScreenSize()) {
+				// case Configuration.SCREENLAYOUT_SIZE_SMALL:
+				// bitmap = ImageCache.imageScale(bitmap, 50);
+				// break;
+				// default:
+				// bitmap = ImageCache.imageScale(bitmap, 60);
+				// }
+				//
+				// bitmap = ImageCache.imageScale(bitmap, 60);
+				// StreamDrawable d = new StreamDrawable(bitmap,
+				// mCornerRadius, mMargin);
+				// holder.thumbnail.setImageDrawable(d);
+				// } else {
+				// // 2st level cache
+				// // 3st downloading
+				// ImageLoader.start(imageUrl, new ItemImageLoaderHandler(
+				// holder.thumbnail, imageUrl));
+				// }
+				// } catch (RuntimeException e) {
+				// }
 			}
 		} else if (holder.thumbnail.getTag() != null) {
 			holder.thumbnail.setTag(null);
@@ -206,4 +221,5 @@ public class ChannelAdapter extends BaseAdapter {
 		channels.clear();
 		this.notifyDataSetChanged();
 	}
+
 }

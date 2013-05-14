@@ -3,10 +3,8 @@ package com.cellasoft.univrapp.activity;
 import java.math.BigDecimal;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.view.MotionEvent;
@@ -20,6 +18,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.paypal.android.MEP.CheckoutButton;
 import com.paypal.android.MEP.PayPal;
@@ -45,7 +44,7 @@ public class AboutScreen extends Activity {
 	}
 
 	private void init() {
-		new AsyncTask<Void, Void, Void>() {
+		AsyncTask<Void, Void, Void> loadPayPalTask = new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Void... params) {
@@ -117,14 +116,8 @@ public class AboutScreen extends Activity {
 
 				return null;
 			}
-		}.execute();
-	}
-
-	@Override
-	@Deprecated
-	protected Dialog onCreateDialog(int id) {
-		// TODO Auto-generated method stub
-		return super.onCreateDialog(id);
+		};
+		loadPayPalTask.execute((Void[]) null);
 	}
 
 	@Override

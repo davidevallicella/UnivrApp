@@ -16,7 +16,7 @@
         android:background="@drawable/image"
         android:padding="3dip" >
 
-        <ImageView
+        <com.cellasoft.univrapp.utils.RecyclingImageView
             android:id="@+id/univr_logo"
             android:layout_width="60dip"
             android:layout_height="60dip" />

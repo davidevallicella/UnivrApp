@@ -11,7 +11,7 @@ public class Settings {
 	public static final String PREFS_NAME = "com.cellasoft.univrapp.activity_preferences";
 	public static final String AUTO_UPDATE_KEY = "auto_update";
 	public static final String UPDATE_INTERVAL_KEY = "update_interval";
-	public static final String DOWNLOAD_IMAGES_KEY = "download_images";
+	//public static final String DOWNLOAD_IMAGES_KEY = "download_images";
 	public static final String WIFI_ONLY_KEY = "wifi_only";
 	public static final String KEEP_MAX_ITEMS_KEY = "keep_max_items";
 	public static final String MAX_ITEMS_FOR_CHANNEL_KEY = "max_items_for_channel";
@@ -53,7 +53,7 @@ public class Settings {
 
 		editor.putString(MAX_ITEMS_FOR_CHANNEL_KEY, "100");
 		editor.putString(KEEP_MAX_ITEMS_KEY, "20");
-		editor.putBoolean(DOWNLOAD_IMAGES_KEY, false);
+		//editor.putBoolean(DOWNLOAD_IMAGES_KEY, false);
 		editor.putBoolean(WIFI_ONLY_KEY, false);
 
 		editor.commit();
@@ -101,10 +101,10 @@ public class Settings {
 		return Integer.parseInt(prefs.getString(KEEP_MAX_ITEMS_KEY, "20"));
 	}
 
-	public static boolean getDownloadImages() {
-		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-		return prefs.getBoolean(DOWNLOAD_IMAGES_KEY, false);
-	}
+//	public static boolean getDownloadImages() {
+//		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+//		return prefs.getBoolean(DOWNLOAD_IMAGES_KEY, false);
+//	}
 
 	public static int getKeepMaxImages() {
 		return 2000;

@@ -24,11 +24,11 @@
         android:background="@drawable/image"
         android:padding="3dp" >
 
-        <ImageView
+        <com.cellasoft.univrapp.utils.RecyclingImageView
             android:id="@+id/lecturer_image"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:adjustViewBounds="true"
+            android:background="@android:color/transparent"
             android:scaleType="centerCrop"
             android:src="@drawable/thumb" />
     </LinearLayout>
@@ -72,7 +72,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="2dp"
                 android:layout_gravity="center_vertical"
-                android:background="@drawable/sub_check" />
+                android:background="@drawable/check" />
 
             <TextView
                 style="@style/subscribe"

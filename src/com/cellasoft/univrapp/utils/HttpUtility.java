@@ -23,7 +23,6 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
 import android.content.Context;
-import android.content.Entity;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -41,7 +40,6 @@ public class HttpUtility {
 	// connection has been established
 	private static final int SO_TIMEOUT = 10 * 1000;
 
-	private static DefaultHttpClient client;
 	private static CookieStore cookieStore;
 	private static HttpContext httpContext;
 
@@ -49,33 +47,46 @@ public class HttpUtility {
 
 	static {
 		context = Application.getInstance();
-
 		cookieStore = new BasicCookieStore();
 		httpContext = new BasicHttpContext();
 		httpContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
-		client = getHttpClient();
+	}
+
+	public static HttpResponse get(String uri) throws UnivrReaderException {
+		// HTTP connection reuse which was buggy pre-froyo
+		
+		HttpGet get = new HttpGet(uri);
+		DefaultHttpClient client = getHttpClient();
 		HttpParams params = new BasicHttpParams();
 		HttpProtocolParams.setUserAgent(params,
 				getUserAgent(HttpProtocolParams.getUserAgent(params)));
 		HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
 		HttpConnectionParams.setSoTimeout(params, SO_TIMEOUT);
+
 		client.setParams(params);
-	}
+		HttpResponse response = null;
+		try {
+			response = client.execute(get, httpContext);
 
-	public static HttpResponse get(String uri) throws ClientProtocolException,
-			IOException, UnivrReaderException, Exception {
+			final int status = response.getStatusLine().getStatusCode();
 
-		HttpGet get = new HttpGet(uri);
-		HttpResponse response = client.execute(get, httpContext);
-
-		final int status = response.getStatusLine().getStatusCode();
-		if (status != HttpStatus.SC_OK) {
-			HttpEntity ety = response.getEntity();
-			if (ety != null)
-				ety.consumeContent();
-			throw new UnivrReaderException("Unexpected server response "
-					+ status + " for " + "(" + uri + ")");
+			if (status != HttpStatus.SC_OK) {
+				HttpEntity ety = response.getEntity();
+				if (ety != null)
+					StreamUtils.closeQuietly(ety.getContent());
+				throw new UnivrReaderException("Unexpected server response "
+						+ status + " for " + "(" + uri + ")");
+			}
+		} catch (ClientProtocolException e) {
+			get.abort();
+			e.printStackTrace();
+		} catch (IOException e) {
+			get.abort();
+			e.printStackTrace();
+		} finally {
+			//client.getConnectionManager().shutdown();
 		}
+
 		return response;
 	}
 

@@ -1,4 +1,4 @@
-package com.cellasoft.univrapp.utils;
+package test;
 
 import java.io.File;
 import java.util.List;
@@ -7,6 +7,7 @@ import android.content.Context;
 
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Image;
+import com.cellasoft.univrapp.utils.Utils;
 
 public class FileCache {
 	private static FileCache instance;
@@ -15,7 +16,7 @@ public class FileCache {
 
 	private FileCache(Context context) {
 		// Find the dir to save cached images
-		cacheDir = Utils.getBestCacheDir(context, "/imagecache");
+		//cacheDir = Utils.getBestCacheDir(context, "/imagecache");
 		this.secondLevelCacheDir = cacheDir.getAbsolutePath();
 	}
 

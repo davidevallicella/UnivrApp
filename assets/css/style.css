@@ -1,40 +1,110 @@
 @CHARSET "ISO-8859-1";
 
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,dl,dt,dd,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td
+	{
+	margin: 0;
+	padding: 0;
+	outline: 0;
+	border: 0;
+	font-weight: inherit;
+	font-style: inherit;
+	font-size: 100%;
+	font-family: inherit;
+}
+
+.content table {
+	display: table;
+	margin: 10px auto;
+	border: 1px solid #999;
+	border-collapse: collapse;
+	text-align: left;
+}
+
+.content th {
+	background: #eee;
+	font-weight: bold;
+	font-style: normal;
+}
+
+.content td,.content th {
+	padding: 5px;
+	border: 1px solid #999;
+	border-collapse: collapse;
+	text-align: left;
+}
+
+form legend {
+	display: none;
+}
+
+hr {
+	display: none;
+	visibility: hidden;
+}
+
 body {
 	height: 99.9%;
-	background-image: url("bg_article.jpg");
-	background-repeat: repeat;
+	background-color: #F7F7F7;
+	text-shadow: 0 0 1px rgba(0, 0, 0, 0.3);
+	font-size: 100%;
+	line-height: 1.125em;
 }
 
 .page {
-	padding: 0;
-	margin: 0;
+	position: absolute;
 	top: 0;
 	left: 0;
-	overflow: hidden;
-	width: 100%;
+	display: block;
+	margin: 0;
 	padding-top: 65px;
-	padding-bottom: 40px;
+	padding-bottom: 44px;
+	min-height: 100%;
+	width: 100%;
+	border: 0;
 }
 
 a {
 	font-family: Helvetica, Arial, sans-serif;
 }
 
+p {
+	margin: 0.625em 0;
+	color: #333;
+	text-align: justify;
+	text-decoration: none;
+	font-weight: normal;
+	font-size: 15px;
+	font-family: 'Droid Sans', sans-serif;
+	line-height: 1.25em;
+}
+
+p:first-letter {
+	font-size: 2.5em;
+	line-height: 1em;
+}
+
+p+p:first-letter {
+	font-size: 1em;
+	line-height: 1.25em;
+}
+
+p {
+	text-shadow: 0px 2px 2px rgba(255, 255, 255, 0.4);
+}
+
 .header,.footer {
-	left: 0 !important;
-	right: 0 !important;
-	width: 100%;
 	position: fixed !important;
+	right: 0 !important;
+	left: 0 !important;
 	z-index: 999 !important;
+	width: 100%;
+	opacity: 0.9;
 }
 
 .header {
+	top: 0 !important;
 	border: 1px solid #b3b3b3;
 	background: #eee;
-	color: #3e3e3e;
-	font-weight: bold;
-	text-shadow: 0 1px 1px #fff;
 	background-image: -webkit-gradient(linear, left top, left bottom, from(#f0f0f0),
 		to(#ddd));
 	background-image: -webkit-linear-gradient(#f0f0f0, #ddd);
@@ -42,15 +112,16 @@ a {
 	background-image: -ms-linear-gradient(#f0f0f0, #ddd);
 	background-image: -o-linear-gradient(#f0f0f0, #ddd);
 	background-image: linear-gradient(#f0f0f0, #ddd);
-	top: 0 !important;
+	box-shadow: #DDD 0px 1px 2px 0px;
+	color: #3e3e3e;
+	text-shadow: 0 1px 1px #fff;
+	font-weight: bold;
 }
 
 .footer {
+	bottom: 0 !important;
 	border: 1px solid #044062;
 	background: #396b9e;
-	font-weight: bold;
-	color: #fff;
-	text-shadow: 0 1px 1px #194b7e;
 	background-image: -webkit-gradient(linear, left top, left bottom, from(#5f9cc5),
 		to(#396b9e));
 	background-image: -webkit-linear-gradient(#5f9cc5, #396b9e);
@@ -58,35 +129,45 @@ a {
 	background-image: -ms-linear-gradient(#5f9cc5, #396b9e);
 	background-image: -o-linear-gradient(#5f9cc5, #396b9e);
 	background-image: linear-gradient(#5f9cc5, #396b9e);
-	bottom: 0 !important;
+	box-shadow: #DDD 0px -1px 2px 0px;
+	color: #fff;
+	text-shadow: 0 1px 1px #194b7e;
+	font-weight: bold;
 }
 
 .content {
-	border-width: 0;
-	overflow: hidden;
-	overflow-x: hidden;
+	display: block;
+	overflow: visible;
 	padding: 15px;
+	border-width: 0;
 	color: #333;
 	text-shadow: 0 1px 0 #fff;
 }
 
-#title {
-	text-transform: uppercase;
-	text-align: left;;
-	margin-left: 15px;
-	margin-right: 15px;
-	font-size: 1.0em;
-	min-height: 1.1em;
-	font-size: 16px;
-	display: block;
-	text-overflow: ellipsis;
+.title {
 	overflow: hidden;
+	padding-right: 5px;
+	text-overflow: ellipsis;
 	white-space: nowrap;
-	outline: 0 !important
 }
 
-a {
+.title a {
+	min-height: 1.1em;
+	text-align: left;
+	text-transform: uppercase;
+	font-weight: bold;
+	font-size: 1.0em;
+}
+
+a,a:link,a:hover,a:visited,a:active {
+	color: blue;
 	text-decoration: none;
+}
+
+a:hover {
+	color: red;
+	font-weight: bold;
+	font-size: 24;
 }
 
 .footer {
@@ -94,14 +175,34 @@ a {
 	font-size: 0.8em;
 }
 
-.file a {
-	padding-left: 5px;
+.attachment a {
 	vertical-align: middle;
 	text-align: center;
-	font-family: monospace;
 }
 
 #attachment {
 	position: relative;
 	margin-top: 20px;
+	text-align: left;
+}
+
+#attachment table {
+	border-spacing: 0.8em;
+	display: table;
+	border: none;
+	border-collapse: collapse;
+	text-align: left;
+}
+
+#attachment table td, #attachment table tr {
+	padding: 5px;
+	border: none;
+	border-collapse: collapse;
+	text-align: left;
+}
+
+small {
+	font-family: monospace;
+	font-size: x-small;
+	text-shadow: 0 1px 1px #fff;
 }

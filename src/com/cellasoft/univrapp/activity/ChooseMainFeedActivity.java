@@ -22,14 +22,15 @@ import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.model.University;
 import com.cellasoft.univrapp.reader.UnivrReader;
+import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.FontUtils;
+import com.cellasoft.univrapp.utils.Utils;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 
 public class ChooseMainFeedActivity extends SherlockListActivity {
 
 	private UniversitylAdapter adapter;
 	private Channel channel;
-	private BetterAsyncTask<Void, String, Void> saveLecturersTask;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -52,19 +53,18 @@ public class ChooseMainFeedActivity extends SherlockListActivity {
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		University univeristy = adapter.getItem(position);
-		Settings.setUniversity(univeristy.name);
-		channel = new Channel(univeristy.name, univeristy.url);
-		channel.starred = true;
+		University university = adapter.getItem(position);
+		channel = new Channel(university.name, university.url);
 		saveLecturers();
 	}
+
+	BetterAsyncTask<Void, String, Void> saveLecturersTask;
 
 	private void saveLecturers() {
 		final ProgressDialog progressDialog = new ProgressDialog(this);
 		progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 		Spanned message = Html.fromHtml(getString(R.string.progress_txt)
-				.replace("{message}",
-						"<b>Connect to </b>" + Settings.getUniversity().name));
+				.replace("{message}", "<b>Connect to </b>" + channel.title));
 		progressDialog.setMessage(message);
 		progressDialog.setCancelable(true);
 		progressDialog
@@ -90,18 +90,22 @@ public class ChooseMainFeedActivity extends SherlockListActivity {
 			@Override
 			protected Void doCheckedInBackground(Context context,
 					Void... params) throws Exception {
-				Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-
+				
+				Settings.setUniversity(channel.title);
+				
 				if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 					List<Lecturer> lecturers = UnivrReader.getLecturers();
 					if (!isCancelled()) {
 						progressDialog.setCancelable(false);
 						progressDialog.setMax(lecturers.size());
+						
+						channel.starred = true;
 						channel.save();
 
 						for (Lecturer lecturer : lecturers) {
 							publishProgress("<b>Save Lecturer</b><br/>"
 									+ lecturer.name + "...");
+
 							lecturer.save();
 						}
 
@@ -136,6 +140,11 @@ public class ChooseMainFeedActivity extends SherlockListActivity {
 
 		saveLecturersTask.disableDialog();
 		progressDialog.show();
-		saveLecturersTask.execute();
+		if (Utils.hasHoneycomb()) {
+			saveLecturersTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+					(Void[]) null);
+		} else {
+			saveLecturersTask.execute((Void[]) null);
+		}
 	}
 }

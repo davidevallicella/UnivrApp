@@ -55,9 +55,7 @@
                 <TextView
                     android:id="@+id/contact_office"
                     android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="2"
+                    android:layout_height="match_parent"
                     android:paddingLeft="2dp"
                     android:paddingRight="2dp"
                     android:textColor="#111111"
@@ -85,7 +83,7 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:orientation="vertical"
-            android:visibility="visible" >
+            android:visibility="gone" >
 
             <TextView
                 android:layout_width="wrap_content"
@@ -141,13 +139,75 @@
                 </LinearLayout>
             </RelativeLayout>
         </LinearLayout>
+        
+        <LinearLayout
+            android:id="@+id/contact_phone_lab_row_view"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="vertical"
+            android:visibility="gone" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="5dp"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/contact_lab"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/btn_grey_light"
+                android:textSize="13sp" />
+
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingLeft="5dp" >
+
+                <TextView
+                    android:id="@+id/contact_phone_lab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@+id/phone_lab"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_toLeftOf="@+id/phone_lab"
+                    android:ellipsize="end"
+                    android:gravity="center_vertical"
+                    android:singleLine="true"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textColor="#000000"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:id="@+id/phone_lab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:orientation="horizontal"
+                    android:padding="3dp" >
+
+                    <ImageView
+                        android:id="@+id/contact_phone_lab_action"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:clickable="true"
+                        android:contentDescription="@string/desc"
+                        android:focusable="true"
+                        android:scaleType="center"
+                        android:src="@drawable/ic_action_phone_start" />
+                </LinearLayout>
+            </RelativeLayout>
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/contact_mail_row_view"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:orientation="vertical"
-            android:visibility="visible" >
+            android:visibility="gone" >
 
             <TextView
                 android:layout_width="wrap_content"

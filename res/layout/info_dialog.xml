@@ -24,7 +24,7 @@
                 android:layout_marginRight="10dp"
                 android:background="@null"
                 android:contentDescription="@string/desc"
-                android:src="@drawable/ic_menu_add" />
+                android:src="@drawable/ic_action_add" />
 
             <TextView
                 android:id="@+id/textView1"

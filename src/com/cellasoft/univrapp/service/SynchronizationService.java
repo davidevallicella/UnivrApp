@@ -15,7 +15,6 @@ import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.activity.ChannelListActivity;
 import com.cellasoft.univrapp.activity.R;
 import com.cellasoft.univrapp.manager.SynchronizationManager;
-import com.cellasoft.univrapp.utils.ImageLoader;
 import com.github.droidfu.services.BetterService;
 
 public class SynchronizationService extends BetterService {
@@ -31,7 +30,6 @@ public class SynchronizationService extends BetterService {
 		if (Constants.DEBUG_MODE)
 			Log.d(Constants.LOG_TAG, "Start Synchronization Service..");
 		super.onStart(intent, startId);
-		ImageLoader.initialize(this);
 		new Thread(new Runnable() {
 			public void run() {
 				startSynchronization();

@@ -25,14 +25,13 @@ public class UnivrReader implements Serializable {
 
 	private static final String TAG = UnivrReader.class.getSimpleName();
 	private static final long serialVersionUID = 5743213346852835282L;
-	
+
 	protected static final int DEFAULT_RETRY_HANDLER_SLEEP_TIME = 3000;
 	private static final int DEFAULT_NUM_RETRIES = 3;
 	protected static int numRetries = DEFAULT_NUM_RETRIES;
 
 	public RSSFeed fetchEntriesOfFeed(Channel channel, int maxItems,
 			OnNewEntryCallback callback) throws Exception {
-System.out.println(channel.url);
 		InputStream is = HttpUtility.get(channel.url).getEntity().getContent();
 		return RSSFeed.parse(is, maxItems, callback);
 	}
@@ -44,7 +43,7 @@ System.out.println(channel.url);
 		while (timesTried <= numRetries) {
 			if (Constants.DEBUG_MODE)
 				Log.d(TAG, "Connect to server " + timesTried);
-			
+
 			try {
 				InputStream is = HttpUtility
 						.get(Settings.getUniversity().GET_LECTURERS_LIST_URL)
@@ -55,7 +54,8 @@ System.out.println(channel.url);
 				Type type = new TypeToken<List<Lecturer>>() {
 				}.getType();
 
-				List<Lecturer> lecturers = new Gson().fromJson(json, type);
+				List<Lecturer> lecturers = (List<Lecturer>) new Gson()
+						.fromJson(json, type);
 
 				if (lecturers != null && !lecturers.isEmpty())
 					return lecturers;

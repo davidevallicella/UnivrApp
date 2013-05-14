@@ -8,9 +8,6 @@ import android.util.AttributeSet;
 import com.cellasoft.univrapp.activity.R;
 import com.cellasoft.univrapp.adapter.LecturerAdapter;
 import com.cellasoft.univrapp.model.Lecturer;
-import com.mobsandgeeks.adapters.Sectionizer;
-import com.mobsandgeeks.adapters.SimpleSectionAdapter;
-import com.mobsandgeeks.demo.City;
 import com.woozzu.android.widget.IndexableListView;
 
 public class LecturerListView extends IndexableListView {

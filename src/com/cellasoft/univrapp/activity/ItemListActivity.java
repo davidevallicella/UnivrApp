@@ -8,24 +8,26 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
+import com.cellasoft.univrapp.Application;
 import com.cellasoft.univrapp.ConnectivityReceiver;
 import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.Settings;
@@ -39,9 +41,11 @@ import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.service.SynchronizationService;
 import com.cellasoft.univrapp.utils.ActiveList;
+import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.DateUtils;
 import com.cellasoft.univrapp.utils.FontUtils;
-import com.cellasoft.univrapp.utils.ImageLoader;
+import com.cellasoft.univrapp.utils.ImageFetcher;
+import com.cellasoft.univrapp.utils.Utils;
 import com.cellasoft.univrapp.widget.ItemListView;
 import com.cellasoft.univrapp.widget.SynchronizationListener;
 import com.github.droidfu.concurrent.BetterAsyncTask;
@@ -62,19 +66,24 @@ public class ItemListActivity extends SherlockListActivity {
 
 	private static final String TAG = ItemListActivity.class.getSimpleName();
 	public static final String CHANNEL_ID_PARAM = "ChannelId";
+	public static final String CHANNEL_TITLE_PARAM = "ChannelTitle";
+	public static final String CHANNEL_THUMB_PARAM = "ChannelThumb";
+	public static final String CHANNEL_URL_PARAM = "ChannelUrl";
+	public static final String CHANNEL_LECTURER_ID_PARAM = "LecturerId";
 
 	private Channel channel;
 	private ItemListView itemListView;
 	private AdView adView;
+	private ProgressBar progressBar;
 
 	private boolean loading = false;
 	private boolean refresh = false;
 
 	private SynchronizationListener synchronizationListener = new SynchronizationListener() {
-		public void onStart() {
+		public void onStart(int id) {
 		}
 
-		public void onProgress(String progressText) {
+		public void onProgress(int id, long updateTime) {
 		}
 
 		public void onFinish(final int totalNewItems) {
@@ -98,27 +107,41 @@ public class ItemListActivity extends SherlockListActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		if (Constants.DEBUG_MODE) {
+			Log.d(TAG, "onCreate()");
+			Utils.enableStrictMode();
+		}
 		super.onCreate(savedInstanceState);
-		ImageLoader.initialize(this);
+		Application.parents.push(getClass());
+		ImageFetcher.inizialize(this);
 
 		setContentView(R.layout.item_view);
 
-		if (getIntent().hasExtra(CHANNEL_ID_PARAM)) {
-			int channelId = getIntent().getIntExtra(CHANNEL_ID_PARAM, 0);
-			channel = Channel.findById(channelId,
-					ContentManager.FULL_CHANNEL_LOADER);
-			init();
-		}
-
-		if (android.os.Build.VERSION.SDK_INT >= 11) {
-			System.out.println("----- ENABLE");
+		if (Utils.hasHoneycomb()) {
+			if (Constants.DEBUG_MODE) {
+				Log.d(TAG, "Enable HARDWARE_ACCELERATED");
+			}
 			getWindow().setFlags(
 					WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
 					WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
 		}
+
+		if (getIntent().hasExtra(CHANNEL_ID_PARAM)) {
+			int channelId = getIntent().getIntExtra(CHANNEL_ID_PARAM, 0);
+			int lecturerId = getIntent().getIntExtra(CHANNEL_LECTURER_ID_PARAM,
+					0);
+			String title = getIntent().getStringExtra(CHANNEL_TITLE_PARAM);
+			String url = getIntent().getStringExtra(CHANNEL_URL_PARAM);
+			String imageUrl = getIntent().getStringExtra(CHANNEL_THUMB_PARAM);
+			channel = new Channel(channelId);
+			channel.imageUrl = imageUrl;
+			channel.url = url;
+			channel.title = title;
+			channel.lecturerId = lecturerId;
+			init();
+		}
 	}
-	
-	
+
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
@@ -165,6 +188,8 @@ public class ItemListActivity extends SherlockListActivity {
 
 	private void init() {
 		// Init GUI
+		progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
 		itemListView = (ItemListView) getListView();
 		// Set a listener to be invoked when the list should be refreshed.
 		itemListView.setOnRefreshListener(new OnRefreshListener() {
@@ -175,8 +200,7 @@ public class ItemListActivity extends SherlockListActivity {
 			}
 		});
 
-		if (!channel.url.equals(Settings.getUniversity().url)) {
-
+		if (channel.imageUrl != null && channel.imageUrl.length() > 0) {
 			getSupportActionBar().setIcon(
 					new BitmapDrawable(getResources(),
 							imageLoader(channel.imageUrl)));
@@ -185,8 +209,8 @@ public class ItemListActivity extends SherlockListActivity {
 					Settings.getUniversity().logo_from_resource);
 		}
 
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setTitle(channel.title);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 		initAnimation();
 		initBanner();
@@ -194,7 +218,7 @@ public class ItemListActivity extends SherlockListActivity {
 
 	private Bitmap imageLoader(String imageUrl) {
 		if (imageUrl != null && imageUrl.length() > 0) {
-			return ImageLoader.get(imageUrl);
+			return ImageFetcher.getInstance().get(imageUrl);
 		}
 		// default image
 		return BitmapFactory.decodeResource(getResources(), R.drawable.thumb);
@@ -214,7 +238,13 @@ public class ItemListActivity extends SherlockListActivity {
 	private void initBanner() {
 		// Look up the AdView as a resource and load a request.
 		adView = (AdView) this.findViewById(R.id.adView);
-		adView.loadAd(new AdRequest());
+
+		(new Thread() {
+			public void run() {
+				Looper.prepare();
+				adView.loadAd(new AdRequest());
+			}
+		}).start();
 
 		adView.setAdListener(new AdListener() {
 			@Override
@@ -329,11 +359,11 @@ public class ItemListActivity extends SherlockListActivity {
 
 		switch (item.getItemId()) {
 		case R.id.menu_clear:
-			if (!refresh)
-				cleanList();
+			cleanList();
 			return true;
 		case android.R.id.home:
-			NavUtils.navigateUpFromSameTask(this);
+			//NavUtils.navigateUpFromSameTask(this);
+			finish();
 			return true;
 		case R.id.menu_contact:
 			showContact();
@@ -342,10 +372,10 @@ public class ItemListActivity extends SherlockListActivity {
 			markAllItemsRead();
 			return true;
 		case R.id.menu_keep_silence:
-			channel.markChannelToMute();
+			markChannelToMute();
 			return true;
 		case R.id.menu_up:
-			channel.unmarkChannelToMute();
+			unmarkChannelToMute();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -360,7 +390,7 @@ public class ItemListActivity extends SherlockListActivity {
 
 	}
 
-	private void refresh() {			
+	private void refresh() {
 		refresh = true;
 		final int maxItemsForChannel = Settings.getMaxItemsForChannel();
 
@@ -412,7 +442,11 @@ public class ItemListActivity extends SherlockListActivity {
 			}
 		});
 		task.disableDialog();
-		task.execute();
+		if (Utils.hasHoneycomb()) {
+			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+					(Void[]) null);
+		} else
+			task.execute((Void[]) null);
 	}
 
 	private void loadItems() {
@@ -459,7 +493,11 @@ public class ItemListActivity extends SherlockListActivity {
 			}
 		});
 		task.disableDialog();
-		task.execute();
+		if (Utils.hasHoneycomb()) {
+			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+					(Void[]) null);
+		} else
+			task.execute((Void[]) null);
 	}
 
 	protected void loadMoreItems(final Item lastItem) {
@@ -503,14 +541,60 @@ public class ItemListActivity extends SherlockListActivity {
 					}
 				});
 		loadMoreItemsTask.disableDialog();
-		loadMoreItemsTask.execute();
+
+		if (Utils.hasHoneycomb()) {
+			loadMoreItemsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+					(Void[]) null);
+		} else
+			loadMoreItemsTask.execute((Void[]) null);
+	}
+
+	private void markChannelToMute() {
+		new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				if (channel != null) {
+					channel.markChannelToMute();
+				}
+				return null;
+			}
+
+		}.execute((Void[]) null);
+	}
+
+	private void unmarkChannelToMute() {
+		new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				if (channel != null) {
+					channel.unmarkChannelToMute();
+				}
+				return null;
+			}
+
+		}.execute((Void[]) null);
 	}
 
 	private void markAllItemsRead() {
-		ContentManager.markAllItemsOfChannelAsRead(channel);
-		loadItems();
+		new AsyncTask<Void, Void, Void>() {
+
+			protected void onPostExecute(Void result) {
+				loadItems();
+			};
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				if (channel != null) {
+					ContentManager.markAllItemsOfChannelAsRead(channel);
+				}
+				return null;
+			}
+		}.execute((Void[]) null);
+
 	}
-	
+
 	private void showItem(final Item item) {
 		Intent in = new Intent(getApplicationContext(),
 				DisPlayWebPageActivity.class);
@@ -524,32 +608,76 @@ public class ItemListActivity extends SherlockListActivity {
 	}
 
 	private void showContact() {
-		Intent intent = new Intent(this, ContactActivity.class);
+		new AsyncTask<Void, Void, Lecturer>() {
 
-		Lecturer lecturer = ContentManager.loadLecturer(channel.lecturerId,
-				ContentManager.FULL_LECTURER_LOADER);
+			protected void onPostExecute(Lecturer lecturer) {
+				Intent intent = new Intent(ItemListActivity.this,
+						ContactActivity.class);
+				intent.putExtra(ContactActivity.LECTURER_ID_PARAM, lecturer.id);
+				intent.putExtra(ContactActivity.LECTURER_NAME_PARAM,
+						lecturer.name);
+				intent.putExtra(ContactActivity.LECTURER_OFFICE_PARAM,
+						lecturer.office);
+				intent.putExtra(ContactActivity.LECTURER_THUMB_PARAM,
+						lecturer.thumbnail);
+				startActivity(intent);
+			};
 
-		intent.putExtra(ContactActivity.LECTURER_ID_PARAM, lecturer.id);
-		intent.putExtra(ContactActivity.LECTURER_NAME_PARAM, lecturer.name);
-		intent.putExtra(ContactActivity.LECTURER_OFFICE_PARAM, lecturer.office);
-		intent.putExtra(ContactActivity.LECTURER_THUMB_PARAM,
-				lecturer.thumbnail);
-		startActivity(intent);
+			@Override
+			protected Lecturer doInBackground(Void... params) {
+				return ContentManager.loadLecturer(channel.lecturerId,
+						ContentManager.FULL_LECTURER_LOADER);
+
+			}
+
+		}.execute((Void[]) null);
+
 	}
 
 	private void markItemAsRead(Item item) {
 		if (!item.isRead()) {
-			item.markItemAsRead();
+			new AsyncTask<Item, Void, Void>() {
+
+				@Override
+				protected Void doInBackground(Item... item) {
+					item[0].markItemAsRead();
+					return null;
+				}
+			}.execute(item);
 		}
 	}
 
 	private void cleanList() {
-		int deletted = channel.clean();
-		itemListView.clean();
-		Toast.makeText(
-				this,
-				getResources().getString(R.string.clean).replace("{total}",
-						String.valueOf(deletted)), Toast.LENGTH_SHORT).show();
+		if (refresh)
+			return;
+
+		refresh = true;
+		new AsyncTask<Void, Void, Integer>() {
+
+			protected void onPreExecute() {
+				progressBar.setVisibility(View.VISIBLE);
+				itemListView.setEnabled(false);
+				itemListView.setClickable(false);
+			};
+
+			protected void onPostExecute(Integer delettedItems) {
+				progressBar.setVisibility(View.GONE);
+				itemListView.setEnabled(true);
+				itemListView.setClickable(true);
+				itemListView.clean();
+				Toast.makeText(
+						ItemListActivity.this,
+						getResources().getString(R.string.clean).replace(
+								"{total}", String.valueOf(delettedItems)),
+						Toast.LENGTH_SHORT).show();
+				refresh = false;
+			};
+
+			@Override
+			protected Integer doInBackground(Void... params) {
+				return channel.clean();
+			}
+		}.execute((Void[]) null);
 
 	}
 }

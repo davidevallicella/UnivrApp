@@ -3,6 +3,8 @@ package com.cellasoft.univrapp.adapter;
 import java.util.List;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Html;
@@ -12,10 +14,10 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.cellasoft.univrapp.activity.R;
+import com.cellasoft.univrapp.activity.R.color;
 import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.utils.ActiveList;
 import com.cellasoft.univrapp.utils.DateUtils;
-import com.cellasoft.univrapp.utils.ImageLoader;
 
 public class ItemAdapter extends BaseAdapter {
 	
@@ -62,7 +64,6 @@ public class ItemAdapter extends BaseAdapter {
 
 	public ItemAdapter(Context context) {
 		this.context = context;
-		ImageLoader.initialize(context);
 	}
 
 	public void refresh() {
@@ -142,12 +143,15 @@ public class ItemAdapter extends BaseAdapter {
 		String description = item.getDescription().replace("Pubblicato da:", "<b>Pubblicato da:</b>");
 		holder.description.setText(Html.fromHtml(description));
 		holder.date.setText(DateUtils.formatDate(item.pubDate));
-		
 
-		if(!item.isRead())
+		if(!item.isRead()) {
 			convertView.setBackgroundResource(bgColors[0]);
-		else
+			holder.title.setTypeface(Typeface.DEFAULT_BOLD, 0);
+		}
+		else {
 			convertView.setBackgroundResource(bgColors[1]);
+			holder.title.setTypeface(Typeface.DEFAULT);
+		}
 
 		// request more items if we reach the to 2/3 items
 		int requestPosition = (2 * getCount() / 3);

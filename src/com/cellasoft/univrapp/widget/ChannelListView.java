@@ -29,9 +29,6 @@ public class ChannelListView extends ListView {
 	private void init(Context context) {
 		adapter = new ChannelAdapter(context);
 		this.setAdapter(adapter);
-		
-//		this.setBackgroundColor(getResources().getColor(R.color.itemBackground));
-//		this.setCacheColorHint(getResources().getColor(R.color.itemBackground));
 		this.setDivider(getResources().getDrawable(
 				android.R.drawable.divider_horizontal_bright));
 		

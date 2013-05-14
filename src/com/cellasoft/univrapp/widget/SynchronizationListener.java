@@ -1,9 +1,9 @@
 package com.cellasoft.univrapp.widget;
 
 public interface SynchronizationListener {
-	void onStart();
+	void onStart(int id);
 
-	void onProgress(String progressText);
+	void onProgress(int id, long updateTime);
 
 	void onFinish(int totalNewItems);
 }

@@ -13,6 +13,7 @@ import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.UnivrReaderFactory;
 import com.cellasoft.univrapp.loader.ChannelLoader;
 import com.cellasoft.univrapp.manager.ContentManager;
+import com.cellasoft.univrapp.manager.SynchronizationManager;
 import com.cellasoft.univrapp.provider.Provider;
 import com.cellasoft.univrapp.reader.UnivrReader;
 import com.cellasoft.univrapp.rss.RSSFeed;
@@ -24,7 +25,7 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 	private static final long serialVersionUID = 6999952067033640004L;
 	private transient ActiveList<Item> items = new ActiveList<Item>();
 	private Object synRoot = new Object();
-	private boolean updating = false;
+	public boolean updating = false;
 
 	public int id;
 	public int lecturerId;
@@ -37,7 +38,7 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 	public boolean isSelected;
 	public boolean starred;
 	public boolean mute = false;
-
+	
 	public Channel() {
 		this.id = 0;
 		this.lecturerId = 0;
@@ -125,6 +126,7 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 			if (updating)
 				return null;
 			updating = true;
+			SynchronizationManager.getInstance().onSynchronizationStart(id);
 			this.setChanged();
 			this.notifyObservers(updating);
 		}
@@ -204,7 +206,6 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 			if (exist()) {
 				for (Item item : items) {
 					if (item.save()) {
-						System.out.println("save: " + item.title);
 						newItems++;
 					}
 				}

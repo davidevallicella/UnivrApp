@@ -3,6 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
+    android:orientation="vertical"
     android:padding="3dp" >
 
     <ImageButton
@@ -12,6 +13,7 @@
         android:layout_gravity="center_vertical"
         android:background="@null"
         android:src="@drawable/btn_check_off_normal" />
+        
 
     <!-- ListRow Left sied Thumbnail image -->
 
@@ -19,15 +21,16 @@
         android:id="@+id/lecturer_thumbnail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
         android:layout_marginLeft="20dip"
         android:layout_marginRight="5dip"
         android:background="@drawable/image"
         android:padding="3dip" >
 
-        <ImageView
+        <com.cellasoft.univrapp.utils.RecyclingImageView
             android:id="@+id/lecturer_image"
-            android:layout_width="60dip"
-            android:layout_height="60dip"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:adjustViewBounds="true"
             android:scaleType="centerCrop"
             android:src="@drawable/thumb" />
@@ -72,12 +75,13 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="2dp"
-                android:background="@drawable/sub_check" />
+                android:background="@drawable/check" />
 
             <TextView
                 style="@style/subscribe"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:maxLines="1"
                 android:text="Subscribed"
                 android:textAppearance="?android:attr/textAppearanceSmall" />

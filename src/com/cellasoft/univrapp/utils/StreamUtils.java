@@ -54,9 +54,10 @@ public class StreamUtils {
 			while ((line = reader.readLine()) != null) {
 				lines.add(line);
 			}
-			closeQuietly(inputStream);
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			closeQuietly(inputStream);
 		}
 		return lines.toArray(new String[0]);
 	}
@@ -70,9 +71,11 @@ public class StreamUtils {
 			while ((line = reader.readLine()) != null) {
 				sb.append(line).append("\n");
 			}
-			closeQuietly(inputStream);
+
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			closeQuietly(inputStream);
 		}
 		return sb.toString();
 	}
@@ -87,22 +90,17 @@ public class StreamUtils {
 	}
 
 	/**
-	 * Closes stream and suppresses IO faults.
-	 * 
-	 * @return {@code null} if stream has been successfully closed,
-	 *         {@link java.io.IOException} otherwise
+	 * Closes 'closeable', ignoring any checked exceptions. Does nothing if
+	 * 'closeable' is null.
 	 */
-	public static java.io.IOException closeQuietly(java.io.Closeable stream) {
-		if (stream == null) {
-			return null;
+	public static void closeQuietly(java.io.Closeable stream) {
+		if (stream != null) {
+			try {
+				stream.close();
+			} catch (RuntimeException rethrown) {
+				throw rethrown;
+			} catch (Exception ignored) {
+			}
 		}
-
-		try {
-			stream.close();
-		} catch (java.io.IOException e) {
-			return e;
-		}
-
-		return null;
 	}
 }

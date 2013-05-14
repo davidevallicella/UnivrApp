@@ -25,13 +25,13 @@
         android:background="@drawable/image"
         android:padding="2dip" >
 
-        <ImageView
+        <com.cellasoft.univrapp.utils.RecyclingImageView
             android:id="@+id/channel_image"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:adjustViewBounds="true"
             android:contentDescription="@string/desc"
-            android:scaleType="fitCenter"
+            android:scaleType="centerCrop"
             android:src="@drawable/thumb" />
     </LinearLayout>
 

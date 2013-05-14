@@ -28,16 +28,24 @@
     <string name="change">Cambia</string>
     <string name="lecturers">Professori</string>
     <string name="clean">Rimosse {total} avvisi</string>
+    <string name="unsub_channel_dialog_title">Cancellazione canali</string>
+    <string name="unsub_channel_dialog">I canali selezionati verranno rimossi, continuare?</string>
+    <string name="unsub_channel_dialog2">Cancellazione dei canali selezionati</string>
     <string name="sub_channel_dialog_title">Sottoscriviti</string>
     <string name="sub_channel_dialog">Abbonarsi ai canali?</string>
     <string name="sub_channel_dialog2">Iscrizione ai canali selezionati</string>
+    <string name="contact_dialog_title">Seleziona numero</string>
     <string name="yes">si</string>
     <string name="no">no</string>
     <string name="success">Riuscito</string>
     <string name="updated">Aggiornato</string>
+    <string name="updating">Aggiornamento...</string>
+    <string name="clear_cache_menu">Svuota Caches</string>
+    <string name="clear_cache_complete_toast">La Caches è stata pulita</string>
+    
     <!-- EXCEPTION -->
     <string name="univrapp_server_exception">Il server è momentaneamente inattivo. \n\ Attendere alcuni secondi e riprovare.</string>
-    <string name="univrapp_connection_exception">Connessione assente.</string>
+    <string name="univrapp_connection_exception">Connettività limitata o assente</string>
 
     <!-- MENU -->
     <string name="subscribe">Sottoscriviti</string>
@@ -49,7 +57,7 @@
     <string name="clear">Elimina</string>
     <string name="view_contact">Mostra contatto</string>
     <string name="reload">Ricarica</string>
-    <string name="up">Attiva notifiche</string>    
+    <string name="up">Attiva notifiche</string>
     <string name="mute">Mantieni silenzioso</string>
     <string name="web_page">Pagina Web</string>
     <!-- CONTACT -->
@@ -57,11 +65,13 @@
     <string name="contact_header">Contatti</string>
     <string name="info_header">Info</string>
     <string name="contact_office">Chiama ufficio</string>
+    <string name="contact_lab">Chiama Laboratorio</string>
     <string name="contact_mail">Invia e-mail</string>
     <string name="contact_department">Dipartimento</string>
     <!-- PREFERENCE -->
     <string name="pref_categ_sync">Sincronizzazione</string>
     <string name="pref_categ_user_prof">Profilo Utente</string>
+    <string name="pref_categ_user_notify">Notifiche</string>
     <string name="pref_wify_only">Aggiorna solo con WiFi</string>
     <string name="pref_wify_only_summary">Aggiornamento automatico solo WiFi</string>
     <string name="pref_send_report">Invia segnalazioni di errore</string>
@@ -76,6 +86,9 @@
     <string name="pref_keep_max_items_summary">Massimo dumero di avvisi da tenere durante la pulitura del canale</string>
     <string name="pref_max_items_for_channel">Max avvisi per sottoscrizione</string>
     <string name="pref_max_items_for_channel_summary">Massimo dumero di avvisi da caricare per canale</string>
+    <string name="pref_notification_sound">Abilitare audio</string>
+    <string name="pref_notification_vibrate">Abilitare vibrazione</string>
+    <string name="pref_notification_light">Abilitare spia led</string>
     <!-- UPDATE INTERVAL -->
     <string name="minutes_15">Ogni 15 minuti</string>
     <string name="minutes_30">Ogni 30 minuti</string>
