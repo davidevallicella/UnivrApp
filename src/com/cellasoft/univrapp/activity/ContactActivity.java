@@ -27,17 +27,12 @@ import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
 
 public class ContactActivity extends SherlockActivity {
-	private static final int CORNER_RADIUS = 3; // dips
-	private static final int MARGIN = 1; // dips
 
 	public static final String LECTURER_ID_PARAM = "LecturerId";
 	public static final String LECTURER_NAME_PARAM = "LecturerName";
 	public static final String LECTURER_OFFICE_PARAM = "LecturerOffice";
 	public static final String LECTURER_THUMB_PARAM = "LecturerThumb";
 	private Lecturer lecturer;
-
-	public static int mCornerRadius;
-	public static int mMargin;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -83,11 +78,7 @@ public class ContactActivity extends SherlockActivity {
 			finish();
 			return true;
 		case R.id.menu_web_page:
-			// go back
-			Intent browserIntent = new Intent(Intent.ACTION_VIEW,
-					Uri.parse(Settings.getUniversity().domain
-							+ "/fol/main?ent=persona&id=" + lecturer.key));
-			startActivity(browserIntent);
+			showWebPage();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -105,10 +96,6 @@ public class ContactActivity extends SherlockActivity {
 
 			@Override
 			protected void before(Context context) {
-				final float density = getResources().getDisplayMetrics().density;
-				mCornerRadius = (int) (CORNER_RADIUS * density + 0.5f);
-				mMargin = (int) (MARGIN * density + 0.5f);
-
 				ImageView image = (ImageView) findViewById(R.id.contact_image);
 
 				try {
@@ -154,7 +141,7 @@ public class ContactActivity extends SherlockActivity {
 							}
 
 							((TextView) findViewById(R.id.contact_phone))
-									.setText(tellOffice);
+									.setText(tellOffice.replace(" - ", "\n").trim());
 							findViewById(R.id.contact_phone_action)
 									.setOnTouchListener(new OnTouchListener() {
 
@@ -180,7 +167,7 @@ public class ContactActivity extends SherlockActivity {
 
 							if (tellLab != null && tellLab.length() > 0) {
 								((TextView) findViewById(R.id.contact_phone_lab))
-										.setText(tellLab);
+										.setText(tellLab.replace(" - ", "\n").trim());
 								findViewById(R.id.contact_phone_lab_action)
 										.setOnTouchListener(
 												new OnTouchListener() {
@@ -275,28 +262,47 @@ public class ContactActivity extends SherlockActivity {
 			task.execute((Void[]) null);
 	}
 
-	private void callNumber(String telephone) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this)
-				.setTitle(getResources().getString(
-						R.string.contact_dialog_title));
+	private void chooseNumberDialog(final String[] telephones) {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (!isFinishing()) {
+					AlertDialog.Builder builder = new AlertDialog.Builder(
+							ContactActivity.this).setTitle(getResources()
+							.getString(R.string.contact_dialog_title));
+					builder.setItems(telephones, new OnClickListener() {
 
-		if (telephone.contains("-")) {
-			final String[] name = telephone.split(" - ");
-			builder.setItems(name, new OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+							call(telephones[which].trim());
+						}
 
-				public void onClick(DialogInterface dialog, int which) {
-					dialog.dismiss();
-					Intent callIntent = new Intent(Intent.ACTION_CALL);
-					callIntent.setData(Uri.parse("tel:" + name[which].trim()));
-					startActivity(callIntent);
+					});
+					builder.show();
 				}
+			}
+		});
+	}
 
-			});
-			builder.show();
+	private void call(String telephone) {
+		Intent callIntent = new Intent(Intent.ACTION_CALL);
+		callIntent.setData(Uri.parse("tel:" + telephone));
+		startActivity(callIntent);
+	}
+	
+	private void showWebPage() {
+		Intent browserIntent = new Intent(Intent.ACTION_VIEW,
+				Uri.parse(Settings.getUniversity().domain
+						+ "/fol/main?ent=persona&id=" + lecturer.key));
+		startActivity(browserIntent);
+	}
+
+	private void callNumber(String telephone) {
+		if (telephone.contains("-")) {
+			String[] telephones = telephone.split(" - ");
+			chooseNumberDialog(telephones);
 		} else {
-			Intent callIntent = new Intent(Intent.ACTION_CALL);
-			callIntent.setData(Uri.parse("tel:" + telephone));
-			startActivity(callIntent);
+			call(telephone);
 		}
 	}
 

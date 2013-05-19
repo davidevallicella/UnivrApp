@@ -13,7 +13,6 @@
         android:layout_gravity="center_vertical"
         android:background="@null"
         android:src="@drawable/btn_check_off_normal" />
-        
 
     <!-- ListRow Left sied Thumbnail image -->
 

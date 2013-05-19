@@ -19,21 +19,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.SystemClock;
-import android.support.v4.app.NavUtils;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.widget.AbsListView;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
@@ -48,6 +43,7 @@ import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.reader.UnivrReader;
 import com.cellasoft.univrapp.utils.AsyncTask;
+import com.cellasoft.univrapp.utils.ClosableAdView;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;
 import com.cellasoft.univrapp.utils.Utils;
@@ -55,11 +51,6 @@ import com.cellasoft.univrapp.widget.LecturerView;
 import com.cellasoft.univrapp.widget.OnLecturerViewListener;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
-import com.google.ads.Ad;
-import com.google.ads.AdListener;
-import com.google.ads.AdRequest;
-import com.google.ads.AdRequest.ErrorCode;
-import com.google.ads.AdView;
 
 @SuppressLint("NewApi")
 public class SubscribeActivity extends SherlockListActivity {
@@ -67,7 +58,7 @@ public class SubscribeActivity extends SherlockListActivity {
 	private PostData post_data;
 	private ArrayList<Lecturer> lecturers;
 	private LecturerSectionAdapter sectionAdapter;
-	private AdView adView;
+	private ClosableAdView adView;
 
 	private boolean updated = true;
 
@@ -164,6 +155,15 @@ public class SubscribeActivity extends SherlockListActivity {
 	protected void onResume() {
 		super.onResume();
 		ImageFetcher.getInstance().setExitTasksEarly(false);
+		showAdmodBanner();
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (adView != null) {
+			adView.hideAd();
+		}
 	}
 
 	private void init() {
@@ -197,7 +197,6 @@ public class SubscribeActivity extends SherlockListActivity {
 	}
 
 	private void initListView() {
-
 		getListView().setFastScrollEnabled(true);
 		getListView().setDrawSelectorOnTop(true);
 		getListView().setSelector(R.drawable.list_selector_on_top);
@@ -221,86 +220,17 @@ public class SubscribeActivity extends SherlockListActivity {
 		});
 	}
 
-	private ImageButton closeAdmodButton;
-
 	private void initBanner() {
 		// Look up the AdView as a resource and load a request.
-		adView = (AdView) this.findViewById(R.id.adView);
-		adView.loadAd(new AdRequest());
-
-		adView.setAdListener(new AdListener() {
-			@Override
-			public void onReceiveAd(Ad arg0) {
-				if (closeAdmodButton == null) {
-					addCloseButtonTask(adView);
-				} else {
-					adView.setVisibility(View.VISIBLE);
-					closeAdmodButton.setVisibility(View.VISIBLE);
-				}
-			}
-
-			@Override
-			public void onPresentScreen(Ad arg0) {
-			}
-
-			@Override
-			public void onLeaveApplication(Ad arg0) {
-			}
-
-			@Override
-			public void onFailedToReceiveAd(Ad arg0, ErrorCode arg1) {
-			}
-
-			@Override
-			public void onDismissScreen(Ad arg0) {
-			}
-		});
+		adView = (ClosableAdView) this.findViewById(R.id.adView);
+		adView.inizialize(this);
+		adView.loadAd();
 	}
 
-	private void addCloseButtonTask(final AdView adView) {
-		new AsyncTask<Void, Void, Void>() {
-
-			@Override
-			protected void onPostExecute(Void result) {
-				runOnUiThread(new Runnable() {
-					public void run() {
-						((RelativeLayout) findViewById(R.id.AdModLayout))
-								.addView(closeAdmodButton);
-					}
-				});
-			}
-
-			@Override
-			protected Void doInBackground(Void... params) {
-				SystemClock.sleep(5000);
-
-				RelativeLayout.LayoutParams closeLayoutParams = new RelativeLayout.LayoutParams(
-						30, 30);
-				closeLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,
-						RelativeLayout.TRUE);
-				closeLayoutParams.addRule(RelativeLayout.ALIGN_LEFT,
-						RelativeLayout.TRUE);
-				closeLayoutParams.bottomMargin = (int) adView.getHeight() - 15;
-				closeLayoutParams.leftMargin = 15;
-
-				closeAdmodButton = new ImageButton(getApplicationContext());
-				closeAdmodButton.setLayoutParams(closeLayoutParams);
-				closeAdmodButton.setImageResource(R.drawable.close_button);
-				closeAdmodButton
-						.setBackgroundResource(android.R.color.transparent);
-				closeAdmodButton.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						closeAdmodButton.setVisibility(View.GONE);
-						if (adView != null) {
-							adView.setVisibility(View.GONE);
-						}
-					}
-				});
-
-				return null;
-			}
-		}.execute();
+	private void showAdmodBanner() {
+		if (adView != null) {
+			adView.viewAd();
+		}
 	}
 
 	private void loadData() {
@@ -357,7 +287,7 @@ public class SubscribeActivity extends SherlockListActivity {
 			reloadLecturers();
 			return true;
 		case android.R.id.home:
-			//NavUtils.navigateUpFromSameTask(this);
+			// NavUtils.navigateUpFromSameTask(this);
 			finish();
 			return true;
 		case R.id.clear_cache:

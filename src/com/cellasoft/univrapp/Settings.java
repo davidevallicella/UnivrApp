@@ -1,5 +1,9 @@
 package com.cellasoft.univrapp;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -11,11 +15,11 @@ public class Settings {
 	public static final String PREFS_NAME = "com.cellasoft.univrapp.activity_preferences";
 	public static final String AUTO_UPDATE_KEY = "auto_update";
 	public static final String UPDATE_INTERVAL_KEY = "update_interval";
-	//public static final String DOWNLOAD_IMAGES_KEY = "download_images";
 	public static final String WIFI_ONLY_KEY = "wifi_only";
 	public static final String KEEP_MAX_ITEMS_KEY = "keep_max_items";
 	public static final String MAX_ITEMS_FOR_CHANNEL_KEY = "max_items_for_channel";
 	public static final String ID_EDITORE = "a14fcb4caab6d83";
+	public static final String AD_CLICK_TIME = "ad_click_time";
 	private static Context context;
 
 	static {
@@ -41,8 +45,6 @@ public class Settings {
 		editor.putBoolean(context.getString(R.string.first_time_key), false);
 		editor.putString(context.getString(R.string.update_interval_key), "15");
 		editor.putBoolean(context.getString(R.string.auto_update_key), true);
-		// editor.putBoolean(context.getString(R.string.show_updated_channels_key),
-		// false);
 		editor.putString(context.getString(R.string.language_key), "it");
 
 		editor.putString("font", "sans");
@@ -53,10 +55,28 @@ public class Settings {
 
 		editor.putString(MAX_ITEMS_FOR_CHANNEL_KEY, "100");
 		editor.putString(KEEP_MAX_ITEMS_KEY, "20");
-		//editor.putBoolean(DOWNLOAD_IMAGES_KEY, false);
 		editor.putBoolean(WIFI_ONLY_KEY, false);
+		editor.putLong(AD_CLICK_TIME, -25);
 
 		editor.commit();
+	}
+
+	public static void setAdClickTime(long value) {
+		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putLong(AD_CLICK_TIME, value);
+		editor.commit();
+	}
+
+	public static boolean hasPassed24Hour() {
+		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+		Date clickTime = new Date(prefs.getLong(AD_CLICK_TIME, 0));
+		Calendar cal = Calendar.getInstance(Locale.ITALY);
+		cal.setTime(new Date());
+		Calendar cal2 = Calendar.getInstance(Locale.ITALY);
+		cal2.setTime(clickTime);
+		return Math
+				.abs(((cal2.getTime().getTime() - cal.getTime().getTime()) / 3600000)) >= 24;
 	}
 
 	public static int getUpdateInterval() {
@@ -100,11 +120,6 @@ public class Settings {
 		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
 		return Integer.parseInt(prefs.getString(KEEP_MAX_ITEMS_KEY, "20"));
 	}
-
-//	public static boolean getDownloadImages() {
-//		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-//		return prefs.getBoolean(DOWNLOAD_IMAGES_KEY, false);
-//	}
 
 	public static int getKeepMaxImages() {
 		return 2000;

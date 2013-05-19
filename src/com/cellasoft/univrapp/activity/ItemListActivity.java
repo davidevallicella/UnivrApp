@@ -9,20 +9,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.os.Looper;
-import android.os.SystemClock;
-import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
@@ -39,9 +32,9 @@ import com.cellasoft.univrapp.manager.SynchronizationManager;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.model.Lecturer;
-import com.cellasoft.univrapp.service.SynchronizationService;
 import com.cellasoft.univrapp.utils.ActiveList;
 import com.cellasoft.univrapp.utils.AsyncTask;
+import com.cellasoft.univrapp.utils.ClosableAdView;
 import com.cellasoft.univrapp.utils.DateUtils;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;
@@ -50,11 +43,6 @@ import com.cellasoft.univrapp.widget.ItemListView;
 import com.cellasoft.univrapp.widget.SynchronizationListener;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
-import com.google.ads.Ad;
-import com.google.ads.AdListener;
-import com.google.ads.AdRequest;
-import com.google.ads.AdRequest.ErrorCode;
-import com.google.ads.AdView;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
 /**
@@ -73,7 +61,7 @@ public class ItemListActivity extends SherlockListActivity {
 
 	private Channel channel;
 	private ItemListView itemListView;
-	private AdView adView;
+	private ClosableAdView adView;
 	private ProgressBar progressBar;
 
 	private boolean loading = false;
@@ -116,15 +104,6 @@ public class ItemListActivity extends SherlockListActivity {
 		ImageFetcher.inizialize(this);
 
 		setContentView(R.layout.item_view);
-
-		if (Utils.hasHoneycomb()) {
-			if (Constants.DEBUG_MODE) {
-				Log.d(TAG, "Enable HARDWARE_ACCELERATED");
-			}
-			getWindow().setFlags(
-					WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-					WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
-		}
 
 		if (getIntent().hasExtra(CHANNEL_ID_PARAM)) {
 			int channelId = getIntent().getIntExtra(CHANNEL_ID_PARAM, 0);
@@ -181,9 +160,9 @@ public class ItemListActivity extends SherlockListActivity {
 		if (Constants.DEBUG_MODE)
 			Log.d(TAG, "onDestroy()");
 		super.onDestroy();
-		Intent service = new Intent(ItemListActivity.this,
-				SynchronizationService.class);
-		stopService(service);
+		if (adView != null) {
+			adView.hideAd();
+		}
 	}
 
 	private void init() {
@@ -218,7 +197,10 @@ public class ItemListActivity extends SherlockListActivity {
 
 	private Bitmap imageLoader(String imageUrl) {
 		if (imageUrl != null && imageUrl.length() > 0) {
-			return ImageFetcher.getInstance().get(imageUrl);
+			try {
+				return ImageFetcher.getInstance().get(imageUrl);
+			} catch (Exception e) {
+			}
 		}
 		// default image
 		return BitmapFactory.decodeResource(getResources(), R.drawable.thumb);
@@ -233,99 +215,17 @@ public class ItemListActivity extends SherlockListActivity {
 		itemListView.setLayoutAnimation(controller);
 	}
 
-	private ImageButton closeAdmodButton;
-
 	private void initBanner() {
 		// Look up the AdView as a resource and load a request.
-		adView = (AdView) this.findViewById(R.id.adView);
-
-		(new Thread() {
-			public void run() {
-				Looper.prepare();
-				adView.loadAd(new AdRequest());
-			}
-		}).start();
-
-		adView.setAdListener(new AdListener() {
-			@Override
-			public void onReceiveAd(Ad arg0) {
-				if (closeAdmodButton == null) {
-					addCloseButtonTask(adView);
-				} else {
-					adView.setVisibility(View.VISIBLE);
-					closeAdmodButton.setVisibility(View.VISIBLE);
-				}
-			}
-
-			@Override
-			public void onPresentScreen(Ad arg0) {
-			}
-
-			@Override
-			public void onLeaveApplication(Ad arg0) {
-			}
-
-			@Override
-			public void onFailedToReceiveAd(Ad arg0, ErrorCode arg1) {
-			}
-
-			@Override
-			public void onDismissScreen(Ad arg0) {
-			}
-		});
+		adView = (ClosableAdView) this.findViewById(R.id.adView);
+		adView.inizialize(this);
+		adView.loadAd();
 	}
 
 	private void showAdmodBanner() {
-		if (adView != null && closeAdmodButton != null) {
-			adView.setVisibility(View.VISIBLE);
-			closeAdmodButton.setVisibility(View.VISIBLE);
+		if (adView != null) {
+			adView.viewAd();
 		}
-	}
-
-	private void addCloseButtonTask(final AdView adView) {
-		new AsyncTask<Void, Void, Void>() {
-
-			@Override
-			protected void onPostExecute(Void result) {
-				runOnUiThread(new Runnable() {
-					public void run() {
-						((RelativeLayout) findViewById(R.id.AdModLayout))
-								.addView(closeAdmodButton);
-					}
-				});
-			}
-
-			@Override
-			protected Void doInBackground(Void... params) {
-				SystemClock.sleep(5000);
-
-				RelativeLayout.LayoutParams closeLayoutParams = new RelativeLayout.LayoutParams(
-						30, 30);
-				closeLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,
-						RelativeLayout.TRUE);
-				closeLayoutParams.addRule(RelativeLayout.ALIGN_LEFT,
-						RelativeLayout.TRUE);
-				closeLayoutParams.bottomMargin = (int) adView.getHeight() - 15;
-				closeLayoutParams.leftMargin = 15;
-
-				closeAdmodButton = new ImageButton(getApplicationContext());
-				closeAdmodButton.setLayoutParams(closeLayoutParams);
-				closeAdmodButton.setImageResource(R.drawable.close_button);
-				closeAdmodButton
-						.setBackgroundResource(android.R.color.transparent);
-				closeAdmodButton.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						closeAdmodButton.setVisibility(View.GONE);
-						if (adView != null) {
-							adView.setVisibility(View.GONE);
-						}
-					}
-				});
-
-				return null;
-			}
-		}.execute();
 	}
 
 	@Override
@@ -362,7 +262,7 @@ public class ItemListActivity extends SherlockListActivity {
 			cleanList();
 			return true;
 		case android.R.id.home:
-			//NavUtils.navigateUpFromSameTask(this);
+			// NavUtils.navigateUpFromSameTask(this);
 			finish();
 			return true;
 		case R.id.menu_contact:

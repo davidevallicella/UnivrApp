@@ -168,9 +168,10 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 						});
 
 				List<Item> entries = feed.getEntries();
+				long updateTime = System.currentTimeMillis();
 				for (int i = entries.size() - 1; i >= 0; i--) {
 					Item item = entries.get(i);
-					item.updateTime = System.currentTimeMillis();
+					item.updateTime = updateTime++;
 					this.addItem(0, item);
 				}
 

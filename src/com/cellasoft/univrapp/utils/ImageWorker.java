@@ -63,6 +63,8 @@ public abstract class ImageWorker {
 	}
 
 	public Bitmap get(String key) {
+		if(mImageCache == null || key == null)
+			return null;
 		synchronized (mImageCache) {
 			Bitmap bitmap = mImageCache.getBitmapFromMemCache(key).getBitmap();
 			if (bitmap == null)

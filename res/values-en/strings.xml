@@ -44,7 +44,7 @@
     <string name="up">Enable notifications</string>
     <string name="mute">keep silent</string>
     <string name="web_page">Web page</string>
-
+    <string name="share">Share</string>
     <!-- CONTACT -->
     <string name="contact_title">Contact</string>
     <string name="contact_header">Contacts</string>

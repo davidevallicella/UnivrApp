@@ -67,7 +67,6 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:ellipsize="end"
             android:padding="5dp"
             android:singleLine="true"
             android:text="@string/contact_header"
@@ -90,7 +89,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
                 android:layout_marginTop="5dp"
-                android:ellipsize="end"
                 android:singleLine="true"
                 android:text="@string/contact_office"
                 android:textAppearance="?android:attr/textAppearanceMedium"
@@ -114,10 +112,18 @@
                     android:layout_toLeftOf="@+id/phone"
                     android:ellipsize="end"
                     android:gravity="center_vertical"
-                    android:singleLine="true"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textColor="#000000"
                     android:textSize="16sp" />
+
+                <View
+                    android:layout_width="1dip"
+                    android:layout_height="fill_parent"
+                    android:layout_alignBottom="@+id/phone"
+                    android:layout_alignTop="@+id/phone"
+                    android:layout_toLeftOf="@+id/phone"
+                    android:background="#ddd"
+                    android:padding="4dp" />
 
                 <LinearLayout
                     android:id="@+id/phone"
@@ -139,7 +145,7 @@
                 </LinearLayout>
             </RelativeLayout>
         </LinearLayout>
-        
+
         <LinearLayout
             android:id="@+id/contact_phone_lab_row_view"
             android:layout_width="fill_parent"
@@ -152,7 +158,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
                 android:layout_marginTop="5dp"
-                android:ellipsize="end"
                 android:singleLine="true"
                 android:text="@string/contact_lab"
                 android:textAppearance="?android:attr/textAppearanceMedium"
@@ -176,10 +181,18 @@
                     android:layout_toLeftOf="@+id/phone_lab"
                     android:ellipsize="end"
                     android:gravity="center_vertical"
-                    android:singleLine="true"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textColor="#000000"
                     android:textSize="16sp" />
+
+                <View
+                    android:layout_width="1dip"
+                    android:layout_height="fill_parent"
+                    android:layout_alignBottom="@+id/phone_lab"
+                    android:layout_alignTop="@+id/phone_lab"
+                    android:layout_toLeftOf="@+id/phone_lab"
+                    android:background="#ddd"
+                    android:padding="4dp" />
 
                 <LinearLayout
                     android:id="@+id/phone_lab"
@@ -213,7 +226,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
-                android:layout_marginRight="40dp"
                 android:layout_marginTop="5dp"
                 android:ellipsize="end"
                 android:singleLine="true"
@@ -232,17 +244,25 @@
                 <TextView
                     android:id="@+id/contact_email"
                     android:layout_width="wrap_content"
-                    android:layout_height="35dp"
+                    android:layout_height="wrap_content"
                     android:layout_alignBottom="@+id/email"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentTop="true"
                     android:layout_toLeftOf="@+id/email"
                     android:ellipsize="end"
                     android:gravity="center_vertical"
-                    android:singleLine="true"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textColor="#000000"
                     android:textSize="16sp" />
+
+                <View
+                    android:layout_width="1dip"
+                    android:layout_height="fill_parent"
+                    android:layout_alignBottom="@+id/email"
+                    android:layout_alignTop="@+id/email"
+                    android:layout_toLeftOf="@+id/email"
+                    android:background="#ddd"
+                    android:padding="4dp" />
 
                 <LinearLayout
                     android:id="@+id/email"
@@ -307,7 +327,6 @@
                 android:layout_marginLeft="5dp"
                 android:ellipsize="end"
                 android:gravity="center_vertical"
-                android:maxLines="2"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="#000000"
                 android:textSize="16sp" />

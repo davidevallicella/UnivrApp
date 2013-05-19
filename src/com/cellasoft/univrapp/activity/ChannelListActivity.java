@@ -13,16 +13,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
@@ -34,6 +30,7 @@ import com.cellasoft.univrapp.manager.SynchronizationManager;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.service.SynchronizationService;
 import com.cellasoft.univrapp.utils.AsyncTask;
+import com.cellasoft.univrapp.utils.ClosableAdView;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;
 import com.cellasoft.univrapp.utils.Utils;
@@ -43,26 +40,20 @@ import com.cellasoft.univrapp.widget.OnChannelViewListener;
 import com.cellasoft.univrapp.widget.SynchronizationListener;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
-import com.google.ads.Ad;
-import com.google.ads.AdListener;
-import com.google.ads.AdRequest;
-import com.google.ads.AdRequest.ErrorCode;
-import com.google.ads.AdView;
 
 public class ChannelListActivity extends SherlockListActivity {
 
 	private static final String TAG = ChannelListActivity.class.getSimpleName();
 
 	private static final int FIRST_TIME = 1;
-	private static final int SUBSCRIBE = 2;
 
 	private ArrayList<Channel> channels = null;
 	private ChannelListView channelListView;
-	private AdView adView;
+	private ClosableAdView adView;
 
 	private SynchronizationListener synchronizationListener = new SynchronizationListener() {
 		public void onStart(int id) {
-			if(channels == null)
+			if (channels == null)
 				return;
 			for (Channel channel : channels) {
 				if (channel.id == id) {
@@ -74,7 +65,7 @@ public class ChannelListActivity extends SherlockListActivity {
 		}
 
 		public void onProgress(int id, long updateTime) {
-			if(channels == null)
+			if (channels == null)
 				return;
 			for (Channel channel : channels) {
 				if (channel.id == id) {
@@ -141,7 +132,6 @@ public class ChannelListActivity extends SherlockListActivity {
 		super.onCreate(savedInstanceState);
 		ImageFetcher.inizialize(this);
 		setContentView(R.layout.channel_view);
-
 		init();
 	}
 
@@ -161,6 +151,9 @@ public class ChannelListActivity extends SherlockListActivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		if (adView != null) {
+			adView.hideAd();
+		}
 		ImageFetcher.getInstance().closeCache();
 	}
 
@@ -220,109 +213,17 @@ public class ChannelListActivity extends SherlockListActivity {
 		initBanner();
 	}
 
-	private ImageButton closeAdmodButton;
-
 	private void initBanner() {
 		// Look up the AdView as a resource and load a request.
-		adView = (AdView) this.findViewById(R.id.adView);
-
-		(new Thread() {
-			public void run() {
-				Looper.prepare();
-				adView.loadAd(new AdRequest());
-			}
-		}).start();
-
-		adView.setAdListener(new AdListener() {
-			@Override
-			public void onReceiveAd(Ad arg0) {
-				if (closeAdmodButton == null) {
-					addCloseButtonTask(adView);
-				} else {
-					adView.setVisibility(View.VISIBLE);
-					closeAdmodButton.setVisibility(View.VISIBLE);
-				}
-
-			}
-
-			@Override
-			public void onPresentScreen(Ad arg0) {
-			}
-
-			@Override
-			public void onLeaveApplication(Ad arg0) {
-			}
-
-			@Override
-			public void onFailedToReceiveAd(Ad arg0, ErrorCode arg1) {
-			}
-
-			@Override
-			public void onDismissScreen(Ad arg0) {
-				adView.stopLoading();
-				adView = null;
-			}
-		});
+		adView = (ClosableAdView) this.findViewById(R.id.adView);
+		adView.inizialize(this);
+		adView.loadAd();
 	}
 
 	private void showAdmodBanner() {
-		if (adView != null && closeAdmodButton != null) {
-			adView.setVisibility(View.VISIBLE);
-			closeAdmodButton.setVisibility(View.VISIBLE);
+		if (adView != null) {
+			adView.viewAd();
 		}
-	}
-
-	private void addCloseButtonTask(final AdView adView) {
-		new AsyncTask<Void, Void, Void>() {
-
-			@Override
-			protected void onPostExecute(Void result) {
-				runOnUiThread(new Runnable() {
-					public void run() {
-						((RelativeLayout) findViewById(R.id.AdModLayout))
-								.addView(closeAdmodButton);
-					}
-				});
-			}
-
-			@Override
-			protected Void doInBackground(Void... params) {
-				while (adView.getHeight() == 0 && !isCancelled()) {
-					try {
-						Thread.sleep(5000);
-					} catch (InterruptedException e) {
-						cancel(true);
-					}
-				}
-
-				RelativeLayout.LayoutParams closeLayoutParams = new RelativeLayout.LayoutParams(
-						30, 30);
-				closeLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,
-						RelativeLayout.TRUE);
-				closeLayoutParams.addRule(RelativeLayout.ALIGN_LEFT,
-						RelativeLayout.TRUE);
-
-				closeLayoutParams.bottomMargin = (int) adView.getHeight() - 15;
-				closeLayoutParams.leftMargin = 15;
-
-				closeAdmodButton = new ImageButton(getApplicationContext());
-				closeAdmodButton.setLayoutParams(closeLayoutParams);
-				closeAdmodButton.setImageResource(R.drawable.close_button);
-				closeAdmodButton
-						.setBackgroundResource(android.R.color.transparent);
-				closeAdmodButton.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						closeAdmodButton.setVisibility(View.GONE);
-						if (adView != null) {
-							adView.setVisibility(View.GONE);
-						}
-					}
-				});
-
-				return null;
-			}
-		}.execute();
 	}
 
 	private void onFirstTime() {
@@ -480,65 +381,104 @@ public class ChannelListActivity extends SherlockListActivity {
 	}
 
 	private void confirmDeleteChannel() {
-		Resources res = getResources();
-		String confirmMessage = res.getString(R.string.unsub_channel_dialog);
-		AlertDialog dialog = new AlertDialog.Builder(this)
-				.setTitle(res.getString(R.string.unsub_channel_dialog_title))
-				.setMessage(confirmMessage)
-				.setPositiveButton(res.getString(R.string.yes),
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int which) {
-								dialog.dismiss();
-								deleteChannel();
-							}
-						})
-				.setNegativeButton(res.getString(R.string.no),
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int which) {
-								dialog.dismiss();
-							}
-						}).create();
-		dialog.show();
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (!isFinishing()) {
+					Resources res = getResources();
+					String confirmMessage = res
+							.getString(R.string.unsub_channel_dialog);
+					AlertDialog dialog = new AlertDialog.Builder(
+							ChannelListActivity.this)
+							.setTitle(
+									res.getString(R.string.unsub_channel_dialog_title))
+							.setMessage(confirmMessage)
+							.setPositiveButton(res.getString(R.string.yes),
+									new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog,
+												int which) {
+											dialog.dismiss();
+											deleteChannel();
+										}
+									})
+							.setNegativeButton(res.getString(R.string.no),
+									new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog,
+												int which) {
+											dialog.dismiss();
+										}
+									}).create();
+					dialog.show();
+				}
+			}
+		});
+
 	}
 
 	private void infoDialog() {
-		LayoutInflater inflater = LayoutInflater.from(this);
-		View addView = inflater.inflate(R.layout.info_dialog, null);
-		String infoMessage = "Ancora pochi passi e ci siamo ;)";
-		AlertDialog dialog = new AlertDialog.Builder(ChannelListActivity.this)
-				.setView(addView).setTitle("Benvenuto").setMessage(infoMessage)
-				.setIcon(android.R.drawable.ic_dialog_info)
-				.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						dialog.dismiss();
-					}
-				}).create();
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (!isFinishing()) {
+					LayoutInflater inflater = LayoutInflater
+							.from(ChannelListActivity.this);
+					View addView = inflater.inflate(R.layout.info_dialog, null);
+					String infoMessage = "Ancora pochi passi e ci siamo ;)";
+					AlertDialog dialog = new AlertDialog.Builder(
+							ChannelListActivity.this)
+							.setView(addView)
+							.setTitle("Benvenuto")
+							.setMessage(infoMessage)
+							.setIcon(android.R.drawable.ic_dialog_info)
+							.setPositiveButton("Ok",
+									new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog, int id) {
+											dialog.dismiss();
+										}
+									}).create();
 
-		dialog.show();
+					dialog.show();
+				}
+			}
+		});
 
 	}
 
 	private void confirmReset() {
-		String confirmMessage = "Reset all channels and settings, continue?";
-		AlertDialog dialog = new AlertDialog.Builder(this)
-				.setTitle("Reset")
-				.setMessage(confirmMessage)
-				.setPositiveButton("Yes",
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int which) {
-								dialog.dismiss();
-								reset();
-							}
-						})
-				.setNegativeButton("No", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.dismiss();
-					}
-				}).create();
-		dialog.show();
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (!isFinishing()) {
+					String confirmMessage = "Reset all channels and settings, continue?";
+					AlertDialog dialog = new AlertDialog.Builder(
+							ChannelListActivity.this)
+							.setTitle("Reset")
+							.setMessage(confirmMessage)
+							.setPositiveButton("Yes",
+									new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog,
+												int which) {
+											dialog.dismiss();
+											reset();
+										}
+									})
+							.setNegativeButton("No",
+									new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog,
+												int which) {
+											dialog.dismiss();
+										}
+									}).create();
+					dialog.show();
+				}
+			}
+		});
+
 	}
 
 	private void deleteChannel() {

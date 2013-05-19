@@ -103,7 +103,8 @@ p {
 
 .header {
 	top: 0 !important;
-	border: 1px solid #b3b3b3;
+	padding: 5px;
+	border-bottom: 1px solid rgb(159, 162, 167);
 	background: #eee;
 	background-image: -webkit-gradient(linear, left top, left bottom, from(#f0f0f0),
 		to(#ddd));
@@ -113,6 +114,7 @@ p {
 	background-image: -o-linear-gradient(#f0f0f0, #ddd);
 	background-image: linear-gradient(#f0f0f0, #ddd);
 	box-shadow: #DDD 0px 1px 2px 0px;
+	-webkit-box-shadow: 0 2px 2px -2px rgba(0, 0, 0, .52);	
 	color: #3e3e3e;
 	text-shadow: 0 1px 1px #fff;
 	font-weight: bold;

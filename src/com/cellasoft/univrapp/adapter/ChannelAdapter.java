@@ -179,36 +179,9 @@ public class ChannelAdapter extends BaseAdapter {
 	private void imageLoader(ViewHolder holder, String imageUrl) {
 		if (imageUrl != null && imageUrl.length() > 0) {
 			if (!imageUrl.equals((String) holder.thumbnail.getTag())) {
-				// default image
-				// holder.thumbnail.setImageResource(R.drawable.thumb);
 				holder.thumbnail.setTag(imageUrl);
 				ImageFetcher.getInstance()
 						.loadImage(imageUrl, holder.thumbnail);
-				// try {
-				// // 1st level cache
-				// Bitmap bitmap = ImageLoader.get(imageUrl);
-				//
-				// if (bitmap != null) {
-				// switch (Utils.getScreenSize()) {
-				// case Configuration.SCREENLAYOUT_SIZE_SMALL:
-				// bitmap = ImageCache.imageScale(bitmap, 50);
-				// break;
-				// default:
-				// bitmap = ImageCache.imageScale(bitmap, 60);
-				// }
-				//
-				// bitmap = ImageCache.imageScale(bitmap, 60);
-				// StreamDrawable d = new StreamDrawable(bitmap,
-				// mCornerRadius, mMargin);
-				// holder.thumbnail.setImageDrawable(d);
-				// } else {
-				// // 2st level cache
-				// // 3st downloading
-				// ImageLoader.start(imageUrl, new ItemImageLoaderHandler(
-				// holder.thumbnail, imageUrl));
-				// }
-				// } catch (RuntimeException e) {
-				// }
 			}
 		} else if (holder.thumbnail.getTag() != null) {
 			holder.thumbnail.setTag(null);

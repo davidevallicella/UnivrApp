@@ -27,7 +27,7 @@
 
     <!-- FOOTER -->
 
-    <com.google.ads.AdView
+    <com.cellasoft.univrapp.utils.ClosableAdView
         android:id="@+id/adView"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -35,6 +35,6 @@
         android:layout_centerHorizontal="true"
         ads:adSize="SMART_BANNER"
         ads:adUnitId="a14fcb4caab6d83"
-        ads:loadAdOnCreate="true" />
+        ads:loadAdOnCreate="false" />
 
 </RelativeLayout>

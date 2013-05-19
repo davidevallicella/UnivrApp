@@ -41,6 +41,8 @@ import com.cellasoft.univrapp.utils.Utils;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
 
+//import com.cellasoft.univrapp.utils.Html;
+
 public class DisPlayWebPageActivity extends Activity {
 	private static final String TAG = DisPlayWebPageActivity.class
 			.getSimpleName();
@@ -52,6 +54,7 @@ public class DisPlayWebPageActivity extends Activity {
 	private int itemId = 0;
 	Item currentItem;
 	String page_url;
+	String content;
 	ProgressBar web_progressBar;
 
 	@Override
@@ -123,6 +126,7 @@ public class DisPlayWebPageActivity extends Activity {
 
 			@Override
 			protected void after(Context context, final String html) {
+				content = html;
 				runOnUiThread(new Runnable() {
 					public void run() {
 						showArticle(html);
