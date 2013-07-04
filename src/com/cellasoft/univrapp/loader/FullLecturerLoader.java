@@ -6,17 +6,10 @@ import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.model.Lecturer.Lecturers;
 
 public class FullLecturerLoader implements LecturerLoader {
-	private final String[] projection = new String[] { 
-			Lecturers.ID,
-			Lecturers.KEY,
-			Lecturers.DEST,
-			Lecturers.THUMBNAIL,
-			Lecturers.NAME, 
-			Lecturers.EMAIL,
-			Lecturers.TELEPHONE,
-			Lecturers.OFFICE,
-			Lecturers.DEPARTMENT,
-			Lecturers.SECTOR};
+	private final String[] projection = new String[] { Lecturers.ID,
+			Lecturers.KEY, Lecturers.DEST, Lecturers.THUMBNAIL, Lecturers.NAME,
+			Lecturers.EMAIL, Lecturers.TELEPHONE, Lecturers.OFFICE,
+			Lecturers.DEPARTMENT, Lecturers.SECTOR };
 
 	@Override
 	public String[] getProjection() {

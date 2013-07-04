@@ -180,8 +180,8 @@ public class Item implements ActionSupport, Comparable<Item>, Serializable {
 		public static final String CHANNEL_ID = "CHANNEL_ID";
 		public static final String UPDATE_TIME = "UPDATE_TIME";
 		public static final String UNREAD_COUNT = "UNREAD";
-	    public static final String COUNT = "COUNT(DISTINCT ID)";
-	    
+		public static final String COUNT = "COUNT(DISTINCT ID)";
+
 		public static final Uri hasTagAndLimit(int limit) {
 			return Uri.parse("content://" + Provider.AUTHORITY + "/items/tag/"
 					+ limit);

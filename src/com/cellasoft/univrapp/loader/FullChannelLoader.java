@@ -6,17 +6,10 @@ import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Channel.Channels;
 
 public class FullChannelLoader implements ChannelLoader {
-	private final String[] projection = new String[] { 
-			Channels.ID,
-			Channels.LECTURER_ID,
-			Channels.TITLE,
-			Channels.URL,
-			Channels.DESCRIPTION,
-			Channels.UPDATE_TIME,
-			Channels.STARRED,
-			Channels.MUTE,
-			Channels.IMAGE_URL
-			};
+	private final String[] projection = new String[] { Channels.ID,
+			Channels.LECTURER_ID, Channels.TITLE, Channels.URL,
+			Channels.DESCRIPTION, Channels.UPDATE_TIME, Channels.STARRED,
+			Channels.MUTE, Channels.IMAGE_URL };
 
 	@Override
 	public String[] getProjection() {

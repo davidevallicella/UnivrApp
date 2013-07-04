@@ -4,19 +4,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import android.app.Activity;
 import android.content.Context;
-import android.os.Handler;
-import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageButton;
-import android.widget.RelativeLayout;
 
 import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.Settings;
-import com.cellasoft.univrapp.activity.R;
 import com.google.ads.Ad;
 import com.google.ads.AdListener;
 import com.google.ads.AdRequest;
@@ -26,31 +20,38 @@ import com.google.ads.AdView;
 public class ClosableAdView extends AdView implements AdListener {
 
 	private static final String TAG = ClosableAdView.class.getSimpleName();
-	private static final int AD_CLOSABLE_BUTTON = 1;
-	private Context context;
-	private ImageButton closeAdmodButton;
-	private RelativeLayout adModLayout;
 
-	Handler handler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			super.handleMessage(msg);
-			if (msg.what == AD_CLOSABLE_BUTTON) {
-				if (adModLayout != null)
-					adModLayout.addView(closeAdmodButton);
-			}
-		}
-	};
+	// private static final int AD_CLOSABLE_BUTTON = 1;
+	// private Context context;
+	// private ImageButton closeAdmodButton;
+	// private RelativeLayout adModLayout;
+
+	// Handler handler = new Handler() {
+	// @Override
+	// public void handleMessage(Message msg) {
+	// super.handleMessage(msg);
+	// if (msg.what == AD_CLOSABLE_BUTTON) {
+	// if (adModLayout != null) {
+	// try {
+	// ((ViewGroup) closeAdmodButton.getParent())
+	// .removeView(closeAdmodButton);
+	// adModLayout.addView(closeAdmodButton);
+	// } catch (Exception e) {
+	// }
+	// }
+	// }
+	// }
+	// };
 
 	public ClosableAdView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		this.context = context;
+		// this.context = context;
 	}
 
 	public void inizialize(Context context) {
-		this.context = context;
-		adModLayout = (RelativeLayout) ((Activity) context)
-				.findViewById(R.id.AdModLayout);
+		// this.context = context;
+		// adModLayout = (RelativeLayout) ((Activity)
+		// context).findViewById(R.id.AdModLayout);
 		setAdListener(this);
 	}
 
@@ -76,13 +77,13 @@ public class ClosableAdView extends AdView implements AdListener {
 
 	@Override
 	public void onReceiveAd(Ad arg0) {
-		if (closeAdmodButton == null) {
-			if (Constants.DEBUG_MODE)
-				Log.d(TAG, "Init closable Ad button");
-			addCloseButtonTask();
-		} else {
-			viewAd();
-		}
+		// if (closeAdmodButton == null) {
+		// if (Constants.DEBUG_MODE)
+		// Log.d(TAG, "Init closable Ad button");
+		// addCloseButtonTask();
+		// } else {
+		// viewAd();
+		// }
 	}
 
 	public void hideAd() {
@@ -95,9 +96,9 @@ public class ClosableAdView extends AdView implements AdListener {
 			stopLoading();
 			destroy();
 
-			if (closeAdmodButton != null) {
-				closeAdmodButton.setVisibility(View.GONE);
-			}
+			// if (closeAdmodButton != null) {
+			// closeAdmodButton.setVisibility(View.GONE);
+			// }
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -113,13 +114,13 @@ public class ClosableAdView extends AdView implements AdListener {
 		if (Constants.DEBUG_MODE)
 			Log.d(TAG, "View Ad");
 
-		try {
-			setVisibility(View.VISIBLE);
-			if (closeAdmodButton != null)
-				closeAdmodButton.setVisibility(View.VISIBLE);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		// try {
+		// setVisibility(View.VISIBLE);
+		// if (closeAdmodButton != null)
+		// closeAdmodButton.setVisibility(View.VISIBLE);
+		// } catch (Exception e) {
+		// e.printStackTrace();
+		// }
 	}
 
 	public synchronized void loadAd() {
@@ -140,50 +141,51 @@ public class ClosableAdView extends AdView implements AdListener {
 		}
 	}
 
-	private void addCloseButtonTask() {
-		new AsyncTask<Void, Void, Void>() {
-
-			@Override
-			protected void onPostExecute(Void result) {
-				handler.sendEmptyMessage(AD_CLOSABLE_BUTTON);
-			}
-
-			@Override
-			protected Void doInBackground(Void... params) {
-				while (getHeight() == 0 && !isCancelled()) {
-					try {
-						Thread.sleep(5000);
-					} catch (InterruptedException e) {
-						cancel(true);
-					}
-				}
-
-				RelativeLayout.LayoutParams closeLayoutParams = new RelativeLayout.LayoutParams(
-						30, 30);
-				closeLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,
-						RelativeLayout.TRUE);
-				closeLayoutParams.addRule(RelativeLayout.ALIGN_LEFT,
-						RelativeLayout.TRUE);
-
-				closeLayoutParams.bottomMargin = (int) getHeight() - 15;
-				closeLayoutParams.leftMargin = 15;
-
-				closeAdmodButton = new ImageButton(context);
-				closeAdmodButton.setLayoutParams(closeLayoutParams);
-				closeAdmodButton.setImageResource(R.drawable.close_button);
-				closeAdmodButton
-						.setBackgroundResource(android.R.color.transparent);
-				closeAdmodButton.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						closeAdmodButton.setVisibility(View.GONE);
-						setVisibility(View.GONE);
-					}
-				});
-
-				return null;
-			}
-		}.execute();
-	}
+	// private void addCloseButtonTask() {
+	// new AsyncTask<Void, Void, Void>() {
+	//
+	// @Override
+	// protected void onPostExecute(Void result) {
+	// handler.sendEmptyMessage(AD_CLOSABLE_BUTTON);
+	// }
+	//
+	// @Override
+	// protected Void doInBackground(Void... params) {
+	// while (getHeight() == 0 && !isCancelled()) {
+	// try {
+	// Thread.sleep(5000);
+	// } catch (InterruptedException e) {
+	// cancel(true);
+	// }
+	// }
+	//
+	// RelativeLayout.LayoutParams closeLayoutParams = new
+	// RelativeLayout.LayoutParams(
+	// 30, 30);
+	// closeLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,
+	// RelativeLayout.TRUE);
+	// closeLayoutParams.addRule(RelativeLayout.ALIGN_LEFT,
+	// RelativeLayout.TRUE);
+	//
+	// closeLayoutParams.bottomMargin = (int) getHeight() - 15;
+	// closeLayoutParams.leftMargin = 15;
+	//
+	// closeAdmodButton = new ImageButton(context);
+	// closeAdmodButton.setLayoutParams(closeLayoutParams);
+	// closeAdmodButton.setImageResource(R.drawable.close_button);
+	// closeAdmodButton
+	// .setBackgroundResource(android.R.color.transparent);
+	// closeAdmodButton.setOnClickListener(new OnClickListener() {
+	// @Override
+	// public void onClick(View v) {
+	// closeAdmodButton.setVisibility(View.GONE);
+	// setVisibility(View.GONE);
+	// }
+	// });
+	//
+	// return null;
+	// }
+	// }.execute();
+	// }
 
 }

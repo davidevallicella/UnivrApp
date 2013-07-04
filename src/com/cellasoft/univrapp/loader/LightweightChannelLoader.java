@@ -6,13 +6,8 @@ import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Channel.Channels;
 
 public class LightweightChannelLoader implements ChannelLoader {
-	private final String[] projection = new String[] {
-			Channels.ID,
-			Channels.TITLE, 
-			Channels.URL,
-			Channels.STARRED,
-			Channels.MUTE
-			};
+	private final String[] projection = new String[] { Channels.ID,
+			Channels.TITLE, Channels.URL, Channels.STARRED, Channels.MUTE };
 
 	@Override
 	public String[] getProjection() {

@@ -12,7 +12,9 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.cellasoft.univrapp.activity.ChannelListActivity;
 import com.cellasoft.univrapp.activity.R;
+import com.cellasoft.univrapp.activity.SubscribeActivity;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.utils.ImageFetcher;
@@ -30,6 +32,7 @@ public class LecturerAdapter extends BaseAdapter {
 	private Context context;
 	private ArrayList<Lecturer> lecturers = new ArrayList<Lecturer>();
 	private OnLecturerViewListener lecturerListener;
+	private ImageFetcher imageFetcher;
 
 	static class ViewHolder {
 		RecyclingImageView thumbnail;
@@ -42,7 +45,13 @@ public class LecturerAdapter extends BaseAdapter {
 
 	public LecturerAdapter(Context context, ArrayList<Lecturer> lecturers,
 			OnLecturerViewListener lecturerListener) {
-		ImageFetcher.inizialize(context);
+		// Use the parent activity to load the image asynchronously into the
+		// ImageView (so a single
+		// cache can be used over all pages in the ViewPager
+		if (SubscribeActivity.class.isInstance(context)) {
+			System.out.println("----ok");
+			imageFetcher = ((SubscribeActivity) context).getImageFetcher();
+		}
 		this.context = context;
 		this.lecturers = lecturers;
 		this.lecturerListener = lecturerListener;
@@ -66,11 +75,11 @@ public class LecturerAdapter extends BaseAdapter {
 	public long getItemId(int position) {
 		return lecturers.get(position).id;
 	}
-	
+
 	@Override
-    public boolean hasStableIds() {
-        return true;
-    }
+	public boolean hasStableIds() {
+		return true;
+	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
@@ -143,12 +152,10 @@ public class LecturerAdapter extends BaseAdapter {
 	private void imageLoader(ViewHolder holder, String imageUrl) {
 		if (imageUrl != null && imageUrl.length() > 0) {
 			if (!imageUrl.equals((String) holder.thumbnail.getTag())) {
-				holder.thumbnail.setTag(imageUrl);
-
-				ImageFetcher.getInstance()
-						.loadImage(imageUrl, holder.thumbnail);
+				imageFetcher.loadThumbnailImage(imageUrl, holder.thumbnail, R.drawable.thumb);
 			}
-		} else if (holder.thumbnail.getTag() != null) {
+		}
+		else if (holder.thumbnail.getTag() != null) {
 			holder.thumbnail.setTag(null);
 			// default image
 			holder.thumbnail.setImageResource(R.drawable.thumb);

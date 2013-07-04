@@ -19,7 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.cellasoft.univrapp.activity.R;
-import com.cellasoft.univrapp.utils.Utils;
+import com.cellasoft.univrapp.utils.UIUtils;
 
 public class ChannelView extends LinearLayout {
 
@@ -75,7 +75,7 @@ public class ChannelView extends LinearLayout {
 		mPaint.setStyle(Style.FILL);
 
 		// Determine screen size
-		switch (Utils.getScreenSize()) {
+		switch (UIUtils.getScreenSize()) {
 		case Configuration.SCREENLAYOUT_SIZE_LARGE:
 		case Configuration.SCREENLAYOUT_SIZE_NORMAL:
 			TOUCH_ADDITION = 90;

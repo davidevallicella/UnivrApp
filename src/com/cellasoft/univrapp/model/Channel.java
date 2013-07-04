@@ -38,7 +38,7 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 	public boolean isSelected;
 	public boolean starred;
 	public boolean mute = false;
-	
+
 	public Channel() {
 		this.id = 0;
 		this.lecturerId = 0;

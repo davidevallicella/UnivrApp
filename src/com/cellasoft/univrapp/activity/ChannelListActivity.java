@@ -33,7 +33,7 @@ import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.ClosableAdView;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;
-import com.cellasoft.univrapp.utils.Utils;
+import com.cellasoft.univrapp.utils.UIUtils;
 import com.cellasoft.univrapp.widget.ChannelListView;
 import com.cellasoft.univrapp.widget.ChannelView;
 import com.cellasoft.univrapp.widget.OnChannelViewListener;
@@ -50,6 +50,7 @@ public class ChannelListActivity extends SherlockListActivity {
 	private ArrayList<Channel> channels = null;
 	private ChannelListView channelListView;
 	private ClosableAdView adView;
+	private ImageFetcher imageFetcher;
 
 	private SynchronizationListener synchronizationListener = new SynchronizationListener() {
 		public void onStart(int id) {
@@ -127,10 +128,11 @@ public class ChannelListActivity extends SherlockListActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		if (Constants.DEBUG_MODE) {
 			Log.d(TAG, "onCreate()");
-			Utils.enableStrictMode();
+			UIUtils.enableStrictMode();
 		}
 		super.onCreate(savedInstanceState);
-		ImageFetcher.inizialize(this);
+		
+		imageFetcher = new ImageFetcher(this);
 		setContentView(R.layout.channel_view);
 		init();
 	}
@@ -154,7 +156,7 @@ public class ChannelListActivity extends SherlockListActivity {
 		if (adView != null) {
 			adView.hideAd();
 		}
-		ImageFetcher.getInstance().closeCache();
+		imageFetcher.closeCache();
 	}
 
 	@Override
@@ -162,7 +164,7 @@ public class ChannelListActivity extends SherlockListActivity {
 		super.onResume();
 		SynchronizationManager.getInstance().registerSynchronizationListener(
 				synchronizationListener);
-		ImageFetcher.getInstance().setExitTasksEarly(false);
+		imageFetcher.setExitTasksEarly(false);
 		channelListView.refresh();
 		showAdmodBanner();
 	}
@@ -170,9 +172,9 @@ public class ChannelListActivity extends SherlockListActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		ImageFetcher.getInstance().setPauseWork(false);
-		ImageFetcher.getInstance().setExitTasksEarly(true);
-		ImageFetcher.getInstance().flushCache();
+		imageFetcher.setPauseWork(false);
+		imageFetcher.setExitTasksEarly(true);
+		imageFetcher.flushCache();
 		SynchronizationManager.getInstance().unregisterSynchronizationListener(
 				synchronizationListener);
 	}
@@ -196,9 +198,9 @@ public class ChannelListActivity extends SherlockListActivity {
 					int scrollState) {
 				// Pause fetcher to ensure smoother scrolling when flinging
 				if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
-					ImageFetcher.getInstance().setPauseWork(true);
+					imageFetcher.setPauseWork(true);
 				} else {
-					ImageFetcher.getInstance().setPauseWork(false);
+					imageFetcher.setPauseWork(false);
 				}
 			}
 
@@ -225,6 +227,13 @@ public class ChannelListActivity extends SherlockListActivity {
 			adView.viewAd();
 		}
 	}
+	
+	/**
+     * Called by the ViewPager child fragments to load images via the one ImageFetcher
+     */
+    public ImageFetcher getImageFetcher() {
+        return imageFetcher;
+    }
 
 	private void onFirstTime() {
 		Intent intent = new Intent(this, ChooseMainFeedActivity.class);
@@ -558,7 +567,7 @@ public class ChannelListActivity extends SherlockListActivity {
 
 				ContentManager.deleteAllLecturers();
 				ContentManager.deleteAllImages();
-				ImageFetcher.getInstance().clearCache();
+				imageFetcher.clearCache();
 
 				Settings.setFirstTime(true);
 
@@ -607,7 +616,7 @@ public class ChannelListActivity extends SherlockListActivity {
 			}
 		});
 		task.disableDialog();
-		if (Utils.hasHoneycomb()) {
+		if (UIUtils.hasHoneycomb()) {
 			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
 					(Void[]) null);
 		} else
@@ -638,7 +647,7 @@ public class ChannelListActivity extends SherlockListActivity {
 			}
 		});
 		task.disableDialog();
-		if (Utils.hasHoneycomb()) {
+		if (UIUtils.hasHoneycomb()) {
 			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
 					(Void[]) null);
 		} else

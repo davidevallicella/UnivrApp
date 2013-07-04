@@ -6,10 +6,8 @@ import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.model.Lecturer.Lecturers;
 
 public class LightweightLecturerLoader implements LecturerLoader {
-	private final String[] projection = new String[] { 
-			Lecturers.KEY,
-			Lecturers.DEST,
-			Lecturers.NAME };
+	private final String[] projection = new String[] { Lecturers.KEY,
+			Lecturers.DEST, Lecturers.NAME };
 
 	@Override
 	public String[] getProjection() {

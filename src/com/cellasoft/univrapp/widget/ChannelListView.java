@@ -31,7 +31,7 @@ public class ChannelListView extends ListView {
 		this.setAdapter(adapter);
 		this.setDivider(getResources().getDrawable(
 				android.R.drawable.divider_horizontal_bright));
-		
+
 		setSelector(R.drawable.list_selector_on_top);
 		setDrawSelectorOnTop(true);
 		invalidateViews();
@@ -40,7 +40,7 @@ public class ChannelListView extends ListView {
 	public void setChannels(ArrayList<Channel> channels) {
 		adapter.setChannels(channels);
 	}
-	
+
 	public void setChannelViewlistener(OnChannelViewListener channelListener) {
 		adapter.setChannelViewlistener(channelListener);
 	}

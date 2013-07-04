@@ -47,6 +47,7 @@ public class Image implements ActionSupport {
 	public void delete() {
 		ContentManager.deleteImage(this);
 	}
+
 	@Override
 	public boolean exist() {
 		return ContentManager.existImage(this);
@@ -71,7 +72,7 @@ public class Image implements ActionSupport {
 			return Uri.parse("content://" + Provider.AUTHORITY + "/images/"
 					+ limit);
 		}
-		
+
 		public static ArrayList<Image> loadAllQueuedImages() {
 			return ContentManager.loadAllQueuedImages();
 		}

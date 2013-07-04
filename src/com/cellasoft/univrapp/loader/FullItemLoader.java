@@ -9,17 +9,10 @@ import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.model.Item.Items;
 
 public class FullItemLoader implements ItemLoader {
-	private final String[] projection = new String[] { 
-			Items.ID, 
-			Items.TITLE, 
-			Items.DESCRIPTION,
-			Items.PUB_DATE, 
-			Items.UPDATE_TIME, 
-			Items.READ,
-			Items.LINK, 
-			Items.CHANNEL_ID, 
-			};	
-	
+	private final String[] projection = new String[] { Items.ID, Items.TITLE,
+			Items.DESCRIPTION, Items.PUB_DATE, Items.UPDATE_TIME, Items.READ,
+			Items.LINK, Items.CHANNEL_ID, };
+
 	@Override
 	public String[] getProjection() {
 		return projection;

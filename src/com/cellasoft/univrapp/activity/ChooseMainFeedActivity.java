@@ -16,15 +16,15 @@ import android.widget.Toast;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.cellasoft.univrapp.ConnectivityReceiver;
 import com.cellasoft.univrapp.Settings;
+import com.cellasoft.univrapp.UnivrReaderFactory;
 import com.cellasoft.univrapp.adapter.UniversitylAdapter;
 import com.cellasoft.univrapp.exception.UnivrReaderException;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.model.University;
-import com.cellasoft.univrapp.reader.UnivrReader;
 import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.FontUtils;
-import com.cellasoft.univrapp.utils.Utils;
+import com.cellasoft.univrapp.utils.UIUtils;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 
 public class ChooseMainFeedActivity extends SherlockListActivity {
@@ -90,15 +90,16 @@ public class ChooseMainFeedActivity extends SherlockListActivity {
 			@Override
 			protected Void doCheckedInBackground(Context context,
 					Void... params) throws Exception {
-				
+
 				Settings.setUniversity(channel.title);
-				
+
 				if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
-					List<Lecturer> lecturers = UnivrReader.getLecturers();
+					List<Lecturer> lecturers = UnivrReaderFactory
+							.getUnivrReader().getLecturers();
 					if (!isCancelled()) {
 						progressDialog.setCancelable(false);
 						progressDialog.setMax(lecturers.size());
-						
+
 						channel.starred = true;
 						channel.save();
 
@@ -140,7 +141,7 @@ public class ChooseMainFeedActivity extends SherlockListActivity {
 
 		saveLecturersTask.disableDialog();
 		progressDialog.show();
-		if (Utils.hasHoneycomb()) {
+		if (UIUtils.hasHoneycomb()) {
 			saveLecturersTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
 					(Void[]) null);
 		} else {

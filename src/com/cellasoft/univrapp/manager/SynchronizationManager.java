@@ -134,7 +134,8 @@ public class SynchronizationManager {
 						if (!channel.mute)
 							totalNewItems += newItems.size();
 						channel.getItems().clear();
-						ContentManager.cleanUp(channel, Settings.getKeepMaxItems());
+						ContentManager.cleanUp(channel,
+								Settings.getKeepMaxItems());
 					} catch (Throwable ex) {
 						ex.printStackTrace();
 					}

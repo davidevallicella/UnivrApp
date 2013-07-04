@@ -15,7 +15,6 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 
-
 public class StreamDrawable extends Drawable {
 	private static final boolean USE_VIGNETTE = true;
 

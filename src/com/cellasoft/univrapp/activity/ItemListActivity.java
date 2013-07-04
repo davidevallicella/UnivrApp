@@ -38,7 +38,7 @@ import com.cellasoft.univrapp.utils.ClosableAdView;
 import com.cellasoft.univrapp.utils.DateUtils;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;
-import com.cellasoft.univrapp.utils.Utils;
+import com.cellasoft.univrapp.utils.UIUtils;
 import com.cellasoft.univrapp.widget.ItemListView;
 import com.cellasoft.univrapp.widget.SynchronizationListener;
 import com.github.droidfu.concurrent.BetterAsyncTask;
@@ -63,7 +63,8 @@ public class ItemListActivity extends SherlockListActivity {
 	private ItemListView itemListView;
 	private ClosableAdView adView;
 	private ProgressBar progressBar;
-
+	private ImageFetcher imageFetcher;
+	
 	private boolean loading = false;
 	private boolean refresh = false;
 
@@ -97,11 +98,11 @@ public class ItemListActivity extends SherlockListActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		if (Constants.DEBUG_MODE) {
 			Log.d(TAG, "onCreate()");
-			Utils.enableStrictMode();
+			//UIUtils.enableStrictMode();
 		}
 		super.onCreate(savedInstanceState);
 		Application.parents.push(getClass());
-		ImageFetcher.inizialize(this);
+		imageFetcher = new ImageFetcher(this);
 
 		setContentView(R.layout.item_view);
 
@@ -163,6 +164,7 @@ public class ItemListActivity extends SherlockListActivity {
 		if (adView != null) {
 			adView.hideAd();
 		}
+		imageFetcher.closeCache();
 	}
 
 	private void init() {
@@ -198,7 +200,7 @@ public class ItemListActivity extends SherlockListActivity {
 	private Bitmap imageLoader(String imageUrl) {
 		if (imageUrl != null && imageUrl.length() > 0) {
 			try {
-				return ImageFetcher.getInstance().get(imageUrl);
+				return imageFetcher.get(imageUrl);
 			} catch (Exception e) {
 			}
 		}
@@ -342,7 +344,7 @@ public class ItemListActivity extends SherlockListActivity {
 			}
 		});
 		task.disableDialog();
-		if (Utils.hasHoneycomb()) {
+		if (UIUtils.hasHoneycomb()) {
 			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
 					(Void[]) null);
 		} else
@@ -393,7 +395,7 @@ public class ItemListActivity extends SherlockListActivity {
 			}
 		});
 		task.disableDialog();
-		if (Utils.hasHoneycomb()) {
+		if (UIUtils.hasHoneycomb()) {
 			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
 					(Void[]) null);
 		} else
@@ -442,7 +444,7 @@ public class ItemListActivity extends SherlockListActivity {
 				});
 		loadMoreItemsTask.disableDialog();
 
-		if (Utils.hasHoneycomb()) {
+		if (UIUtils.hasHoneycomb()) {
 			loadMoreItemsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
 					(Void[]) null);
 		} else

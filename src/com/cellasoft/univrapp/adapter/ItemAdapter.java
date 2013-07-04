@@ -3,7 +3,6 @@ package com.cellasoft.univrapp.adapter;
 import java.util.List;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Message;
@@ -14,15 +13,15 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.cellasoft.univrapp.activity.R;
-import com.cellasoft.univrapp.activity.R.color;
 import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.utils.ActiveList;
 import com.cellasoft.univrapp.utils.DateUtils;
 
 public class ItemAdapter extends BaseAdapter {
-	
+
 	private static final int REFRESH_MESSAGE = 1;
-	private final int[] bgColors = new int[] { R.color.aliceBlue, android.R.color.white };
+	private final int[] bgColors = new int[] { R.color.aliceBlue,
+			android.R.color.white };
 	private ActiveList<Item> items = new ActiveList<Item>();
 	private int lastRequestPosition = -1;
 	private Context context;
@@ -90,7 +89,7 @@ public class ItemAdapter extends BaseAdapter {
 		}
 		this.notifyDataSetChanged();
 	}
-	
+
 	public synchronized void addItemsOnTop(List<Item> items) {
 		if (this.items != null) {
 			this.items.addAll(0, items);
@@ -139,16 +138,16 @@ public class ItemAdapter extends BaseAdapter {
 			holder = (ViewHolder) convertView.getTag();
 
 		holder.title.setText(item.getTitle());
-		
-		String description = item.getDescription().replace("Pubblicato da:", "<b>Pubblicato da:</b>");
+
+		String description = item.getDescription().replace("Pubblicato da:",
+				"<b>Pubblicato da:</b>");
 		holder.description.setText(Html.fromHtml(description));
 		holder.date.setText(DateUtils.formatDate(item.pubDate));
 
-		if(!item.isRead()) {
+		if (!item.isRead()) {
 			convertView.setBackgroundResource(bgColors[0]);
 			holder.title.setTypeface(Typeface.DEFAULT_BOLD, 0);
-		}
-		else {
+		} else {
 			convertView.setBackgroundResource(bgColors[1]);
 			holder.title.setTypeface(Typeface.DEFAULT);
 		}
@@ -156,13 +155,13 @@ public class ItemAdapter extends BaseAdapter {
 		// request more items if we reach the to 2/3 items
 		int requestPosition = (2 * getCount() / 3);
 
-		if (((position == requestPosition) || (position == getCount() -1)) 
-				&& lastRequestPosition != requestPosition 
+		if (((position == requestPosition) || (position == getCount() - 1))
+				&& lastRequestPosition != requestPosition
 				&& itemRequestListener != null) {
 			lastRequestPosition = requestPosition;
 			itemRequestListener.onRequest((Item) getItem(getCount() - 1));
 		}
-		
+
 		return convertView;
 	}
 
@@ -173,5 +172,5 @@ public class ItemAdapter extends BaseAdapter {
 	public interface OnItemRequestListener {
 		void onRequest(Item lastItem);
 	}
-	
+
 }

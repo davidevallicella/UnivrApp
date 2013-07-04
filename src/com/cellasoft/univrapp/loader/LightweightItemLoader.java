@@ -9,13 +9,8 @@ import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.model.Item.Items;
 
 public class LightweightItemLoader implements ItemLoader {
-	private final String[] projection = new String[] { 
-			Items.ID,
-			Items.TITLE,
-			Items.PUB_DATE, 
-			Items.UPDATE_TIME, 
-			Items.CHANNEL_ID,
-			};
+	private final String[] projection = new String[] { Items.ID, Items.TITLE,
+			Items.PUB_DATE, Items.UPDATE_TIME, Items.CHANNEL_ID, };
 
 	@Override
 	public String[] getProjection() {

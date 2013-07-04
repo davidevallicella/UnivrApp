@@ -13,6 +13,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.cellasoft.univrapp.Settings;
+import com.cellasoft.univrapp.activity.ChannelListActivity;
 import com.cellasoft.univrapp.activity.R;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.utils.DateUtils;
@@ -29,6 +30,7 @@ public class ChannelAdapter extends BaseAdapter {
 
 	public static int mCornerRadius;
 	public static int mMargin;
+	private ImageFetcher imageFetcher;
 
 	public ArrayList<Channel> channels = new ArrayList<Channel>();
 	private OnChannelViewListener channelListener;
@@ -57,7 +59,12 @@ public class ChannelAdapter extends BaseAdapter {
 
 	public ChannelAdapter(Context context) {
 		this.context = context;
-		ImageFetcher.inizialize(context);
+		// Use the parent activity to load the image asynchronously into the
+		// ImageView (so a single
+		// cache can be used over all pages in the ViewPager
+		if (ChannelListActivity.class.isInstance(context)) {
+			imageFetcher = ((ChannelListActivity) context).getImageFetcher();
+		}
 
 		final float density = context.getResources().getDisplayMetrics().density;
 		mCornerRadius = (int) (CORNER_RADIUS * density + 0.5f);
@@ -179,9 +186,8 @@ public class ChannelAdapter extends BaseAdapter {
 	private void imageLoader(ViewHolder holder, String imageUrl) {
 		if (imageUrl != null && imageUrl.length() > 0) {
 			if (!imageUrl.equals((String) holder.thumbnail.getTag())) {
-				holder.thumbnail.setTag(imageUrl);
-				ImageFetcher.getInstance()
-						.loadImage(imageUrl, holder.thumbnail);
+				imageFetcher.loadThumbnailImage(imageUrl, holder.thumbnail,
+						R.drawable.thumb);
 			}
 		} else if (holder.thumbnail.getTag() != null) {
 			holder.thumbnail.setTag(null);

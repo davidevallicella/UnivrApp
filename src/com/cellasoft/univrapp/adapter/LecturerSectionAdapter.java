@@ -23,7 +23,6 @@ public class LecturerSectionAdapter extends SimpleSectionAdapter<Lecturer>
 	private HashMap<String, Integer> alphaIndexer;
 	private String[] sections;
 	private ArrayList<Lecturer> lecturers;
-	
 
 	Handler handler = new Handler() {
 		@Override
@@ -106,10 +105,9 @@ public class LecturerSectionAdapter extends SimpleSectionAdapter<Lecturer>
 	public Object[] getSections() {
 		return sections;
 	}
-	
+
 	public void refresh() {
 		handler.sendEmptyMessage(REFRESH_MESSAGE);
 	}
-
 
 }

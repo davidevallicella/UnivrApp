@@ -91,13 +91,13 @@ public class ImageResizer extends ImageWorker {
 	 * @param resId
 	 * @return
 	 */
-	private Bitmap processBitmap(int resId) {
-		if (Constants.DEBUG_MODE) {
-			Log.d(TAG, "processBitmap - " + resId);
-		}
-		return decodeSampledBitmapFromResource(mResources, resId, mImageWidth,
-				mImageHeight, getImageCache());
-	}
+//	private Bitmap processBitmap(int resId) {
+//		if (Constants.DEBUG_MODE) {
+//			Log.d(TAG, "processBitmap - " + resId);
+//		}
+//		return decodeSampledBitmapFromResource(mResources, resId, mImageWidth,
+//				mImageHeight, getImageCache());
+//	}
 
 	@Override
 	protected Bitmap processBitmap(Object data) {
@@ -136,7 +136,7 @@ public class ImageResizer extends ImageWorker {
 				reqHeight);
 
 		// If we're running on Honeycomb or newer, try to use inBitmap
-		if (Utils.hasHoneycomb()) {
+		if (UIUtils.hasHoneycomb()) {
 			addInBitmapOptions(options, cache);
 		}
 
@@ -175,7 +175,7 @@ public class ImageResizer extends ImageWorker {
 				reqHeight);
 
 		// If we're running on Honeycomb or newer, try to use inBitmap
-		if (Utils.hasHoneycomb()) {
+		if (UIUtils.hasHoneycomb()) {
 			addInBitmapOptions(options, cache);
 		}
 
@@ -218,7 +218,7 @@ public class ImageResizer extends ImageWorker {
 		options.inJustDecodeBounds = false;
 
 		// If we're running on Honeycomb or newer, try to use inBitmap
-		if (Utils.hasHoneycomb()) {
+		if (UIUtils.hasHoneycomb()) {
 			addInBitmapOptions(options, cache);
 		}
 

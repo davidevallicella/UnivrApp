@@ -14,7 +14,7 @@ public class LatestItems implements ItemCriteria {
 
 	public static final byte NONE = 0;
 	public static final byte OLDER = 1;
-	public static final byte NEWER = 2;	
+	public static final byte NEWER = 2;
 
 	public int channelId = ALL_CHANNELS;
 	public Item compareToItem = null;
@@ -56,19 +56,15 @@ public class LatestItems implements ItemCriteria {
 				sb.append(" AND ");
 			}
 			if (comparision == OLDER) {
-				sb.append("(" 
-						+ Items.UPDATE_TIME + "<? OR ("
-						+ Items.UPDATE_TIME + "=? AND (" 
-						+ Items.PUB_DATE	+ "<? OR (" 
-						+ Items.PUB_DATE 	+ " =? AND "
-						+ Items.ID			+ ">?))))");
+				sb.append("(" + Items.UPDATE_TIME + "<? OR ("
+						+ Items.UPDATE_TIME + "=? AND (" + Items.PUB_DATE
+						+ "<? OR (" + Items.PUB_DATE + " =? AND " + Items.ID
+						+ ">?))))");
 			} else if (comparision == NEWER) {
-				sb.append("(" 
-						+ Items.UPDATE_TIME + ">? OR ("
-						+ Items.UPDATE_TIME + "=? AND (" 
-						+ Items.PUB_DATE	+ ">? OR (" 
-						+ Items.PUB_DATE 	+ " =? AND " 
-						+ Items.ID			+ "<?))))");
+				sb.append("(" + Items.UPDATE_TIME + ">? OR ("
+						+ Items.UPDATE_TIME + "=? AND (" + Items.PUB_DATE
+						+ ">? OR (" + Items.PUB_DATE + " =? AND " + Items.ID
+						+ "<?))))");
 			}
 		}
 		if (sb.length() == 0)
@@ -97,13 +93,11 @@ public class LatestItems implements ItemCriteria {
 	@Override
 	public String getOrderBy() {
 		if (comparision == OLDER) {
-			return	Items.UPDATE_TIME 	+ " DESC, " 
-					+ Items.PUB_DATE 	+ " DESC, "
-					+ Items.ID 			+ " ASC";
+			return Items.UPDATE_TIME + " DESC, " + Items.PUB_DATE + " DESC, "
+					+ Items.ID + " ASC";
 		} else {
-			return Items.UPDATE_TIME 	+ " ASC, " 
-					+ Items.PUB_DATE 	+ " ASC, "
-					+ Items.ID 			+ " DESC";
+			return Items.UPDATE_TIME + " ASC, " + Items.PUB_DATE + " ASC, "
+					+ Items.ID + " DESC";
 		}
 	}
 

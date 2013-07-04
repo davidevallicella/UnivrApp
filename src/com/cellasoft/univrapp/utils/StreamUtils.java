@@ -63,21 +63,21 @@ public class StreamUtils {
 	}
 
 	public static String readAllText(InputStream inputStream, String encoding) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder responseBuilder = new StringBuilder();
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
 					inputStream, encoding), BUFFER_SIZE);
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				sb.append(line).append("\n");
-			}
+			String responseLine;
 
+			while ((responseLine = reader.readLine()) != null) {
+				responseBuilder.append(responseLine);
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			closeQuietly(inputStream);
 		}
-		return sb.toString();
+		return responseBuilder.toString();
 	}
 
 	public static void writeStream(InputStream is, OutputStream os)

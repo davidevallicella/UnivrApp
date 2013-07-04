@@ -22,7 +22,7 @@ import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;
-import com.cellasoft.univrapp.utils.Utils;
+import com.cellasoft.univrapp.utils.UIUtils;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
 
@@ -33,11 +33,12 @@ public class ContactActivity extends SherlockActivity {
 	public static final String LECTURER_OFFICE_PARAM = "LecturerOffice";
 	public static final String LECTURER_THUMB_PARAM = "LecturerThumb";
 	private Lecturer lecturer;
+	private ImageFetcher imageFetcher;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		ImageFetcher.inizialize(this);
+		imageFetcher = new ImageFetcher(this);
 		setContentView(R.layout.contact);
 
 		if (getIntent().hasExtra(LECTURER_ID_PARAM)) {
@@ -99,7 +100,7 @@ public class ContactActivity extends SherlockActivity {
 				ImageView image = (ImageView) findViewById(R.id.contact_image);
 
 				try {
-					ImageFetcher.getInstance().loadImage(lecturerThumb, image);
+					imageFetcher.loadImage(lecturerThumb, image);
 				} catch (Exception e) {
 				}
 
@@ -141,7 +142,8 @@ public class ContactActivity extends SherlockActivity {
 							}
 
 							((TextView) findViewById(R.id.contact_phone))
-									.setText(tellOffice.replace(" - ", "\n").trim());
+									.setText(tellOffice.replace(" - ", "\n")
+											.trim());
 							findViewById(R.id.contact_phone_action)
 									.setOnTouchListener(new OnTouchListener() {
 
@@ -167,7 +169,8 @@ public class ContactActivity extends SherlockActivity {
 
 							if (tellLab != null && tellLab.length() > 0) {
 								((TextView) findViewById(R.id.contact_phone_lab))
-										.setText(tellLab.replace(" - ", "\n").trim());
+										.setText(tellLab.replace(" - ", "\n")
+												.trim());
 								findViewById(R.id.contact_phone_lab_action)
 										.setOnTouchListener(
 												new OnTouchListener() {
@@ -255,7 +258,7 @@ public class ContactActivity extends SherlockActivity {
 			}
 		});
 		task.disableDialog();
-		if (Utils.hasHoneycomb())
+		if (UIUtils.hasHoneycomb())
 			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
 					(Void[]) null);
 		else
@@ -289,7 +292,7 @@ public class ContactActivity extends SherlockActivity {
 		callIntent.setData(Uri.parse("tel:" + telephone));
 		startActivity(callIntent);
 	}
-	
+
 	private void showWebPage() {
 		Intent browserIntent = new Intent(Intent.ACTION_VIEW,
 				Uri.parse(Settings.getUniversity().domain

@@ -11,10 +11,12 @@ public class ActiveList<T> extends ArrayList<T> implements Serializable {
 
 	public interface ActiveListListener<T> {
 		void onAdd(T item);
+
 		void onInsert(int location, T item);
+
 		void onClear();
 	}
-	
+
 	public synchronized void clear() {
 		super.clear();
 		fireChangedEvent();
@@ -40,7 +42,7 @@ public class ActiveList<T> extends ArrayList<T> implements Serializable {
 		super.add(location, item);
 		fireInsertEvent(location, item);
 	}
-	
+
 	public synchronized void addListener(ActiveListListener<T> listener) {
 		if (this.listeners == null) {
 			listeners = new ArrayList<ActiveListListener<T>>();

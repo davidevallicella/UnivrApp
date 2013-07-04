@@ -25,7 +25,7 @@ public final class DateUtils {
 			"EEE, dd MMM yyyy HH:mm:ss Z", java.util.Locale.ENGLISH);
 	private static final DateFormat dateFormat = new SimpleDateFormat(
 			"d MMM',' yyyy 'at' HH:mm a");
-	
+
 	private static Context context;
 	static {
 		context = Application.getInstance();
@@ -52,12 +52,16 @@ public final class DateUtils {
 			return new Date();
 		}
 	}
-	
+
 	public static String formatTimeMillis(long timeMillis) {
 		StringBuilder sb = new StringBuilder();
 		if (timeMillis > 0) {
 			try {
-				sb.append(android.text.format.DateUtils.getRelativeDateTimeString(context, timeMillis, android.text.format.DateUtils.MINUTE_IN_MILLIS, android.text.format.DateUtils.WEEK_IN_MILLIS, android.text.format.DateUtils.FORMAT_ABBREV_ALL));
+				sb.append(android.text.format.DateUtils
+						.getRelativeDateTimeString(context, timeMillis,
+								android.text.format.DateUtils.MINUTE_IN_MILLIS,
+								android.text.format.DateUtils.WEEK_IN_MILLIS,
+								android.text.format.DateUtils.FORMAT_ABBREV_ALL));
 			} catch (Throwable e) {
 				sb.append(dateFormat.format(new Date(timeMillis)));
 			}

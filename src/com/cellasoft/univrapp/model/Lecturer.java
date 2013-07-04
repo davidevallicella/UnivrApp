@@ -92,7 +92,7 @@ public class Lecturer implements Comparable<Lecturer>, ActionSupport {
 						telephone, email, thumbnail);
 	}
 
-	public static final class Lecturers implements BaseColumns {
+	public static final class Lecturers implements BaseColumns {		
 		public static final Uri CONTENT_URI = Uri.parse("content://"
 				+ Provider.AUTHORITY + "/lecturers");
 		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.cellasoft.univrapp.provider.lecturers";

@@ -36,17 +36,17 @@ import com.cellasoft.univrapp.Application;
 import com.cellasoft.univrapp.ConnectivityReceiver;
 import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.Settings;
+import com.cellasoft.univrapp.UnivrReaderFactory;
 import com.cellasoft.univrapp.adapter.LecturerSectionAdapter;
 import com.cellasoft.univrapp.exception.UnivrReaderException;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Lecturer;
-import com.cellasoft.univrapp.reader.UnivrReader;
 import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.ClosableAdView;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;
-import com.cellasoft.univrapp.utils.Utils;
+import com.cellasoft.univrapp.utils.UIUtils;
 import com.cellasoft.univrapp.widget.LecturerView;
 import com.cellasoft.univrapp.widget.OnLecturerViewListener;
 import com.github.droidfu.concurrent.BetterAsyncTask;
@@ -59,7 +59,8 @@ public class SubscribeActivity extends SherlockListActivity {
 	private ArrayList<Lecturer> lecturers;
 	private LecturerSectionAdapter sectionAdapter;
 	private ClosableAdView adView;
-
+	private ImageFetcher imageFetcher;
+	
 	private boolean updated = true;
 
 	class PostData {
@@ -122,10 +123,10 @@ public class SubscribeActivity extends SherlockListActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		if (Constants.DEBUG_MODE) {
-			Utils.enableStrictMode();
+			//UIUtils.enableStrictMode();
 		}
 		super.onCreate(savedInstanceState);
-		ImageFetcher.inizialize(this);
+		imageFetcher = new ImageFetcher(this);
 		Application.parents.push(getClass());
 		setContentView(R.layout.lecturer_view);
 		init();
@@ -146,15 +147,15 @@ public class SubscribeActivity extends SherlockListActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		ImageFetcher.getInstance().setPauseWork(false);
-		ImageFetcher.getInstance().setExitTasksEarly(true);
-		ImageFetcher.getInstance().flushCache();
+		imageFetcher.setPauseWork(false);
+		imageFetcher.setExitTasksEarly(true);
+		imageFetcher.flushCache();
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		ImageFetcher.getInstance().setExitTasksEarly(false);
+		imageFetcher.setExitTasksEarly(false);
 		showAdmodBanner();
 	}
 
@@ -164,6 +165,7 @@ public class SubscribeActivity extends SherlockListActivity {
 		if (adView != null) {
 			adView.hideAd();
 		}
+		imageFetcher.closeCache();
 	}
 
 	private void init() {
@@ -207,9 +209,9 @@ public class SubscribeActivity extends SherlockListActivity {
 					int scrollState) {
 				// Pause fetcher to ensure smoother scrolling when flinging
 				if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
-					ImageFetcher.getInstance().setPauseWork(true);
+					imageFetcher.setPauseWork(true);
 				} else {
-					ImageFetcher.getInstance().setPauseWork(false);
+					imageFetcher.setPauseWork(false);
 				}
 			}
 
@@ -232,6 +234,13 @@ public class SubscribeActivity extends SherlockListActivity {
 			adView.viewAd();
 		}
 	}
+	
+	/**
+     * Called by the ViewPager child fragments to load images via the one ImageFetcher
+     */
+    public ImageFetcher getImageFetcher() {
+        return imageFetcher;
+    }
 
 	private void loadData() {
 		loadLecturers();
@@ -291,7 +300,7 @@ public class SubscribeActivity extends SherlockListActivity {
 			finish();
 			return true;
 		case R.id.clear_cache:
-			ImageFetcher.getInstance().clearCache();
+			imageFetcher.clearCache();
 			Toast.makeText(this, R.string.clear_cache_complete_toast,
 					Toast.LENGTH_SHORT).show();
 			return true;
@@ -370,7 +379,7 @@ public class SubscribeActivity extends SherlockListActivity {
 					}
 				});
 		progressDialog.show();
-		if (Utils.hasHoneycomb())
+		if (UIUtils.hasHoneycomb())
 			subscribingTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
 					(Void[]) null);
 		else
@@ -389,7 +398,7 @@ public class SubscribeActivity extends SherlockListActivity {
 			@Override
 			protected void before(Context context) {
 				updated = false;
-				ImageFetcher.getInstance().clearCache();
+				imageFetcher.clearCache();
 				refreshAnim();
 			}
 
@@ -406,11 +415,10 @@ public class SubscribeActivity extends SherlockListActivity {
 			@Override
 			protected Void doCheckedInBackground(Context context,
 					Void... params) throws Exception {
-				Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-
 				if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 
-					List<Lecturer> lecturers = UnivrReader.getLecturers();
+					List<Lecturer> lecturers = UnivrReaderFactory
+							.getUnivrReader().getLecturers();
 
 					if (!isCancelled()) {
 						progressDialog.setCancelable(false);
@@ -455,7 +463,7 @@ public class SubscribeActivity extends SherlockListActivity {
 
 		saveLecturersTask.disableDialog();
 		progressDialog.show();
-		if (Utils.hasHoneycomb()) {
+		if (UIUtils.hasHoneycomb()) {
 			saveLecturersTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
 					(Void[]) null);
 		} else
@@ -512,7 +520,7 @@ public class SubscribeActivity extends SherlockListActivity {
 		intent.putExtra(ContactActivity.LECTURER_OFFICE_PARAM, lecturer.office);
 		intent.putExtra(ContactActivity.LECTURER_THUMB_PARAM,
 				lecturer.thumbnail);
-		if (Utils.hasJellyBean()) {
+		if (UIUtils.hasJellyBean()) {
 			// makeThumbnailScaleUpAnimation() looks kind of ugly here as the
 			// loading spinner may
 			// show plus the thumbnail image in GridView is cropped. so using

@@ -37,7 +37,7 @@ import com.cellasoft.univrapp.utils.FileUtils;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.Html;
 import com.cellasoft.univrapp.utils.StreamUtils;
-import com.cellasoft.univrapp.utils.Utils;
+import com.cellasoft.univrapp.utils.UIUtils;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
 
@@ -61,7 +61,7 @@ public class DisPlayWebPageActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		if (Constants.DEBUG_MODE) {
 			Log.d(TAG, "onCreate()");
-			Utils.enableStrictMode();
+			UIUtils.enableStrictMode();
 		}
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -72,7 +72,7 @@ public class DisPlayWebPageActivity extends Activity {
 		itemId = in.getIntExtra(ITEM_ID_PARAM, 0);
 		webview = (WebView) findViewById(R.id.itemWebView);
 
-		if (Utils.hasHoneycomb()) {
+		if (UIUtils.hasHoneycomb()) {
 			getWindow().setFlags(
 					WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
 					WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
@@ -161,7 +161,7 @@ public class DisPlayWebPageActivity extends Activity {
 		});
 		task.disableDialog();
 
-		if (Utils.hasHoneycomb()) {
+		if (UIUtils.hasHoneycomb()) {
 			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
 					(Void[]) null);
 		} else {
