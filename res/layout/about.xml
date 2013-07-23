@@ -64,7 +64,7 @@
         android:singleLine="true"
         android:text="@string/contact_header"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/abs__holo_blue_light"
+        android:textColor="@color/abs__primary_text_holo_light"
         android:textSize="13sp"
         android:textStyle="bold" />
 
@@ -151,7 +151,7 @@
         android:singleLine="true"
         android:text="Offrimi un caffè"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/abs__holo_blue_light"
+        android:textColor="@color/abs__primary_text_holo_light"
         android:textSize="13sp"
         android:textStyle="bold" />
 
