@@ -1,5 +1,7 @@
 package com.cellasoft.univrapp.service;
 
+import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
+import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -7,18 +9,19 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
-import android.util.Log;
 
 import com.cellasoft.univrapp.Application;
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.activity.ChannelListActivity;
-import com.cellasoft.univrapp.activity.R;
 import com.cellasoft.univrapp.manager.SynchronizationManager;
 import com.github.droidfu.services.BetterService;
 
 public class SynchronizationService extends BetterService {
 	private final static String DEFAULT_THREAD_NAME = "Asynchronous service RSS feed loader";
+
+	private static final String TAG = makeLogTag(SynchronizationService.class);
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -27,8 +30,8 @@ public class SynchronizationService extends BetterService {
 
 	@Override
 	public void onStart(Intent intent, int startId) {
-		if (Constants.DEBUG_MODE)
-			Log.d(Constants.LOG_TAG, "Start Synchronization Service..");
+		if (Config.DEBUG_MODE)
+			LOGD(TAG, "Start Synchronization Service..");
 		super.onStart(intent, startId);
 		new Thread(new Runnable() {
 			public void run() {
@@ -39,15 +42,15 @@ public class SynchronizationService extends BetterService {
 
 	@Override
 	public void onDestroy() {
-		if (Constants.DEBUG_MODE)
-			Log.d(Constants.LOG_TAG, "Destroy Synchronization Service!");
+		if (Config.DEBUG_MODE)
+			LOGD(TAG, "Destroy Synchronization Service!");
 		super.onDestroy();
 	}
 
 	@Override
 	public void onLowMemory() {
-		if (Constants.DEBUG_MODE)
-			Log.d(Constants.LOG_TAG, "LowMemory Synchronization Service!");
+		if (Config.DEBUG_MODE)
+			LOGD(TAG, "LowMemory Synchronization Service!");
 		super.onLowMemory();
 		SynchronizationManager.getInstance().stopSynchronizing();
 	}
@@ -98,7 +101,7 @@ public class SynchronizationService extends BetterService {
 		}
 
 		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		notificationManager.notify(Constants.NOTIFICATION_ID, notification);
+		notificationManager.notify(Config.NOTIFICATION_ID, notification);
 
 	}
 

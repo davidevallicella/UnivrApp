@@ -28,7 +28,8 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.cellasoft.univrapp.ConnectivityReceiver;
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.exception.UnivrReaderException;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Item;
@@ -59,7 +60,7 @@ public class DisPlayWebPageActivity extends Activity {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		if (Constants.DEBUG_MODE) {
+		if (Config.DEBUG_MODE) {
 			Log.d(TAG, "onCreate()");
 			UIUtils.enableStrictMode();
 		}

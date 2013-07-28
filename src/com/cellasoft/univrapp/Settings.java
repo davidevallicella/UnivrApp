@@ -7,7 +7,6 @@ import java.util.Locale;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.cellasoft.univrapp.activity.R;
 import com.cellasoft.univrapp.model.University;
 import com.cellasoft.univrapp.model.University.Universites;
 

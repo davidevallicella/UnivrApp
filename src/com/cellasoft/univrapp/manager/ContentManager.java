@@ -16,7 +16,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.cellasoft.univrapp.Application;
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.criteria.ItemCriteria;
 import com.cellasoft.univrapp.loader.ChannelLoader;
 import com.cellasoft.univrapp.loader.FullChannelLoader;
@@ -183,10 +183,10 @@ public class ContentManager {
 							String.valueOf(lastPubDate),
 							String.valueOf(lastPubDate), String.valueOf(id) });
 
-			if (Constants.DEBUG_MODE)
+			if (Config.DEBUG_MODE)
 				Log.d("DEBUG", "Number of deleted items: " + deletedItems);
 		} else {
-			if (Constants.DEBUG_MODE)
+			if (Config.DEBUG_MODE)
 				Log.d("DEBUG", "No item to be deleted");
 			cursor.close();
 		}

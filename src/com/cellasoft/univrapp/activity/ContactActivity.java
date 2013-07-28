@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockActivity;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.utils.FontUtils;

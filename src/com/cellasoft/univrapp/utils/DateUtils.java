@@ -10,7 +10,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.cellasoft.univrapp.Application;
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
 
 /**
  * Internal helper class for date conversions.
@@ -47,7 +47,7 @@ public final class DateUtils {
 		try {
 			return RFC822.parse(date.trim());
 		} catch (ParseException e) {
-			if (Constants.DEBUG_MODE)
+			if (Config.DEBUG_MODE)
 				Log.e(TAG, "No parser date " + date);
 			return new Date();
 		}

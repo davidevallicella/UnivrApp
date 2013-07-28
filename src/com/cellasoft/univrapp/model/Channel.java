@@ -9,7 +9,7 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.util.Log;
 
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.UnivrReaderFactory;
 import com.cellasoft.univrapp.loader.ChannelLoader;
 import com.cellasoft.univrapp.manager.ContentManager;
@@ -177,7 +177,7 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 
 				numberOfFetchedItems += feed.getEntries().size();
 				if (numberOfFetchedItems >= maxItems
-						|| feed.getEntries().size() < Constants.MAX_ITEMS_PER_FETCH) {
+						|| feed.getEntries().size() < Config.MAX_ITEMS_PER_FETCH) {
 					break;
 				}
 

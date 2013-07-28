@@ -12,8 +12,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.cellasoft.univrapp.activity.ChannelListActivity;
-import com.cellasoft.univrapp.activity.R;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.activity.SubscribeActivity;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Lecturer;

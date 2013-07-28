@@ -6,7 +6,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.ListView;
 
-import com.cellasoft.univrapp.activity.R;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.adapter.ChannelAdapter;
 import com.cellasoft.univrapp.model.Channel;
 

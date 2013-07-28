@@ -34,7 +34,8 @@ import android.widget.Toast;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.cellasoft.univrapp.Application;
 import com.cellasoft.univrapp.ConnectivityReceiver;
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.UnivrReaderFactory;
 import com.cellasoft.univrapp.adapter.LecturerSectionAdapter;
@@ -122,7 +123,7 @@ public class SubscribeActivity extends SherlockListActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		if (Constants.DEBUG_MODE) {
+		if (Config.DEBUG_MODE) {
 			//UIUtils.enableStrictMode();
 		}
 		super.onCreate(savedInstanceState);
@@ -225,7 +226,7 @@ public class SubscribeActivity extends SherlockListActivity {
 	private void initBanner() {
 		// Look up the AdView as a resource and load a request.
 		adView = (ClosableAdView) this.findViewById(R.id.adView);
-		adView.inizialize(this);
+		adView.inizialize();
 		adView.loadAd();
 	}
 

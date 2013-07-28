@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import android.content.Context;
 import android.util.AttributeSet;
 
-import com.cellasoft.univrapp.activity.R;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.adapter.LecturerAdapter;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.woozzu.android.widget.IndexableListView;

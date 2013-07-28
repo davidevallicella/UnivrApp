@@ -37,7 +37,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.cellasoft.univrapp.Application;
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.activity.AboutScreen;
 import com.cellasoft.univrapp.activity.ChannelListActivity;
 import com.cellasoft.univrapp.activity.ChooseMainFeedActivity;
@@ -141,7 +141,7 @@ public class UIUtils {
 	private static final long sAppLoadTime = System.currentTimeMillis();
 
 	public static long getCurrentTime(final Context context) {
-		if (Constants.DEBUG_MODE) {
+		if (Config.DEBUG_MODE) {
 			return context.getSharedPreferences("mock_data",
 					Context.MODE_PRIVATE).getLong("mock_current_time",
 					System.currentTimeMillis())

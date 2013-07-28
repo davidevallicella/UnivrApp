@@ -26,7 +26,7 @@ import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.util.Log;
 
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
 
 /**
  * A simple subclass of {@link ImageWorker} that resizes images from resources
@@ -238,7 +238,7 @@ public class ImageResizer extends ImageWorker {
 			Bitmap inBitmap = cache.getBitmapFromReusableSet(options);
 
 			if (inBitmap != null) {
-				if (Constants.DEBUG_MODE) {
+				if (Config.DEBUG_MODE) {
 					Log.d(TAG, "Found bitmap to use for inBitmap");
 				}
 				options.inBitmap = inBitmap;

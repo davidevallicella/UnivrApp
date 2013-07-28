@@ -16,7 +16,7 @@ import org.xml.sax.XMLReader;
 
 import android.util.Log;
 
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.rss.RSSHandler.OnNewEntryCallback;
 import com.cellasoft.univrapp.utils.StreamUtils;
@@ -110,10 +110,10 @@ public class RSSFeed {
 			e.printStackTrace();
 			Log.e("ERROR", "Parser IO exception.");
 		} catch (SAXException e) {
-			if (Constants.DEBUG_MODE)
+			if (Config.DEBUG_MODE)
 				Log.d("DEBUG", e.getMessage());
 		} catch (ParserConfigurationException e) {
-			if (Constants.DEBUG_MODE)
+			if (Config.DEBUG_MODE)
 				Log.d("DEBUG", e.getMessage());
 		} finally {
 			StreamUtils.closeQuietly(is);

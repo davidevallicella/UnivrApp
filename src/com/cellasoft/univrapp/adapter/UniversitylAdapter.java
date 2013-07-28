@@ -9,7 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.cellasoft.univrapp.activity.R;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.model.University;
 
 public class UniversitylAdapter extends BaseAdapter {

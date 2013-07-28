@@ -13,7 +13,8 @@ import android.view.ViewGroup;
 
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
 import com.cellasoft.univrapp.ConnectivityReceiver;
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.service.SynchronizationService;
 import com.cellasoft.univrapp.utils.FontUtils;
@@ -28,7 +29,7 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.settings);
-		findPreference("app_version").setSummary(Constants.getAppVersion());
+		findPreference("app_version").setSummary(Config.getAppVersion());
 
 	}
 

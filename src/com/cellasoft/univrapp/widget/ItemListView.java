@@ -7,7 +7,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.widget.TextView;
 
-import com.cellasoft.univrapp.activity.R;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.adapter.ItemAdapter;
 import com.cellasoft.univrapp.adapter.ItemAdapter.OnItemRequestListener;
 import com.cellasoft.univrapp.model.Item;

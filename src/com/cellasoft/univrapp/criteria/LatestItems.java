@@ -5,7 +5,7 @@ import java.util.List;
 
 import android.net.Uri;
 
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.model.Item.Items;
 
@@ -19,18 +19,18 @@ public class LatestItems implements ItemCriteria {
 	public int channelId = ALL_CHANNELS;
 	public Item compareToItem = null;
 	public byte comparision = OLDER;
-	public int maxItems = Constants.MAX_ITEMS;
+	public int maxItems = Config.MAX_ITEMS;
 
 	public LatestItems(int channelId) {
-		this(channelId, null, OLDER, Constants.MAX_ITEMS);
+		this(channelId, null, OLDER, Config.MAX_ITEMS);
 	}
 
 	public LatestItems(Item compareToItem, byte comparision) {
-		this(compareToItem, comparision, Constants.MAX_ITEMS);
+		this(compareToItem, comparision, Config.MAX_ITEMS);
 	}
 
 	public LatestItems(int channelId, Item compareToItem, byte comparision) {
-		this(channelId, compareToItem, comparision, Constants.MAX_ITEMS);
+		this(channelId, compareToItem, comparision, Config.MAX_ITEMS);
 	}
 
 	public LatestItems(Item compareToItem, byte comparision, int maxItems) {

@@ -22,7 +22,8 @@ import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
 import com.cellasoft.univrapp.Application;
 import com.cellasoft.univrapp.ConnectivityReceiver;
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.adapter.ItemAdapter.OnItemRequestListener;
 import com.cellasoft.univrapp.criteria.LatestItems;
@@ -79,7 +80,7 @@ public class ItemListActivity extends SherlockListActivity {
 			runOnUiThread(new Runnable() {
 				public void run() {
 					if (totalNewItems > 0) {
-						if (Constants.DEBUG_MODE)
+						if (Config.DEBUG_MODE)
 							Log.d(TAG, "Synchronization Listener, load item");
 						loadItems();
 					}
@@ -96,7 +97,7 @@ public class ItemListActivity extends SherlockListActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		if (Constants.DEBUG_MODE) {
+		if (Config.DEBUG_MODE) {
 			Log.d(TAG, "onCreate()");
 			//UIUtils.enableStrictMode();
 		}
@@ -130,7 +131,7 @@ public class ItemListActivity extends SherlockListActivity {
 
 	@Override
 	protected void onStart() {
-		if (Constants.DEBUG_MODE)
+		if (Config.DEBUG_MODE)
 			Log.d(TAG, "onStart()");
 		super.onStart();
 		loadItems();
@@ -138,7 +139,7 @@ public class ItemListActivity extends SherlockListActivity {
 
 	@Override
 	protected void onResume() {
-		if (Constants.DEBUG_MODE)
+		if (Config.DEBUG_MODE)
 			Log.d(TAG, "onResume()");
 		super.onResume();
 		SynchronizationManager.getInstance().registerSynchronizationListener(
@@ -149,7 +150,7 @@ public class ItemListActivity extends SherlockListActivity {
 
 	@Override
 	protected void onPause() {
-		if (Constants.DEBUG_MODE)
+		if (Config.DEBUG_MODE)
 			Log.d(TAG, "onPause()");
 		super.onPause();
 		SynchronizationManager.getInstance().unregisterSynchronizationListener(
@@ -158,7 +159,7 @@ public class ItemListActivity extends SherlockListActivity {
 
 	@Override
 	public void onDestroy() {
-		if (Constants.DEBUG_MODE)
+		if (Config.DEBUG_MODE)
 			Log.d(TAG, "onDestroy()");
 		super.onDestroy();
 		if (adView != null) {
@@ -220,7 +221,7 @@ public class ItemListActivity extends SherlockListActivity {
 	private void initBanner() {
 		// Look up the AdView as a resource and load a request.
 		adView = (ClosableAdView) this.findViewById(R.id.adView);
-		adView.inizialize(this);
+		adView.inizialize();
 		adView.loadAd();
 	}
 
@@ -366,7 +367,7 @@ public class ItemListActivity extends SherlockListActivity {
 				itemListView.setItems(items);
 				itemListView.startLayoutAnimation();
 
-				if (items.size() == Constants.MAX_ITEMS)
+				if (items.size() == Config.MAX_ITEMS)
 					itemListView.addFooterView();
 				else
 					itemListView.removeFooterView();
@@ -414,7 +415,7 @@ public class ItemListActivity extends SherlockListActivity {
 			protected void after(Context context, final List<Item> items) {
 				itemListView.addItems(items);
 
-				if (items.size() < Constants.MAX_ITEMS
+				if (items.size() < Config.MAX_ITEMS
 						|| itemListView.getCount() >= Settings
 								.getMaxItemsForChannel()) {
 
@@ -437,7 +438,7 @@ public class ItemListActivity extends SherlockListActivity {
 							throws Exception {
 						return ContentManager.loadItems(new LatestItems(
 								channel.id, lastItem, LatestItems.OLDER,
-								Constants.MAX_ITEMS),
+								Config.MAX_ITEMS),
 								ContentManager.FULL_ITEM_LOADER,
 								ContentManager.LIGHTWEIGHT_CHANNEL_LOADER);
 					}

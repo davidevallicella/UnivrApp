@@ -1,20 +1,21 @@
 package com.cellasoft.univrapp.manager;
 
+import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
+import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import android.util.Log;
-
+import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.ConnectivityReceiver;
-import com.cellasoft.univrapp.Constants;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.widget.SynchronizationListener;
 
 public class SynchronizationManager {
-	private static final String TAG = SynchronizationManager.class.getName();
+	private static final String TAG = makeLogTag(SynchronizationManager.class);
 
 	private static SynchronizationManager instance;
 	private Object synRoot = new Object();
@@ -42,8 +43,8 @@ public class SynchronizationManager {
 	public int startSynchronizing() {
 		synchronized (synRoot) {
 			if (synchronizing) {
-				if (Constants.DEBUG_MODE)
-					Log.d(Constants.LOG_TAG, "Synchronizing... return now.");
+				if (Config.DEBUG_MODE)
+					LOGD(TAG, "Synchronizing... return now.");
 				return 0;
 			}
 			synchronizing = true;
@@ -53,13 +54,13 @@ public class SynchronizationManager {
 
 		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 
-			if (Constants.DEBUG_MODE)
-				Log.d(TAG, "Start synchronization at " + new Date());
+			if (Config.DEBUG_MODE)
+				LOGD(TAG, "Start synchronization at " + new Date());
 
 			totalNewItems = syncFeeds();
 
-			if (Constants.DEBUG_MODE)
-				Log.d(TAG, "Stop synchronization at " + new Date());
+			if (Config.DEBUG_MODE)
+				LOGD(TAG, "Stop synchronization at " + new Date());
 		}
 
 		synchronized (synRoot) {

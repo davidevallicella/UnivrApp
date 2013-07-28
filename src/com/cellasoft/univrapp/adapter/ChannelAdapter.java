@@ -12,9 +12,9 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.activity.ChannelListActivity;
-import com.cellasoft.univrapp.activity.R;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.utils.DateUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;

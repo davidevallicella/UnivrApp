@@ -2,6 +2,8 @@ package com.cellasoft.univrapp.widget;
 
 import java.util.ArrayList;
 
+import com.cellasoft.univrapp.R;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -16,8 +18,6 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.cellasoft.univrapp.activity.R;
 
 public class LecturerView extends LinearLayout {
 

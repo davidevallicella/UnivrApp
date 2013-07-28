@@ -18,6 +18,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.paypal.android.MEP.CheckoutButton;

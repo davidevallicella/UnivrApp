@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.cellasoft.univrapp.ConnectivityReceiver;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.UnivrReaderFactory;
 import com.cellasoft.univrapp.adapter.UniversitylAdapter;

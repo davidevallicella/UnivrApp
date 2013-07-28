@@ -1,5 +1,8 @@
 package com.cellasoft.univrapp;
 
+import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
+import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
+
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -11,11 +14,12 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import com.cellasoft.univrapp.service.SynchronizationService;
 
 public class ConnectivityReceiver extends BroadcastReceiver {
+	private static final String TAG = makeLogTag(ConnectivityReceiver.class);
+
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		Intent updatingService = new Intent(context,
@@ -26,13 +30,13 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 				.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 		if (hasGoodEnoughNetworkConnection(info, context)) {
 			// should start background service to update
-			if (Constants.DEBUG_MODE)
-				Log.d(Constants.LOG_TAG,
+			if (Config.DEBUG_MODE)
+				LOGD(TAG,
 						"Have WIFI or 3G connection, start background services...");
 			context.startService(updatingService);
 		} else {
-			if (Constants.DEBUG_MODE)
-				Log.d(Constants.LOG_TAG,
+			if (Config.DEBUG_MODE)
+				LOGD(TAG,
 						"No WIFI or 3G connection, stop background services...");
 			context.stopService(updatingService);
 		}

@@ -1,5 +1,11 @@
 package com.cellasoft.univrapp.activity;
 
+import static com.cellasoft.univrapp.Config.GCM_SENDER_ID;
+import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
+import static com.cellasoft.univrapp.utils.LogUtils.LOGE;
+import static com.cellasoft.univrapp.utils.LogUtils.LOGI;
+import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
@@ -13,7 +19,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.util.Log;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,8 +29,10 @@ import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.cellasoft.univrapp.Application;
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
+import com.cellasoft.univrapp.gcm.ServerUtilities;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.manager.SynchronizationManager;
 import com.cellasoft.univrapp.model.Channel;
@@ -40,10 +48,11 @@ import com.cellasoft.univrapp.widget.OnChannelViewListener;
 import com.cellasoft.univrapp.widget.SynchronizationListener;
 import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
+import com.google.android.gcm.GCMRegistrar;
 
 public class ChannelListActivity extends SherlockListActivity {
 
-	private static final String TAG = ChannelListActivity.class.getSimpleName();
+	private static final String TAG = makeLogTag(ChannelListActivity.class);
 
 	private static final int FIRST_TIME = 1;
 
@@ -51,6 +60,8 @@ public class ChannelListActivity extends SherlockListActivity {
 	private ChannelListView channelListView;
 	private ClosableAdView adView;
 	private ImageFetcher imageFetcher;
+
+	private AsyncTask<Void, Void, Void> gcmRegisterTask;
 
 	private SynchronizationListener synchronizationListener = new SynchronizationListener() {
 		public void onStart(int id) {
@@ -126,12 +137,20 @@ public class ChannelListActivity extends SherlockListActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		if (Constants.DEBUG_MODE) {
-			Log.d(TAG, "onCreate()");
+		if (Config.DEBUG_MODE) {
+			LOGD(TAG, "onCreate()");
 			UIUtils.enableStrictMode();
 		}
 		super.onCreate(savedInstanceState);
-		
+
+		if (isFinishing()) {
+			return;
+		}
+
+		UIUtils.enableDisableActivities(this);
+
+		registerGCMClient();
+
 		imageFetcher = new ImageFetcher(this);
 		setContentView(R.layout.channel_view);
 		init();
@@ -152,16 +171,28 @@ public class ChannelListActivity extends SherlockListActivity {
 
 	@Override
 	protected void onDestroy() {
-		super.onDestroy();
+		if (gcmRegisterTask != null) {
+			gcmRegisterTask.cancel(true);
+		}
+		try {
+			GCMRegistrar.onDestroy(getApplicationContext());
+		} catch (Exception e) {
+			LOGE("UnRegister Receiver Error", "> " + e.getMessage());
+		}
+
 		if (adView != null) {
 			adView.hideAd();
 		}
+
 		imageFetcher.closeCache();
+
+		super.onDestroy();
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
+
 		SynchronizationManager.getInstance().registerSynchronizationListener(
 				synchronizationListener);
 		imageFetcher.setExitTasksEarly(false);
@@ -177,6 +208,12 @@ public class ChannelListActivity extends SherlockListActivity {
 		imageFetcher.flushCache();
 		SynchronizationManager.getInstance().unregisterSynchronizationListener(
 				synchronizationListener);
+	}
+
+	private void showAdmodBanner() {
+		if (adView != null) {
+			adView.viewAd();
+		}
 	}
 
 	private void init() {
@@ -218,22 +255,61 @@ public class ChannelListActivity extends SherlockListActivity {
 	private void initBanner() {
 		// Look up the AdView as a resource and load a request.
 		adView = (ClosableAdView) this.findViewById(R.id.adView);
-		adView.inizialize(this);
+		adView.inizialize();
 		adView.loadAd();
 	}
 
-	private void showAdmodBanner() {
-		if (adView != null) {
-			adView.viewAd();
+	private void registerGCMClient() {
+		GCMRegistrar.checkDevice(this);
+
+		if (Config.DEBUG_MODE) {
+			GCMRegistrar.checkManifest(this);
+		}
+
+		final String regId = GCMRegistrar.getRegistrationId(this);
+
+		if (TextUtils.isEmpty(regId)) {
+			// Automatically registers application on startup.
+			GCMRegistrar.register(this, GCM_SENDER_ID);
+
+		} else {
+			// Device is already registered on GCM, check server.
+			if (GCMRegistrar.isRegisteredOnServer(this)) {
+				// Skips registration
+				LOGI(TAG, "Already registered on the GCM server");
+
+			} else {
+				// Try to register again, but not on the UI thread.
+				// It's also necessary to cancel the task in onDestroy().
+				gcmRegisterTask = new AsyncTask<Void, Void, Void>() {
+					@Override
+					protected Void doInBackground(Void... params) {
+						boolean registered = ServerUtilities.register(
+								getApplicationContext(),
+								Settings.getUniversity().name, regId);
+						if (!registered) {
+							GCMRegistrar.unregister(getApplicationContext());
+						}
+						return null;
+					}
+
+					@Override
+					protected void onPostExecute(Void result) {
+						gcmRegisterTask = null;
+					}
+				};
+				gcmRegisterTask.execute(null, null, null);
+			}
 		}
 	}
-	
+
 	/**
-     * Called by the ViewPager child fragments to load images via the one ImageFetcher
-     */
-    public ImageFetcher getImageFetcher() {
-        return imageFetcher;
-    }
+	 * Called by the ViewPager child fragments to load images via the one
+	 * ImageFetcher
+	 */
+	public ImageFetcher getImageFetcher() {
+		return imageFetcher;
+	}
 
 	private void onFirstTime() {
 		Intent intent = new Intent(this, ChooseMainFeedActivity.class);
@@ -242,19 +318,19 @@ public class ChannelListActivity extends SherlockListActivity {
 
 	private void cancelNotification() {
 		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		notificationManager.cancel(Constants.NOTIFICATION_ID);
+		notificationManager.cancel(Config.NOTIFICATION_ID);
 	}
 
 	private void startServices() {
-		if (Constants.DEBUG_MODE)
-			Log.d(Constants.LOG_TAG, "Begin startServices " + new Date());
+		if (Config.DEBUG_MODE)
+			LOGD(TAG, "Begin startServices " + new Date());
 		Intent service = new Intent(this, SynchronizationService.class);
 		startService(service);
 	}
 
 	private void stopServices() {
-		if (Constants.DEBUG_MODE)
-			Log.d(Constants.LOG_TAG, "Begin startServices " + new Date());
+		if (Config.DEBUG_MODE)
+			LOGD(TAG, "Begin startServices " + new Date());
 		Intent service = new Intent(this, SynchronizationService.class);
 		stopService(service);
 	}
@@ -608,7 +684,7 @@ public class ChannelListActivity extends SherlockListActivity {
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
-						Log.e("ERROR", e.getMessage());
+						LOGE(TAG, e.getMessage());
 					}
 				}
 

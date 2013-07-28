@@ -17,8 +17,8 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
-import com.cellasoft.univrapp.activity.R;
 import com.cellasoft.univrapp.exception.UnivrReaderException;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Lecturer;

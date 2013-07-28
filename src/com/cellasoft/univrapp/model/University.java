@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import android.provider.BaseColumns;
+import com.cellasoft.univrapp.R;
 
-import com.cellasoft.univrapp.activity.R;
+import android.provider.BaseColumns;
 
 public class University {
 

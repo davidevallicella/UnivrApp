@@ -33,7 +33,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import com.cellasoft.univrapp.activity.R;
+import com.cellasoft.univrapp.R;
 
 import android.app.Activity;
 import android.content.Context;

@@ -36,10 +36,9 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.AsyncTask;
-import android.support.v4.app.FragmentManager;
 import android.widget.ImageView;
 
-import com.cellasoft.univrapp.activity.BuildConfig;
+import com.cellasoft.univrapp.BuildConfig;
 
 /**
  * This class wraps up completing some arbitrary long running work when loading

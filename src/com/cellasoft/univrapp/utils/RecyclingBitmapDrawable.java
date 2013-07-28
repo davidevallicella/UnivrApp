@@ -21,7 +21,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.Log;
 
-import com.cellasoft.univrapp.Constants;
+import com.cellasoft.univrapp.Config;
 
 /**
  * A BitmapDrawable that keeps track of whether it is being displayed or cached.
@@ -88,7 +88,7 @@ public class RecyclingBitmapDrawable extends BitmapDrawable {
 		// has been displayed, then recycle
 		if (mCacheRefCount <= 0 && mDisplayRefCount <= 0 && mHasBeenDisplayed
 				&& hasValidBitmap()) {
-			if (Constants.DEBUG_MODE) {
+			if (Config.DEBUG_MODE) {
 				Log.d(LOG_TAG, "No longer being used or cached so recycling. "
 						+ toString());
 			}
