@@ -1,15 +1,18 @@
 package com.cellasoft.univrapp.utils;
 
+import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
+import static com.cellasoft.univrapp.utils.LogUtils.LOGE;
+import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
-import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.BuildConfig;
 import com.cellasoft.univrapp.Settings;
 import com.google.ads.Ad;
 import com.google.ads.AdListener;
@@ -19,13 +22,13 @@ import com.google.ads.AdView;
 
 public class ClosableAdView extends AdView implements AdListener {
 
-	private static final String TAG = ClosableAdView.class.getSimpleName();
+	private static final String TAG = makeLogTag(ClosableAdView.class);
 
 	public ClosableAdView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 	}
 
-	public void inizialize() {
+	public void init() {
 		setAdListener(this);
 	}
 
@@ -54,8 +57,8 @@ public class ClosableAdView extends AdView implements AdListener {
 	}
 
 	public void hideAd() {
-		if (Config.DEBUG_MODE)
-			Log.d(TAG, "Hide Ad");
+		if (BuildConfig.DEBUG)
+			LOGD(TAG, "Hide Ad");
 
 		setVisibility(View.GONE);
 
@@ -63,38 +66,33 @@ public class ClosableAdView extends AdView implements AdListener {
 			stopLoading();
 			destroy();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGE(TAG, "Destroy AdMod banner - " + e.getMessage());
 		}
 	}
 
 	public void viewAd() {
-		if (!Settings.hasPassed24Hour()) {
-			return;
-		}
-
-		if (Config.DEBUG_MODE)
-			Log.d(TAG, "View Ad");
-
-		setVisibility(View.VISIBLE);
-		
-		loadAd();
-	}
-
-	public void loadAd() {
-		if (!Settings.hasPassed24Hour()) {
-			if (Config.DEBUG_MODE)
-				Log.d(TAG, "No load Ad");
+		if (!Settings.hasPassed24Hours()) {
+			if (BuildConfig.DEBUG) {
+				LOGD(TAG, "No load Ad");
+			}
 			hideAd();
 			return;
 		}
 
-		if (Config.DEBUG_MODE)
-			Log.d(TAG, "Load Ad");
+		if (BuildConfig.DEBUG) {
+			LOGD(TAG, "View Ad");
+		}
 
+		setVisibility(View.VISIBLE);
+
+		loadAd();
+	}
+
+	private void loadAd() {
 		try {
 			loadAd(new AdRequest());
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGE(TAG, "Load AdMod banner - " + e.getMessage());
 		}
 	}
 }

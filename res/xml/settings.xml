@@ -22,9 +22,21 @@
             android:key="update_interval"
             android:summary="@string/pref_update_interval_summary"
             android:title="@string/pref_update_interval" />
-
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_categ_user_notify" >
+        <org.jraf.android.backport.switchwidget.SwitchPreference
+            android:checked="true"
+            android:key="notifications_univrapp"
+            android:summary="@string/pref_notification_univrapp_summary"
+            android:switchTextOff="NO"
+            android:switchTextOn="YES"
+            android:title="@string/pref_notification_univrapp" />
+
+        <PreferenceScreen
+            android:key="univrapp_regid"
+            android:selectable="false"
+            android:title="Registration ID" />
+
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="notification_sound"

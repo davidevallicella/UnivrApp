@@ -33,8 +33,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import com.cellasoft.univrapp.R;
-
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -42,73 +40,118 @@ import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
 import android.widget.ImageView;
 
+import com.cellasoft.univrapp.BuildConfig;
+import com.cellasoft.univrapp.R;
+import com.cellasoft.univrapp.utils.ImageCache.ImageCacheParams;
+
 /**
  * A subclass of {@link ImageWorker} that fetches images from a URL.
  */
-public class ImageFetcher extends ImageWorker {
+public class ImageFetcher extends ImageResizer {
 	private static final String TAG = makeLogTag(ImageFetcher.class);
 
 	public static final int IO_BUFFER_SIZE_BYTES = 4 * 1024; // 4KB
-
+	private static final String IMAGE_CACHE_DIR = "images";
 	// Default fetcher params
 	private static final int MAX_THUMBNAIL_BYTES = 70 * 1024; // 70KB
-	private static final int HTTP_CACHE_SIZE = 5 * 1024 * 1024; // 5MB
+	private static final int HTTP_CACHE_SIZE = 10 * 1024 * 1024; // 10MB
 	private static final String HTTP_CACHE_DIR = "http";
-	private static final int DEFAULT_IMAGE_HEIGHT = 1024;
-	private static final int DEFAULT_IMAGE_WIDTH = 1024;
-	private static final String IMAGE_CACHE_DIR = "images";
-	
-	protected int mImageWidth;
-	protected int mImageHeight;
+	private static final int DEFAULT_MAX_IMAGE_HEIGHT = 512;
+	private static final int DEFAULT_MAX_IMAGE_WIDTH = 512;
+
 	private DiskLruCache mHttpDiskCache;
 	private File mHttpCacheDir;
 	private boolean mHttpDiskCacheStarting = true;
 	private final Object mHttpDiskCacheLock = new Object();
 	private static final int DISK_CACHE_INDEX = 0;
 
+	private volatile static ImageFetcher instance;
+
 	/**
-	 * Create an ImageFetcher specifying max image loading width/height.
+	 * Initialize providing a target image width and height for the processing
+	 * images.
+	 * 
+	 * @param context
+	 * @param imageWidth
+	 * @param imageHeight
 	 */
 	public ImageFetcher(Context context, int imageWidth, int imageHeight) {
-		super(context);
-		init(context, imageWidth, imageHeight);
+		super(context, imageWidth, imageHeight);
+		init(context);
 	}
 
 	/**
-	 * Create an ImageFetcher using defaults.
+	 * Initialize providing a single target image size (used for both width and
+	 * height);
+	 * 
+	 * @param context
+	 * @param imageSize
 	 */
-	public ImageFetcher(Context context) {
-		super(context);
-		// Fetch screen height and width, to use as our max size when loading images as this
-        // activity runs full screen
-        final DisplayMetrics displayMetrics = new DisplayMetrics();
-        ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        final int height = displayMetrics.heightPixels;
-        final int width = displayMetrics.widthPixels;
-
-        // For this sample we'll use half of the longest width to resize our images. As the
-        // image scaling ensures the image is larger than this, we should be left with a
-        // resolution that is appropriate for both portrait and landscape. For best image quality
-        // we shouldn't divide by 2, but this will use more memory and require a larger memory
-        // cache.
-        final int longest = (height > width ? height : width) / 2;
-		init(context, longest, longest);
+	public ImageFetcher(Context context, int imageSize) {
+		super(context, imageSize);
+		init(context);
 	}
 
-	private void init(Context context, int imageWidth, int imageHeight) {
-		mImageWidth = imageWidth;
-		mImageHeight = imageHeight;
+	/**
+	 * Initialize providing a default image size (used for default width and
+	 * height)
+	 * 
+	 * @param context
+	 */
+	public ImageFetcher(Context context) {
+		this(context, DEFAULT_MAX_IMAGE_WIDTH, DEFAULT_MAX_IMAGE_HEIGHT);
+	}
+
+	/** Returns singleton class instance */
+	public static ImageFetcher getInstance(Context context) {
+		if (instance == null) {
+			synchronized (ImageFetcher.class) {
+				if (BuildConfig.DEBUG) {
+					LOGD(TAG, "Inizialize ImageFetcher");
+				}
+				instance = new ImageFetcher(context);
+			}
+		}
+		return instance;
+	}
+
+	public void destroy() {
+		if (BuildConfig.DEBUG) {
+			LOGD(TAG, "Destroy ImageFetcher");
+		}
+		closeCache();
+		instance = null;
+	}
+
+	public synchronized void init(Context context) {
 		mHttpCacheDir = ImageCache.getDiskCacheDir(context, HTTP_CACHE_DIR);
 		if (!mHttpCacheDir.exists()) {
 			mHttpCacheDir.mkdirs();
 		}
-		
-		setImageFadeIn(false);
-		setLoadingImage(R.drawable.thumb);
-		ImageCache.ImageCacheParams cacheParams = new ImageCache.ImageCacheParams(
-				context, IMAGE_CACHE_DIR);
-		// Set memory cache to 25% of app memory
-		cacheParams.setMemCacheSizePercent(0.25f);
+
+		final DisplayMetrics displayMetrics = new DisplayMetrics();
+		((Activity) context).getWindowManager().getDefaultDisplay()
+				.getMetrics(displayMetrics);
+		final int height = displayMetrics.heightPixels;
+		final int width = displayMetrics.widthPixels;
+
+		// For this sample we'll use half of the longest width to resize our
+		// images. As the
+		// image scaling ensures the image is larger than this, we should be
+		// left with a
+		// resolution that is appropriate for both portrait and landscape. For
+		// best image quality
+		// we shouldn't divide by 2, but this will use more memory and require a
+		// larger memory
+		// cache.
+		final int longest = (height > width ? height : width) / 2;
+
+		setImageFadeIn(true);
+		setImageSize(longest);
+		setLoadingImage(R.drawable.user);
+		ImageCacheParams cacheParams = new ImageCacheParams.Builder(context)
+				.diskCacheDir(IMAGE_CACHE_DIR).memoryCacheSizePercentage(0.25f)
+				.build();
 		addImageCache(cacheParams);
 	}
 
@@ -167,8 +210,9 @@ public class ImageFetcher extends ImageWorker {
 	 * @return The downloaded and resized bitmap
 	 */
 	private Bitmap processBitmap(String key, int type) {
-		LOGD(TAG, "processBitmap - " + key);
-
+		if (BuildConfig.DEBUG) {
+			LOGD(TAG, "processBitmap - " + key);
+		}
 		if (type == ImageData.IMAGE_TYPE_NORMAL) {
 			return processNormalBitmap(key); // Process a regular, full sized
 												// bitmap
@@ -234,11 +278,8 @@ public class ImageFetcher extends ImageWorker {
 				} catch (IllegalStateException e) {
 					LOGE(TAG, "processBitmap - " + e);
 				} finally {
-					if (fileDescriptor == null && fileInputStream != null) {
-						try {
-							fileInputStream.close();
-						} catch (IOException e) {
-						}
+					if (fileDescriptor == null) {
+						StreamUtils.closeQuietly(fileInputStream);
 					}
 				}
 			}
@@ -249,12 +290,8 @@ public class ImageFetcher extends ImageWorker {
 			bitmap = decodeSampledBitmapFromDescriptor(fileDescriptor,
 					mImageWidth, mImageHeight);
 		}
-		if (fileInputStream != null) {
-			try {
-				fileInputStream.close();
-			} catch (IOException e) {
-			}
-		}
+
+		StreamUtils.closeQuietly(fileInputStream);
 		return bitmap;
 	}
 
@@ -328,15 +365,9 @@ public class ImageFetcher extends ImageWorker {
 			if (urlConnection != null) {
 				urlConnection.disconnect();
 			}
-			try {
-				if (in != null) {
-					in.close();
-				}
-				if (out != null) {
-					out.close();
-				}
-			} catch (final IOException e) {
-			}
+
+			StreamUtils.closeQuietly(in);
+			StreamUtils.closeQuietly(out);
 		}
 		return null;
 	}
@@ -375,15 +406,9 @@ public class ImageFetcher extends ImageWorker {
 			if (urlConnection != null) {
 				urlConnection.disconnect();
 			}
-			try {
-				if (out != null) {
-					out.close();
-				}
-				if (in != null) {
-					in.close();
-				}
-			} catch (final IOException e) {
-			}
+
+			StreamUtils.closeQuietly(in);
+			StreamUtils.closeQuietly(out);
 		}
 		return false;
 	}
@@ -430,15 +455,9 @@ public class ImageFetcher extends ImageWorker {
 			if (urlConnection != null) {
 				urlConnection.disconnect();
 			}
-			try {
-				if (in != null) {
-					in.close();
-				}
-				if (out != null) {
-					out.close();
-				}
-			} catch (final IOException e) {
-			}
+
+			StreamUtils.closeQuietly(in);
+			StreamUtils.closeQuietly(out);
 		}
 		return null;
 	}
@@ -603,7 +622,9 @@ public class ImageFetcher extends ImageWorker {
 				try {
 					mHttpDiskCache = DiskLruCache.open(mHttpCacheDir, 1, 1,
 							HTTP_CACHE_SIZE);
-					LOGD(TAG, "HTTP cache initialized");
+					if (BuildConfig.DEBUG) {
+						LOGD(TAG, "HTTP cache initialized");
+					}
 				} catch (IOException e) {
 					mHttpDiskCache = null;
 				}
@@ -620,7 +641,9 @@ public class ImageFetcher extends ImageWorker {
 			if (mHttpDiskCache != null && !mHttpDiskCache.isClosed()) {
 				try {
 					mHttpDiskCache.delete();
-					LOGD(TAG, "HTTP cache cleared");
+					if (BuildConfig.DEBUG) {
+						LOGD(TAG, "HTTP cache cleared");
+					}
 				} catch (IOException e) {
 					LOGE(TAG, "clearCacheInternal - " + e);
 				}
@@ -638,7 +661,9 @@ public class ImageFetcher extends ImageWorker {
 			if (mHttpDiskCache != null) {
 				try {
 					mHttpDiskCache.flush();
-					LOGD(TAG, "HTTP cache flushed");
+					if (BuildConfig.DEBUG) {
+						LOGD(TAG, "HTTP cache flushed");
+					}
 				} catch (IOException e) {
 					LOGE(TAG, "flush - " + e);
 				}
@@ -655,13 +680,24 @@ public class ImageFetcher extends ImageWorker {
 					if (!mHttpDiskCache.isClosed()) {
 						mHttpDiskCache.close();
 						mHttpDiskCache = null;
-						LOGD(TAG, "HTTP cache closed");
+						if (BuildConfig.DEBUG) {
+							LOGD(TAG, "HTTP cache closed");
+						}
 					}
 				} catch (IOException e) {
 					LOGE(TAG, "closeCacheInternal - " + e);
 				}
 			}
 		}
+	}
+
+	public void stop() {
+		if (BuildConfig.DEBUG) {
+			LOGD(TAG, "Stop ImageFetcher");
+		}
+		setPauseWork(false);
+		setExitTasksEarly(true);
+		flushCache();
 	}
 
 	private static class ImageData {

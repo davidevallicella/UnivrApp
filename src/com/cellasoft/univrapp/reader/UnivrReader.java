@@ -1,6 +1,6 @@
 package com.cellasoft.univrapp.reader;
 
-import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
+import static com.cellasoft.univrapp.Config.SERVER_URL;
 import static com.cellasoft.univrapp.utils.LogUtils.LOGI;
 import static com.cellasoft.univrapp.utils.LogUtils.LOGV;
 import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
@@ -10,25 +10,21 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
-import com.cellasoft.univrapp.R;
-import com.cellasoft.univrapp.Settings;
-import com.cellasoft.univrapp.exception.UnivrReaderException;
 import com.cellasoft.univrapp.model.Channel;
-import com.cellasoft.univrapp.model.Lecturer;
+import com.cellasoft.univrapp.model.University;
 import com.cellasoft.univrapp.rss.RSSFeed;
 import com.cellasoft.univrapp.rss.RSSHandler.OnNewEntryCallback;
 import com.cellasoft.univrapp.utils.ErrorResponse;
 import com.cellasoft.univrapp.utils.HandlerException;
 import com.cellasoft.univrapp.utils.JSONHandler;
-import com.cellasoft.univrapp.utils.LecturersHandler;
 import com.cellasoft.univrapp.utils.StreamUtils;
+import com.cellasoft.univrapp.widget.ContactItemInterface;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -41,10 +37,9 @@ public class UnivrReader implements Serializable {
 	private static final int DEFAULT_NUM_RETRIES = 3;
 	protected static int numRetries = DEFAULT_NUM_RETRIES;
 	private String userAgent;
-	private Context context;
 
 	public UnivrReader(Context context) {
-		this.context = context;
+		//this.context = context;
 		userAgent = buildUserAgent(context);
 	}
 
@@ -65,40 +60,27 @@ public class UnivrReader implements Serializable {
 		return RSSFeed.parse(is, maxItems, callback);
 	}
 
-	public List<Lecturer> getLecturers() throws UnivrReaderException {
+	public List<ContactItemInterface> executeGetJSON(University uni,
+			JSONHandler handler) throws IOException {
+		LOGI(TAG, "get Json (dest = " + uni.dest + ")");
 
-		int timesTried = 1;
+		String serverUrl = SERVER_URL + "/lecturers.php?format=json&dest="
+				+ uni.dest;
 
-		while (timesTried <= numRetries) {
-			final long startRemote = System.currentTimeMillis();
-			LOGI(TAG, "Remote syncing lecturers " + timesTried);
+		URL url = new URL(serverUrl);
+		HttpURLConnection urlConnection = (HttpURLConnection) url
+				.openConnection();
+		urlConnection.setRequestProperty("User-Agent", userAgent);
+		urlConnection.setRequestProperty("Content-Type", "application/json");
 
-			try {
-				ArrayList<Lecturer> lecturers = executeGetJSON(
-						Settings.getUniversity().GET_LECTURERS_LIST_URL,
-						new LecturersHandler(context));
+		urlConnection.connect();
+		throwErrors(urlConnection);
 
-				if (lecturers != null && !lecturers.isEmpty()) {
-					LOGD(TAG, "Remote sync took "
-							+ (System.currentTimeMillis() - startRemote) + "ms");
-					return lecturers;
-				}
-			} catch (Exception ignored) {
-				ignored.printStackTrace();
-			}
-
-			try {
-				Thread.sleep(DEFAULT_RETRY_HANDLER_SLEEP_TIME);
-			} catch (InterruptedException e) {
-			}
-
-			timesTried++;
-		}
-
-		String errorMessage = context.getResources().getString(
-				R.string.univrapp_server_exception);
-
-		throw new UnivrReaderException(errorMessage);
+		InputStream is = urlConnection.getInputStream();
+		String response = StreamUtils.readAllText(is);
+		
+		LOGV(TAG, "HTTP response: " + response);
+		return handler.parse(response);
 	}
 
 	/**
@@ -119,24 +101,6 @@ public class UnivrReader implements Serializable {
 
 		return context.getPackageName() + "/" + versionName + " ("
 				+ versionCode + ") (gzip)";
-	}
-
-	private ArrayList<Lecturer> executeGetJSON(String urlString, JSONHandler handler)
-			throws IOException {
-		LOGD(TAG, "Requesting URL: " + urlString);
-		URL url = new URL(urlString);
-		HttpURLConnection urlConnection = (HttpURLConnection) url
-				.openConnection();
-		urlConnection.setRequestProperty("User-Agent", userAgent);
-        urlConnection.setRequestProperty("Content-Type", "application/json");
-
-		urlConnection.connect();
-		throwErrors(urlConnection);
-
-		String response = StreamUtils.readAllText(urlConnection
-				.getInputStream());
-		LOGV(TAG, "HTTP response: " + response);
-		return handler.parse(response);
 	}
 
 	private void throwErrors(HttpURLConnection urlConnection)

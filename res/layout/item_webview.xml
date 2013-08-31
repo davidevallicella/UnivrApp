@@ -10,18 +10,15 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" >
 
-        <WebView
+        <com.cellasoft.univrapp.widget.NonLeakingWebView
             android:id="@+id/itemWebView"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent" />
 
-        <ProgressBar
-            android:id="@+id/web_progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            style="?android:attr/progressBarStyleLarge" />
-
+        <include
+            android:id="@+id/progressBar"
+            layout="@layout/progress_bar"
+            android:visibility="visible" />
     </FrameLayout>
 
 </LinearLayout>

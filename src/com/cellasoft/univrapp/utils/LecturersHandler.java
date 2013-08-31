@@ -16,18 +16,12 @@
 
 package com.cellasoft.univrapp.utils;
 
-import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
-
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Context;
-
 import com.cellasoft.univrapp.model.Lecturer;
+import com.cellasoft.univrapp.widget.ContactItemInterface;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 /**
  * Handler that parses room JSON data into a list of content provider
@@ -35,16 +29,46 @@ import com.google.gson.reflect.TypeToken;
  */
 public class LecturersHandler extends JSONHandler {
 
-	private static final String TAG = makeLogTag(LecturersHandler.class);
+	public List<ContactItemInterface> parse(String jsonString)
+			throws IOException {
+		List<ContactItemInterface> result = Lists.newArrayList();
 
-	public LecturersHandler(Context context) {
-		super(context);
+		LecturerList list = null;
+		list = getLecturerList(jsonString);
+
+		if (list != null) {
+
+			List<LecturerContainer> lecturers = list
+					.getLecturerContainterList();
+
+			for (LecturerContainer lc : lecturers) {
+				result.add(lc.getLecturer());
+			}
+		}
+
+		return result;
 	}
 
-	public ArrayList<Lecturer> parse(String json) throws IOException {
-		Type type = new TypeToken<List<Lecturer>>() {
-		}.getType();
+	protected LecturerList getLecturerList(String jsonString) {
+		LecturerList ll = null;
+		ll = new Gson().fromJson(jsonString, LecturerList.class);
+		return ll;
+	}
 
-		return (ArrayList<Lecturer>) new Gson().fromJson(json, type);
+	class LecturerList {
+
+		private List<LecturerContainer> lecturers = Lists.newArrayList();
+
+		public List<LecturerContainer> getLecturerContainterList() {
+			return lecturers;
+		}
+	}
+
+	class LecturerContainer {
+		Lecturer lecturer;
+
+		public Lecturer getLecturer() {
+			return lecturer;
+		}
 	}
 }

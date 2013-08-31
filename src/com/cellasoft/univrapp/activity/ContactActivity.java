@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.view.MotionEvent;
@@ -21,6 +20,7 @@ import com.actionbarsherlock.app.SherlockActivity;
 import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.model.Lecturer;
+import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;
 import com.cellasoft.univrapp.utils.UIUtils;
@@ -34,12 +34,10 @@ public class ContactActivity extends SherlockActivity {
 	public static final String LECTURER_OFFICE_PARAM = "LecturerOffice";
 	public static final String LECTURER_THUMB_PARAM = "LecturerThumb";
 	private Lecturer lecturer;
-	private ImageFetcher imageFetcher;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		imageFetcher = new ImageFetcher(this);
 		setContentView(R.layout.contact);
 
 		if (getIntent().hasExtra(LECTURER_ID_PARAM)) {
@@ -101,8 +99,10 @@ public class ContactActivity extends SherlockActivity {
 				ImageView image = (ImageView) findViewById(R.id.contact_image);
 
 				try {
-					imageFetcher.loadImage(lecturerThumb, image);
+					ImageFetcher.getInstance(context).loadImage(lecturerThumb,
+							image);
 				} catch (Exception e) {
+					e.printStackTrace();
 				}
 
 				((TextView) findViewById(R.id.contact_title))
@@ -295,10 +295,12 @@ public class ContactActivity extends SherlockActivity {
 	}
 
 	private void showWebPage() {
-		Intent browserIntent = new Intent(Intent.ACTION_VIEW,
-				Uri.parse(Settings.getUniversity().domain
-						+ "/fol/main?ent=persona&id=" + lecturer.key));
-		startActivity(browserIntent);
+		Uri uri = Uri.parse(Settings.getUniversity().domain).buildUpon()
+				.path("/fol/main").appendQueryParameter("ent", "persona")
+				.appendQueryParameter("id", String.valueOf(lecturer.key))
+				.build();
+
+		UIUtils.safeOpenLink(this, new Intent(Intent.ACTION_VIEW, uri));
 	}
 
 	private void callNumber(String telephone) {

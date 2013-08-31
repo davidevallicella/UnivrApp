@@ -69,6 +69,21 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		this.description = description;
 	}
 
+	public Channel(Channel channel) {
+		this.id = channel.id;
+		this.lecturerId = channel.lecturerId;
+		this.url = channel.url;
+		this.title = channel.title;
+		this.description = channel.description;
+		this.imageUrl = channel.imageUrl;
+		this.unread = channel.unread;
+		this.updateTime = channel.updateTime;
+		this.isSelected = channel.isSelected;
+		this.starred = channel.starred;
+		this.mute = channel.mute;
+		this.updating = channel.updating;
+	}
+
 	public ActiveList<Item> getItems() {
 		synchronized (items) {
 			if (items == null) {
@@ -291,6 +306,10 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 
 	public static Channel findById(int id, ChannelLoader loader) {
 		return ContentManager.loadChannel(id, loader);
+	}
+
+	public static List<Channel> loadAllChannels(ChannelLoader loader) {
+		return ContentManager.loadAllChannels(loader);
 	}
 
 	@Override

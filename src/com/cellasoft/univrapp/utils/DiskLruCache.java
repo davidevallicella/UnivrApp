@@ -231,21 +231,6 @@ public final class DiskLruCache implements Closeable {
 	}
 
 	/**
-	 * Closes 'closeable', ignoring any checked exceptions. Does nothing if
-	 * 'closeable' is null.
-	 */
-	public static void closeQuietly(Closeable closeable) {
-		if (closeable != null) {
-			try {
-				closeable.close();
-			} catch (RuntimeException rethrown) {
-				throw rethrown;
-			} catch (Exception ignored) {
-			}
-		}
-	}
-
-	/**
 	 * Recursively delete everything in {@code dir}.
 	 */
 	// TODO: this should specify paths as Strings rather than as Files
@@ -367,7 +352,7 @@ public final class DiskLruCache implements Closeable {
 				}
 			}
 		} finally {
-			closeQuietly(in);
+			StreamUtils.closeQuietly(in);
 		}
 	}
 
@@ -780,7 +765,7 @@ public final class DiskLruCache implements Closeable {
 		@Override
 		public void close() {
 			for (InputStream in : ins) {
-				closeQuietly(in);
+				StreamUtils.closeQuietly(in);
 			}
 		}
 	}
@@ -847,7 +832,7 @@ public final class DiskLruCache implements Closeable {
 				writer = new OutputStreamWriter(newOutputStream(index), UTF_8);
 				writer.write(value);
 			} finally {
-				closeQuietly(writer);
+				StreamUtils.closeQuietly(writer);
 			}
 		}
 

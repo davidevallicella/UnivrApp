@@ -26,7 +26,7 @@ import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.util.Log;
 
-import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.BuildConfig;
 
 /**
  * A simple subclass of {@link ImageWorker} that resizes images from resources
@@ -42,7 +42,6 @@ public class ImageResizer extends ImageWorker {
 	 * Initialize providing a single target image size (used for both width and
 	 * height);
 	 * 
-	 * @param context
 	 * @param imageWidth
 	 * @param imageHeight
 	 */
@@ -91,13 +90,13 @@ public class ImageResizer extends ImageWorker {
 	 * @param resId
 	 * @return
 	 */
-//	private Bitmap processBitmap(int resId) {
-//		if (Constants.DEBUG_MODE) {
-//			Log.d(TAG, "processBitmap - " + resId);
-//		}
-//		return decodeSampledBitmapFromResource(mResources, resId, mImageWidth,
-//				mImageHeight, getImageCache());
-//	}
+	private Bitmap processBitmap(int resId) {
+		if (BuildConfig.DEBUG) {
+			Log.d(TAG, "processBitmap - " + resId);
+		}
+		return decodeSampledBitmapFromResource(mResources, resId, mImageWidth,
+				mImageHeight, getImageCache());
+	}
 
 	@Override
 	protected Bitmap processBitmap(Object data) {
@@ -238,7 +237,7 @@ public class ImageResizer extends ImageWorker {
 			Bitmap inBitmap = cache.getBitmapFromReusableSet(options);
 
 			if (inBitmap != null) {
-				if (Config.DEBUG_MODE) {
+				if (BuildConfig.DEBUG) {
 					Log.d(TAG, "Found bitmap to use for inBitmap");
 				}
 				options.inBitmap = inBitmap;

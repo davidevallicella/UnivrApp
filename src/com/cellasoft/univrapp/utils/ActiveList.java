@@ -2,6 +2,7 @@ package com.cellasoft.univrapp.utils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ActiveList<T> extends ArrayList<T> implements Serializable {
@@ -14,22 +15,28 @@ public class ActiveList<T> extends ArrayList<T> implements Serializable {
 
 		void onInsert(int location, T item);
 
+		void onAddAll(Collection<? extends T> items);
+
 		void onClear();
 	}
 
+	@Override
 	public synchronized void clear() {
 		super.clear();
 		fireChangedEvent();
 	}
 
+	@Override
 	public synchronized int size() {
 		return super.size();
 	}
 
+	@Override
 	public synchronized T get(int index) {
 		return super.get(index);
 	}
 
+	@Override
 	public synchronized boolean add(T item) {
 		boolean success = super.add(item);
 		if (success) {
@@ -38,14 +45,34 @@ public class ActiveList<T> extends ArrayList<T> implements Serializable {
 		return success;
 	}
 
-	public synchronized void add(int location, T item) {
-		super.add(location, item);
-		fireInsertEvent(location, item);
+	@Override
+	public synchronized void add(int index, T item) {
+		super.add(index, item);
+		fireInsertEvent(index, item);
+	}
+
+	@Override
+	public synchronized boolean addAll(int index, Collection<? extends T> items) {
+		boolean success = super.addAll(index, items);
+		if (success) {
+			fireAddAllEvent(items);
+		}
+		return success;
+	}
+
+	@Override
+	public synchronized boolean addAll(Collection<? extends T> items) {
+		boolean success = super.addAll(items);
+		if (success) {
+			fireAddAllEvent(items);
+		}
+		return success;
+
 	}
 
 	public synchronized void addListener(ActiveListListener<T> listener) {
 		if (this.listeners == null) {
-			listeners = new ArrayList<ActiveListListener<T>>();
+			listeners = Lists.newArrayList();
 		}
 		this.listeners.add(listener);
 	}
@@ -77,6 +104,14 @@ public class ActiveList<T> extends ArrayList<T> implements Serializable {
 			return;
 		for (ActiveListListener<T> listener : listeners) {
 			listener.onAdd(item);
+		}
+	}
+
+	private void fireAddAllEvent(Collection<? extends T> items) {
+		if (this.listeners == null)
+			return;
+		for (ActiveListListener<T> listener : listeners) {
+			listener.onAddAll(items);
 		}
 	}
 }

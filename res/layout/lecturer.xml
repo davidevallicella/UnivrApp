@@ -28,11 +28,10 @@
 
         <com.cellasoft.univrapp.utils.RecyclingImageView
             android:id="@+id/lecturer_image"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:adjustViewBounds="true"
-            android:scaleType="centerCrop"
-            android:src="@drawable/thumb" />
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/user" />
     </LinearLayout>
 
     <LinearLayout
@@ -42,7 +41,6 @@
         android:layout_marginRight="15dip"
         android:layout_toRightOf="@+id/lecturer_thumbnail"
         android:layout_weight="1"
-        android:background="@drawable/image"
         android:gravity="center_vertical"
         android:orientation="vertical"
         android:padding="3dip" >

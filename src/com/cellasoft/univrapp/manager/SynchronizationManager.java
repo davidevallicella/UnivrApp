@@ -1,17 +1,18 @@
 package com.cellasoft.univrapp.manager;
 
 import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
+import static com.cellasoft.univrapp.utils.LogUtils.LOGE;
 import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.BuildConfig;
 import com.cellasoft.univrapp.ConnectivityReceiver;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Item;
+import com.cellasoft.univrapp.utils.Lists;
 import com.cellasoft.univrapp.widget.SynchronizationListener;
 
 public class SynchronizationManager {
@@ -23,7 +24,7 @@ public class SynchronizationManager {
 	private List<SynchronizationListener> synchronizationListeners;
 
 	public SynchronizationManager() {
-		synchronizationListeners = new ArrayList<SynchronizationListener>();
+		synchronizationListeners = Lists.newArrayList();
 	}
 
 	static {
@@ -43,8 +44,9 @@ public class SynchronizationManager {
 	public int startSynchronizing() {
 		synchronized (synRoot) {
 			if (synchronizing) {
-				if (Config.DEBUG_MODE)
+				if (BuildConfig.DEBUG) {
 					LOGD(TAG, "Synchronizing... return now.");
+				}
 				return 0;
 			}
 			synchronizing = true;
@@ -54,13 +56,15 @@ public class SynchronizationManager {
 
 		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 
-			if (Config.DEBUG_MODE)
+			if (BuildConfig.DEBUG) {
 				LOGD(TAG, "Start synchronization at " + new Date());
+			}
 
 			totalNewItems = syncFeeds();
 
-			if (Config.DEBUG_MODE)
+			if (BuildConfig.DEBUG) {
 				LOGD(TAG, "Stop synchronization at " + new Date());
+			}
 		}
 
 		synchronized (synRoot) {
@@ -113,9 +117,9 @@ public class SynchronizationManager {
 	protected int syncFeeds() {
 		int totalNewItems = 0;
 		int maxItemsForChannel = Settings.getMaxItemsForChannel();
-		ArrayList<Channel> channels = new ArrayList<Channel>();
+		List<Channel> channels = Lists.newArrayList();
 
-		channels = ContentManager
+		channels = Channel
 				.loadAllChannels(ContentManager.LIGHTWEIGHT_CHANNEL_LOADER);
 
 		for (Channel channel : channels) {
@@ -129,16 +133,18 @@ public class SynchronizationManager {
 					}
 
 					try {
-
 						List<Item> newItems = channel
 								.update(maxItemsForChannel);
-						if (!channel.mute)
+						if (!channel.mute) {
 							totalNewItems += newItems.size();
-						channel.getItems().clear();
+						}
+
+						// clean up memory
+						channel.clearItems();
 						ContentManager.cleanUp(channel,
 								Settings.getKeepMaxItems());
-					} catch (Throwable ex) {
-						ex.printStackTrace();
+					} catch (Throwable e) {
+						LOGE(TAG, e.getMessage());
 					}
 
 					onSynchronizationProgress(channel.id, channel.updateTime);
@@ -146,13 +152,14 @@ public class SynchronizationManager {
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						LOGE(TAG, e.getMessage());
 					}
 				}
 			}
 		}
 
 		// clean up memory
+		channels.clear();
 		channels = null;
 
 		return totalNewItems;

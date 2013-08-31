@@ -19,6 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.cellasoft.univrapp.R;
+import com.cellasoft.univrapp.utils.Lists;
 import com.cellasoft.univrapp.utils.UIUtils;
 
 public class ChannelView extends LinearLayout {
@@ -37,7 +38,7 @@ public class ChannelView extends LinearLayout {
 		}
 	}
 
-	private final ArrayList<TouchDelegateRecord> mTouchDelegateRecords = new ArrayList<ChannelView.TouchDelegateRecord>();
+	private final ArrayList<TouchDelegateRecord> mTouchDelegateRecords = Lists.newArrayList();
 	private final Paint mPaint = new Paint();
 
 	private ImageButton mSelectButton;
@@ -75,7 +76,7 @@ public class ChannelView extends LinearLayout {
 		mPaint.setStyle(Style.FILL);
 
 		// Determine screen size
-		switch (UIUtils.getScreenSize()) {
+		switch (UIUtils.getScreenSize(context)) {
 		case Configuration.SCREENLAYOUT_SIZE_LARGE:
 		case Configuration.SCREENLAYOUT_SIZE_NORMAL:
 			TOUCH_ADDITION = 90;

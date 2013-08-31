@@ -1,6 +1,5 @@
 package com.cellasoft.univrapp.criteria;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import android.net.Uri;
@@ -8,6 +7,7 @@ import android.net.Uri;
 import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.model.Item.Items;
+import com.cellasoft.univrapp.utils.Lists;
 
 public class LatestItems implements ItemCriteria {
 	public static final int ALL_CHANNELS = -1;
@@ -75,7 +75,7 @@ public class LatestItems implements ItemCriteria {
 
 	@Override
 	public String[] getSelectionArgs() {
-		List<String> args = new ArrayList<String>();
+		List<String> args = Lists.newArrayList();
 
 		if (channelId != ALL_CHANNELS) {
 			args.add(String.valueOf(channelId));

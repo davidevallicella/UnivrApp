@@ -1,6 +1,6 @@
 package com.cellasoft.univrapp.gcm;
 
-import static com.cellasoft.univrapp.Config.GCM_SERVER_URL;
+import static com.cellasoft.univrapp.Config.SERVER_URL;
 import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
 import static com.cellasoft.univrapp.utils.LogUtils.LOGE;
 import static com.cellasoft.univrapp.utils.LogUtils.LOGI;
@@ -22,6 +22,7 @@ import android.content.Context;
 
 import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.R;
+import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.utils.StreamUtils;
 import com.google.android.gcm.GCMRegistrar;
 
@@ -35,13 +36,13 @@ public final class ServerUtilities {
 	 * Register this account/device pair within the server.
 	 * 
 	 */
-	public static boolean register(final Context context, String tag,
+	public static boolean register(final Context context, String dest,
 			final String regId) {
 		LOGI(TAG, "registering device (regId = " + regId + ")");
-		String serverUrl = GCM_SERVER_URL + "/register.php";
+		String serverUrl = SERVER_URL + "/register.php";
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("regId", regId);
-		params.put("tag", tag);
+		params.put("dest", dest);
 
 		long backoff = BACKOFF_MILLI_SECONDS + random.nextInt(1000);
 		// Once GCM returns a registration id, we need to register on our server
@@ -52,6 +53,8 @@ public final class ServerUtilities {
 			try {
 				post(serverUrl, params);
 				GCMRegistrar.setRegisteredOnServer(context, true);
+				Settings.setRegistrationId(GCMRegistrar
+						.getRegistrationId(context));
 				return true;
 			} catch (IOException e) {
 				// Here we are simplifying and retrying on any error; in a real
@@ -82,14 +85,13 @@ public final class ServerUtilities {
 	 */
 	public static void unregister(final Context context, final String regId) {
 		LOGI(TAG, "unregistering device (regId = " + regId + ")");
-		String serverUrl = GCM_SERVER_URL + "/unregister.php";
+		String serverUrl = SERVER_URL + "/unregister.php";
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("regId", regId);
 		try {
 			post(serverUrl, params);
 			GCMRegistrar.setRegisteredOnServer(context, false);
-			String message = context.getString(R.string.server_unregistered);
-            Config.displayMessage(context, message);
+			Settings.setRegistrationId("Not Registered");
 		} catch (IOException e) {
 			// At this point the device is unregistered from GCM, but still
 			// registered in the server.
@@ -97,8 +99,8 @@ public final class ServerUtilities {
 			// if the server tries to send a message to the device, it will get
 			// a "NotRegistered" error message and should unregister the device.
 			LOGD(TAG, "Unable to unregister from application server", e);
-			String message = context.getString(R.string.server_unregister_error,
-                    e.getMessage());
+			String message = context.getString(
+					R.string.server_unregister_error, e.getMessage());
 			Config.displayMessage(context, message);
 		}
 	}
@@ -150,16 +152,22 @@ public final class ServerUtilities {
 			// post the request
 			OutputStream out = conn.getOutputStream();
 			out.write(bytes);
+
 			StreamUtils.closeQuietly(out);
 			// handle the response
 			int status = conn.getResponseCode();
 			if (status != 200) {
 				throw new IOException("Post failed with error code " + status);
 			}
+			// String response = StreamUtils.readAllText(conn.getInputStream(),
+			// "UTF-8");
+			// LOGI(TAG, response);
 		} finally {
 			if (conn != null) {
 				conn.disconnect();
 			}
+			params.clear();
+			params = null;
 		}
 	}
 }

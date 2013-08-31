@@ -3,8 +3,9 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:padding="3dp" >    
-    
+    android:orientation="vertical"
+    android:padding="3dp" >
+
     <ImageButton
         android:id="@+id/lecturer_check"
         android:layout_width="wrap_content"
@@ -19,40 +20,39 @@
         android:id="@+id/lecturer_thumbnail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
         android:layout_marginLeft="20dip"
         android:layout_marginRight="5dip"
         android:background="@drawable/image"
-        android:padding="3dp" >
+        android:padding="3dip" >
 
         <com.cellasoft.univrapp.utils.RecyclingImageView
             android:id="@+id/lecturer_image"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:background="@android:color/transparent"
-            android:scaleType="centerCrop"
-            android:src="@drawable/thumb" />
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/user" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_alignParentLeft="true"
-        android:layout_marginRight="10dp"
+        android:layout_marginRight="15dip"
         android:layout_toRightOf="@+id/lecturer_thumbnail"
         android:layout_weight="1"
-        android:background="@drawable/image"
         android:gravity="center_vertical"
         android:orientation="vertical"
-        android:padding="3dp" >
+        android:padding="3dip" >
 
         <TextView
             android:id="@+id/lecturer_name"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
             android:ellipsize="end"
             android:singleLine="true"
-            android:paddingLeft="2dp"
-            android:paddingRight="2dp"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="#111111"
             android:textSize="16sp"
@@ -70,19 +70,19 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="2dp"
                 android:layout_gravity="center_vertical"
+                android:layout_marginLeft="2dp"
                 android:background="@drawable/check" />
 
             <TextView
                 style="@style/subscribe"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:maxLines="1"
                 android:text="Subscribed"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
         </LinearLayout>
     </LinearLayout>
-
 
 </merge>

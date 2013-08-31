@@ -1,17 +1,19 @@
 package com.cellasoft.univrapp.widget;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.widget.ListView;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 
 import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.adapter.ChannelAdapter;
 import com.cellasoft.univrapp.model.Channel;
+import com.cellasoft.univrapp.utils.ImageFetcher;
 
-public class ChannelListView extends ListView {
-	private ChannelAdapter adapter = null;
+public class ChannelListView extends BaseListView<Channel> implements
+		OnScrollListener {
 
 	public ChannelListView(Context context) {
 		this(context, null, 0);
@@ -23,33 +25,36 @@ public class ChannelListView extends ListView {
 
 	public ChannelListView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		init(context);
 	}
 
-	private void init(Context context) {
-		adapter = new ChannelAdapter(context);
+	@Override
+	protected void init(Context context) {
+		super.init(context);
+		adapter = new ChannelAdapter(context, R.layout.channel_list_item);
 		this.setAdapter(adapter);
-		this.setDivider(getResources().getDrawable(
-				android.R.drawable.divider_horizontal_bright));
-
-		setSelector(R.drawable.list_selector_on_top);
-		setDrawSelectorOnTop(true);
-		invalidateViews();
 	}
 
-	public void setChannels(ArrayList<Channel> channels) {
-		adapter.setChannels(channels);
+	public void setChannels(List<Channel> channels) {
+		super.setItems(channels);
 	}
 
 	public void setChannelViewlistener(OnChannelViewListener channelListener) {
-		adapter.setChannelViewlistener(channelListener);
+		((ChannelAdapter) adapter).setChannelViewlistener(channelListener);
 	}
 
-	public void refresh() {
-		adapter.refresh();
+	@Override
+	public void onScroll(AbsListView view, int firstVisibleItem,
+			int visibleItemCount, int totalItemCount) {
+		// do nothing
 	}
 
-	public void clean() {
-		adapter.clear();
+	@Override
+	public void onScrollStateChanged(AbsListView view, int scrollState) {
+		// Pause fetcher to ensure smoother scrolling when flinging
+		if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
+			ImageFetcher.getInstance(getContext()).setPauseWork(true);
+		} else {
+			ImageFetcher.getInstance(getContext()).setPauseWork(false);
+		}
 	}
 }

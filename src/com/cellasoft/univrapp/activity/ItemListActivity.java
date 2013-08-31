@@ -1,28 +1,26 @@
 package com.cellasoft.univrapp.activity;
 
+import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
+import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
+
 import java.util.List;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockListActivity;
 import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
 import com.cellasoft.univrapp.Application;
-import com.cellasoft.univrapp.ConnectivityReceiver;
+import com.cellasoft.univrapp.BuildConfig;
 import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.ConnectivityReceiver;
 import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.adapter.ItemAdapter.OnItemRequestListener;
@@ -35,9 +33,7 @@ import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.utils.ActiveList;
 import com.cellasoft.univrapp.utils.AsyncTask;
-import com.cellasoft.univrapp.utils.ClosableAdView;
 import com.cellasoft.univrapp.utils.DateUtils;
-import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;
 import com.cellasoft.univrapp.utils.UIUtils;
 import com.cellasoft.univrapp.widget.ItemListView;
@@ -50,10 +46,11 @@ import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
  * @author Davide Vallicella
  * @version 1.0
  */
-@SuppressLint("NewApi")
-public class ItemListActivity extends SherlockListActivity {
 
-	private static final String TAG = ItemListActivity.class.getSimpleName();
+public class ItemListActivity extends BaseListActivity {
+
+	private static final String TAG = makeLogTag(ItemListActivity.class);
+
 	public static final String CHANNEL_ID_PARAM = "ChannelId";
 	public static final String CHANNEL_TITLE_PARAM = "ChannelTitle";
 	public static final String CHANNEL_THUMB_PARAM = "ChannelThumb";
@@ -61,13 +58,10 @@ public class ItemListActivity extends SherlockListActivity {
 	public static final String CHANNEL_LECTURER_ID_PARAM = "LecturerId";
 
 	private Channel channel;
-	private ItemListView itemListView;
-	private ClosableAdView adView;
+	private ItemListView listView;
 	private ProgressBar progressBar;
-	private ImageFetcher imageFetcher;
-	
+
 	private boolean loading = false;
-	private boolean refresh = false;
 
 	private SynchronizationListener synchronizationListener = new SynchronizationListener() {
 		public void onStart(int id) {
@@ -80,9 +74,10 @@ public class ItemListActivity extends SherlockListActivity {
 			runOnUiThread(new Runnable() {
 				public void run() {
 					if (totalNewItems > 0) {
-						if (Config.DEBUG_MODE)
-							Log.d(TAG, "Synchronization Listener, load item");
-						loadItems();
+						if (BuildConfig.DEBUG) {
+							LOGD(TAG, "Synchronization Listener, load item");
+						}
+						loadData();
 					}
 				}
 			});
@@ -97,15 +92,14 @@ public class ItemListActivity extends SherlockListActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		if (Config.DEBUG_MODE) {
-			Log.d(TAG, "onCreate()");
-			//UIUtils.enableStrictMode();
+		if (BuildConfig.DEBUG) {
+			LOGD(TAG, "onCreate()");
 		}
 		super.onCreate(savedInstanceState);
-		Application.parents.push(getClass());
-		imageFetcher = new ImageFetcher(this);
 
-		setContentView(R.layout.item_view);
+		Application.parents.push(getClass());
+
+		setContentView(R.layout.item_list);
 
 		if (getIntent().hasExtra(CHANNEL_ID_PARAM)) {
 			int channelId = getIntent().getIntExtra(CHANNEL_ID_PARAM, 0);
@@ -124,89 +118,78 @@ public class ItemListActivity extends SherlockListActivity {
 	}
 
 	@Override
-	protected void onPostCreate(Bundle savedInstanceState) {
-		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
-		super.onPostCreate(savedInstanceState);
-	}
-
-	@Override
-	protected void onStart() {
-		if (Config.DEBUG_MODE)
-			Log.d(TAG, "onStart()");
-		super.onStart();
-		loadItems();
-	}
-
-	@Override
 	protected void onResume() {
-		if (Config.DEBUG_MODE)
-			Log.d(TAG, "onResume()");
+		if (BuildConfig.DEBUG) {
+			LOGD(TAG, "onResume()");
+		}
 		super.onResume();
 		SynchronizationManager.getInstance().registerSynchronizationListener(
 				synchronizationListener);
 		onChannelUpdated();
-		showAdmodBanner();
 	}
 
 	@Override
 	protected void onPause() {
-		if (Config.DEBUG_MODE)
-			Log.d(TAG, "onPause()");
+		if (BuildConfig.DEBUG) {
+			LOGD(TAG, "onPause()");
+		}
 		super.onPause();
 		SynchronizationManager.getInstance().unregisterSynchronizationListener(
 				synchronizationListener);
 	}
 
 	@Override
-	public void onDestroy() {
-		if (Config.DEBUG_MODE)
-			Log.d(TAG, "onDestroy()");
-		super.onDestroy();
-		if (adView != null) {
-			adView.hideAd();
+	protected void onDestroy() {
+		if (BuildConfig.DEBUG) {
+			LOGD(TAG, "onDestroy()");
 		}
-		imageFetcher.closeCache();
+		super.onDestroy();
+
+		channel.clearItems();
+		listView.clean();
+		listView.clearAnimation();
+
+		channel = null;
+		progressBar = null;
+		synchronizationListener = null;
+
+		unbindDrawables(listView);
+		System.gc();
 	}
 
 	private void init() {
-		// Init GUI
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-		itemListView = (ItemListView) getListView();
+		initActionBar();
+		initListView();
+		initAnimation();
+	}
+
+	@Override
+	protected void initActionBar() {
+		try {
+			getSupportActionBar().setIcon(
+					ImageFetcher.getInstance(this).get(channel.imageUrl));
+		} catch (Exception e) {
+			getSupportActionBar().setIcon(R.drawable.user);
+		}
+
+		getSupportActionBar().setTitle(channel.title);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+	}
+
+	@Override
+	protected void initListView() {
+		listView = (ItemListView) getListView();
 		// Set a listener to be invoked when the list should be refreshed.
-		itemListView.setOnRefreshListener(new OnRefreshListener() {
+		listView.setOnRefreshListener(new OnRefreshListener() {
 			@Override
 			public void onRefresh() {
 				// Do work to refresh the list here.
 				refresh();
 			}
 		});
-
-		if (channel.imageUrl != null && channel.imageUrl.length() > 0) {
-			getSupportActionBar().setIcon(
-					new BitmapDrawable(getResources(),
-							imageLoader(channel.imageUrl)));
-		} else {
-			getSupportActionBar().setIcon(
-					Settings.getUniversity().logo_from_resource);
-		}
-
-		getSupportActionBar().setTitle(channel.title);
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-		initAnimation();
-		initBanner();
-	}
-
-	private Bitmap imageLoader(String imageUrl) {
-		if (imageUrl != null && imageUrl.length() > 0) {
-			try {
-				return imageFetcher.get(imageUrl);
-			} catch (Exception e) {
-			}
-		}
-		// default image
-		return BitmapFactory.decodeResource(getResources(), R.drawable.thumb);
+		loadData();
 	}
 
 	private void initAnimation() {
@@ -215,20 +198,7 @@ public class ItemListActivity extends SherlockListActivity {
 						R.anim.list_layout_controller);
 		controller.getAnimation().reset();
 
-		itemListView.setLayoutAnimation(controller);
-	}
-
-	private void initBanner() {
-		// Look up the AdView as a resource and load a request.
-		adView = (ClosableAdView) this.findViewById(R.id.adView);
-		adView.inizialize();
-		adView.loadAd();
-	}
-
-	private void showAdmodBanner() {
-		if (adView != null) {
-			adView.viewAd();
-		}
+		listView.setLayoutAnimation(controller);
 	}
 
 	@Override
@@ -241,12 +211,13 @@ public class ItemListActivity extends SherlockListActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu) {
+		new MenuInflater(this).inflate(R.menu.item_menu, menu);
 
-		getSupportMenuInflater().inflate(R.menu.item_menu, menu);
 		if (channel.url.equals(Settings.getUniversity().url)) {
 			menu.findItem(R.id.menu_contact).setVisible(false);
 		}
-		return true;
+
+		return (super.onCreateOptionsMenu(menu));
 	}
 
 	@Override
@@ -287,8 +258,10 @@ public class ItemListActivity extends SherlockListActivity {
 
 	private void onChannelUpdated() {
 		String lastUpdate = getResources().getString(
-				R.string.last_update_notification).replace("{date}",
-				DateUtils.formatTimeMillis(channel.updateTime));
+				R.string.last_update_notification).replace(
+				"{date}",
+				DateUtils.formatTimeMillis(getApplicationContext(),
+						channel.updateTime));
 		getSupportActionBar().setSubtitle(lastUpdate);
 
 	}
@@ -306,14 +279,13 @@ public class ItemListActivity extends SherlockListActivity {
 				if (newItems != null && newItems.size() > 0) {
 					new Runnable() {
 						public void run() {
-							itemListView.addItems(newItems);
-							itemListView.startLayoutAnimation();
+							listView.addItems(newItems);
 						}
 					}.run();
 
 					size = String.valueOf(newItems.size());
 				}
-				itemListView.onRefreshComplete();
+				listView.onRefreshComplete();
 				onChannelUpdated();
 				String message = getResources().getString(
 						R.string.new_items_notification).replace("{total}",
@@ -324,7 +296,7 @@ public class ItemListActivity extends SherlockListActivity {
 
 			@Override
 			protected void handleError(Context context, Exception e) {
-				itemListView.onRefreshComplete();
+				listView.onRefreshComplete();
 				String message = getResources().getString(
 						R.string.not_load_notification);
 				Toast.makeText(context, message + "\n" + e.getMessage(),
@@ -352,25 +324,26 @@ public class ItemListActivity extends SherlockListActivity {
 			task.execute((Void[]) null);
 	}
 
-	private void loadItems() {
+	@Override
+	protected void loadData() {
 		BetterAsyncTask<Void, Void, ActiveList<Item>> task = new BetterAsyncTask<Void, Void, ActiveList<Item>>(
 				this) {
 
 			@Override
 			protected void before(Context context) {
-				itemListView.clean();
+				listView.clean();
 			}
 
 			protected void after(Context context, final ActiveList<Item> items) {
-
-				itemListView.setItemRequestListener(onItemRequestListener);
-				itemListView.setItems(items);
-				itemListView.startLayoutAnimation();
+				listView.setItemRequestListener(onItemRequestListener);
+				listView.setItems(items);
+				listView.startLayoutAnimation();
 
 				if (items.size() == Config.MAX_ITEMS)
-					itemListView.addFooterView();
+					listView.addFooterView();
 				else
-					itemListView.removeFooterView();
+					listView.removeFooterView();
+
 				onChannelUpdated();
 			}
 
@@ -413,14 +386,14 @@ public class ItemListActivity extends SherlockListActivity {
 		BetterAsyncTask<Void, Void, List<Item>> loadMoreItemsTask = new BetterAsyncTask<Void, Void, List<Item>>(
 				this) {
 			protected void after(Context context, final List<Item> items) {
-				itemListView.addItems(items);
+				listView.addItems(items);
 
 				if (items.size() < Config.MAX_ITEMS
-						|| itemListView.getCount() >= Settings
+						|| listView.getCount() >= Settings
 								.getMaxItemsForChannel()) {
 
-					itemListView.removeFooterView();
-					itemListView.setItemRequestListener(null);
+					listView.removeFooterView();
+					listView.setItemRequestListener(null);
 				}
 
 				loading = false;
@@ -484,7 +457,7 @@ public class ItemListActivity extends SherlockListActivity {
 		new AsyncTask<Void, Void, Void>() {
 
 			protected void onPostExecute(Void result) {
-				loadItems();
+				loadData();
 			};
 
 			@Override
@@ -559,15 +532,15 @@ public class ItemListActivity extends SherlockListActivity {
 
 			protected void onPreExecute() {
 				progressBar.setVisibility(View.VISIBLE);
-				itemListView.setEnabled(false);
-				itemListView.setClickable(false);
+				listView.setEnabled(false);
+				listView.setClickable(false);
 			};
 
 			protected void onPostExecute(Integer delettedItems) {
 				progressBar.setVisibility(View.GONE);
-				itemListView.setEnabled(true);
-				itemListView.setClickable(true);
-				itemListView.clean();
+				listView.setEnabled(true);
+				listView.setClickable(true);
+				listView.clean();
 				Toast.makeText(
 						ItemListActivity.this,
 						getResources().getString(R.string.clean).replace(

@@ -23,14 +23,14 @@
                 android:background="@drawable/image"
                 android:padding="3dip" >
 
-                <ImageView
+                <com.cellasoft.univrapp.utils.RecyclingImageView
                     android:id="@+id/contact_image"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:adjustViewBounds="true"
                     android:contentDescription="@string/desc"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/thumb" />
+                    android:scaleType="fitXY"
+                    android:src="@drawable/user" />
             </LinearLayout>
 
             <LinearLayout
@@ -71,7 +71,7 @@
             android:singleLine="true"
             android:text="@string/contact_header"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/abs__primary_text_holo_light"
+            android:textColor="@color/blue"
             android:textSize="13sp"
             android:textStyle="bold" />
 
@@ -294,7 +294,7 @@
             android:singleLine="true"
             android:text="@string/info_header"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/abs__primary_text_holo_light"
+            android:textColor="@color/blue"
             android:textSize="13sp"
             android:textStyle="bold" />
 

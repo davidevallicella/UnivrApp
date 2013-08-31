@@ -16,7 +16,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.cellasoft.univrapp.Application;
-import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.BuildConfig;
 import com.cellasoft.univrapp.criteria.ItemCriteria;
 import com.cellasoft.univrapp.loader.ChannelLoader;
 import com.cellasoft.univrapp.loader.FullChannelLoader;
@@ -38,6 +38,8 @@ import com.cellasoft.univrapp.model.Lecturer.Lecturers;
 import com.cellasoft.univrapp.provider.DatabaseHelper;
 import com.cellasoft.univrapp.provider.Provider;
 import com.cellasoft.univrapp.utils.ActiveList;
+import com.cellasoft.univrapp.utils.Lists;
+import com.cellasoft.univrapp.widget.ContactItemInterface;
 
 public class ContentManager {
 
@@ -91,12 +93,13 @@ public class ContentManager {
 
 		if (!existLecturer(lecturer)) {
 			cr.insert(Lecturers.CONTENT_URI, values);
+			return true;
 		} else {
 			cr.update(Lecturers.CONTENT_URI, values, Provider.WHERE_ID,
 					new String[] { String.valueOf(lecturer.id) });
 		}
 
-		return true;
+		return false;
 	}
 
 	public static void subscribe(Channel channel) {
@@ -183,10 +186,10 @@ public class ContentManager {
 							String.valueOf(lastPubDate),
 							String.valueOf(lastPubDate), String.valueOf(id) });
 
-			if (Config.DEBUG_MODE)
+			if (BuildConfig.DEBUG)
 				Log.d("DEBUG", "Number of deleted items: " + deletedItems);
 		} else {
-			if (Config.DEBUG_MODE)
+			if (BuildConfig.DEBUG)
 				Log.d("DEBUG", "No item to be deleted");
 			cursor.close();
 		}
@@ -239,7 +242,7 @@ public class ContentManager {
 		Cursor cursor = cr.query(criteria.getContentUri(),
 				loader.getProjection(), criteria.getSelection(),
 				criteria.getSelectionArgs(), criteria.getOrderBy());
-		List<Item> items = new ArrayList<Item>();
+		List<Item> items = Lists.newArrayList();
 		items.clear();
 		while (cursor.moveToNext()) {
 			Item item = loader.load(cursor);
@@ -307,10 +310,11 @@ public class ContentManager {
 		return lecturers;
 	}
 
-	public static ArrayList<Lecturer> loadAllLecturers(LecturerLoader loader) {
-		Cursor cursor = cr.query(Channels.CONTENT_URI, loader.getProjection(),
+	public static List<ContactItemInterface> loadAllLecturers(
+			LecturerLoader loader) {
+		Cursor cursor = cr.query(Lecturers.CONTENT_URI, loader.getProjection(),
 				null, null, null);
-		ArrayList<Lecturer> lecturers = new ActiveList<Lecturer>();
+		List<ContactItemInterface> lecturers = Lists.newArrayList();
 		while (cursor.moveToNext()) {
 			Lecturer lecturer = loader.load(cursor);
 			lecturers.add(lecturer);
@@ -354,7 +358,7 @@ public class ContentManager {
 				+ "=?", new String[] { String.valueOf(status) },
 				Images.UPDATE_TIME + " DESC, " + Images.RETRIES + " ASC, "
 						+ Images.ID);
-		ArrayList<Image> images = new ArrayList<Image>();
+		ArrayList<Image> images = Lists.newArrayList();
 		while (cursor.moveToNext()) {
 			Image image = new Image(cursor.getInt(0), cursor.getString(1),
 					(byte) cursor.getInt(2));
@@ -395,7 +399,7 @@ public class ContentManager {
 			totalImages = cursor.getInt(0);
 		}
 		cursor.close();
-		ArrayList<Integer> images = new ArrayList<Integer>();
+		ArrayList<Integer> images = Lists.newArrayList();
 		if (totalImages - keepMaxItems > 0) {
 			cursor = cr.query(Images.limit(totalImages - keepMaxItems),
 					new String[] { Images.ID }, null, null, Images.ID + " ASC");

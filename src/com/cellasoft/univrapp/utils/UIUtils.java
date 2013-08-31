@@ -17,6 +17,7 @@
 package com.cellasoft.univrapp.utils;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
@@ -28,29 +29,32 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
 import android.text.Html;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
+import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.cellasoft.univrapp.Application;
-import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.BuildConfig;
+import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.activity.AboutScreen;
 import com.cellasoft.univrapp.activity.ChannelListActivity;
 import com.cellasoft.univrapp.activity.ChooseMainFeedActivity;
 import com.cellasoft.univrapp.activity.ContactActivity;
+import com.cellasoft.univrapp.activity.ContactListActivity;
 import com.cellasoft.univrapp.activity.DisPlayWebPageActivity;
 import com.cellasoft.univrapp.activity.ItemListActivity;
 import com.cellasoft.univrapp.activity.SettingsActivity;
-import com.cellasoft.univrapp.activity.SubscribeActivity;
+import com.cellasoft.univrapp.widget.LecturerView;
 
 /**
  * An assortment of UI helpers.
  */
 public class UIUtils {
+	private static final String IMAGE_CACHE_DIR = "images";
 
 	private static final int SECOND_MILLIS = 1000;
 	private static final int MINUTE_MILLIS = 60 * SECOND_MILLIS;
@@ -116,13 +120,41 @@ public class UIUtils {
 		}
 	}
 
-	public static ImageFetcher getImageFetcher(final FragmentActivity activity) {
-		// The ImageFetcher takes care of loading remote images into our
-		// ImageView
-		ImageFetcher fetcher = new ImageFetcher(activity);
-		fetcher.addImageCache(activity);
-		return fetcher;
-	}
+//	public static void getImageFetcher(final Context context) {
+//		// Fetch screen height and width, to use as our max size when loading
+//		// images as this
+//		// activity runs full screen
+//		final DisplayMetrics displayMetrics = new DisplayMetrics();
+//		((Activity) context).getWindowManager().getDefaultDisplay()
+//				.getMetrics(displayMetrics);
+//		final int height = displayMetrics.heightPixels;
+//		final int width = displayMetrics.widthPixels;
+//
+//		// For this sample we'll use half of the longest width to resize our
+//		// images. As the
+//		// image scaling ensures the image is larger than this, we should be
+//		// left with a
+//		// resolution that is appropriate for both portrait and landscape. For
+//		// best image quality
+//		// we shouldn't divide by 2, but this will use more memory and require a
+//		// larger memory
+//		// cache.
+//		final int longest = (height > width ? height : width) / 2;
+//
+//		// The ImageFetcher takes care of loading remote images into our
+//		// ImageView
+//		ImageFetcher fetcher = ImageFetcher.getInstance();
+//		fetcher.init(context);
+//		fetcher.setImageFadeIn(true);
+//		fetcher.setImageSize(longest, longest);
+//		fetcher.setLoadingImage(R.drawable.user);
+//		ImageCache.ImageCacheParams cacheParams = new ImageCache.ImageCacheParams(
+//				context, IMAGE_CACHE_DIR);
+//		// Set memory cache to 25% of app memory
+//		cacheParams.setMemCacheSizePercent(0.25f);
+//		fetcher.addImageCache(cacheParams);
+//		return fetcher;
+//	}
 
 	// Shows whether a notification was fired for a particular session time
 	// block. In the
@@ -141,7 +173,7 @@ public class UIUtils {
 	private static final long sAppLoadTime = System.currentTimeMillis();
 
 	public static long getCurrentTime(final Context context) {
-		if (Config.DEBUG_MODE) {
+		if (BuildConfig.DEBUG) {
 			return context.getSharedPreferences("mock_data",
 					Context.MODE_PRIVATE).getLong("mock_current_time",
 					System.currentTimeMillis())
@@ -160,11 +192,10 @@ public class UIUtils {
 		}
 	}
 
-	// TODO: use <meta-data> element instead
-	private static final Class[] sPhoneActivities = new Class[] {
+	private static final Class<?>[] sPhoneActivities = new Class[] {
 			ChooseMainFeedActivity.class, ChannelListActivity.class,
-			SubscribeActivity.class, ContactActivity.class,
-			ItemListActivity.class, DisPlayWebPageActivity.class,
+			ContactActivity.class, ItemListActivity.class,
+			DisPlayWebPageActivity.class, ContactListActivity.class,
 			AboutScreen.class, SettingsActivity.class, };
 
 	public static void enableDisableActivities(final Context context) {
@@ -172,7 +203,7 @@ public class UIUtils {
 		PackageManager pm = context.getPackageManager();
 
 		// Enable/disable phone activities
-		for (Class a : sPhoneActivities) {
+		for (Class<?> a : sPhoneActivities) {
 			pm.setComponentEnabledSetting(
 					new ComponentName(context, a),
 					isHoneycombTablet ? PackageManager.COMPONENT_ENABLED_STATE_DISABLED
@@ -181,8 +212,8 @@ public class UIUtils {
 		}
 	}
 
-	public static int getScreenSize() {
-		return Application.getInstance().getResources().getConfiguration().screenLayout
+	public static int getScreenSize(Context context) {
+		return context.getResources().getConfiguration().screenLayout
 				& Configuration.SCREENLAYOUT_SIZE_MASK;
 	}
 
@@ -198,11 +229,31 @@ public class UIUtils {
 				threadPolicyBuilder.penaltyFlashScreen();
 				vmPolicyBuilder
 						.setClassInstanceLimit(ChannelListActivity.class, 1)
-						.setClassInstanceLimit(SubscribeActivity.class, 1)
+						.setClassInstanceLimit(ContactListActivity.class, 1)
+						.setClassInstanceLimit(ContactActivity.class, 1)
+						.setClassInstanceLimit(ItemListActivity.class, 1)
+						.setClassInstanceLimit(ChooseMainFeedActivity.class, 1)
+						.setClassInstanceLimit(AboutScreen.class, 1)
 						.setClassInstanceLimit(DisPlayWebPageActivity.class, 1);
 			}
 			StrictMode.setThreadPolicy(threadPolicyBuilder.build());
 			StrictMode.setVmPolicy(vmPolicyBuilder.build());
+		}
+	}
+
+	public static int getTouchAddition(Context context) {
+		final float density = context.getResources().getDisplayMetrics().density;
+		return (int) (density * LecturerView.TOUCH_ADDITION + 0.5f);
+	}
+
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public static void setHardwareAccelerated(Activity activity, View view,
+			boolean activated) {
+		if (hasHoneycomb()) {
+			activity.getWindow().setFlags(
+					WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+					WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+			view.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 		}
 	}
 
@@ -211,6 +262,12 @@ public class UIUtils {
 		if (hasHoneycomb()) {
 			view.setActivated(activated);
 		}
+	}
+
+	public static void keepScreenOn(Activity activity, boolean activated) {
+		activity.getWindow().setFlags(
+				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 	}
 
 	public static boolean hasFroyo() {

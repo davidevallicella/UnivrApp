@@ -52,7 +52,8 @@ public class GCMIntentService extends GCMBaseIntentService {
 	@Override
 	protected void onRegistered(Context context, String regId) {
 		LOGI(TAG, "Device registered: regId = " + regId);
-		ServerUtilities.register(context, Settings.getUniversity().name, regId);
+		ServerUtilities.register(context,
+				String.valueOf(Settings.getUniversity().dest), regId);
 	}
 
 	/**
@@ -64,7 +65,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 		if (GCMRegistrar.isRegisteredOnServer(context)) {
 			GCMRegistrar.setRegisteredOnServer(context, false);
-			// ServerUtilities.unregister(context, regId);
+			ServerUtilities.unregister(context, regId);
 		} else {
 			// This callback results from the call to unregister made on
 			// ServerUtilities when the registration to the server failed.
@@ -78,6 +79,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 	@Override
 	protected void onMessage(Context context, Intent intent) {
 		LOGI(TAG, "Received message");
+
 		String message = intent.getExtras().getString("announcement");
 		if (message != null) {
 			// notifies user
@@ -132,6 +134,10 @@ public class GCMIntentService extends GCMBaseIntentService {
 	 * Issues a notification to inform the user that server has sent a message.
 	 */
 	private void displayNotification(Context context, String message) {
+		if (!Settings.isEnabledNotificationUnivrApp()) {
+			return;
+		}
+
 		LOGI(TAG, "displayNotification: " + message);
 		int icon = R.drawable.ic_launcher;
 		long when = System.currentTimeMillis();

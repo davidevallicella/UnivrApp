@@ -1,204 +1,133 @@
 package com.cellasoft.univrapp.adapter;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
-import com.cellasoft.univrapp.activity.ChannelListActivity;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.utils.DateUtils;
-import com.cellasoft.univrapp.utils.ImageFetcher;
 import com.cellasoft.univrapp.utils.RecyclingImageView;
 import com.cellasoft.univrapp.widget.ChannelView;
 import com.cellasoft.univrapp.widget.OnChannelViewListener;
 
-public class ChannelAdapter extends BaseAdapter {
-
-	private static final int REFRESH_MESSAGE = 1;
-	private static final int CORNER_RADIUS = 3; // dips
-	private static final int MARGIN = 1; // dips
+public class ChannelAdapter extends BaseListAdapter<Channel> {
 
 	public static int mCornerRadius;
 	public static int mMargin;
-	private ImageFetcher imageFetcher;
 
-	public ArrayList<Channel> channels = new ArrayList<Channel>();
 	private OnChannelViewListener channelListener;
+	private int color_university;
+	private int logo_university;
 
-	private Context context;
-
-	static class ViewHolder {
-		int position;
-		ImageButton check;
-		ImageButton star;
-		RecyclingImageView thumbnail;
+	class Holder extends ViewHolder {
 		TextView title;
 		TextView updated;
 		TextView unreadCount;
 	}
 
-	Handler handler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			super.handleMessage(msg);
-			if (msg.what == REFRESH_MESSAGE) {
-				ChannelAdapter.this.notifyDataSetChanged();
+	public ChannelAdapter(Context context, int resource) {
+		super(context, resource);
+		color_university = Settings.getUniversity().color_from_resource;
+		logo_university = Settings.getUniversity().logo_from_resource;
+	}
+
+	@Override
+	protected void populateDataForRow(ViewHolder viewHolder, Channel item,
+			int position) {
+		if (viewHolder instanceof Holder) {
+			Holder holder = (Holder) viewHolder;
+
+			int unreadItems = item.countUnreadItems();
+			if (unreadItems > 0) {
+				holder.unreadCount.setText(String.valueOf(unreadItems));
+				holder.unreadCount.setVisibility(View.VISIBLE);
+			} else {
+				holder.unreadCount.setVisibility(View.GONE);
 			}
+			if (item.updating) {
+				holder.updated.setText(getContext().getResources().getString(
+						R.string.updating));
+			} else {
+				holder.updated.setText(getContext().getResources().getString(
+						R.string.updated)
+						+ " "
+						+ DateUtils.formatTimeMillis(getContext(),
+								item.updateTime));
+			}
+
+			holder.title.setText(item.title);
 		}
-	};
-
-	public ChannelAdapter(Context context) {
-		this.context = context;
-		// Use the parent activity to load the image asynchronously into the
-		// ImageView (so a single
-		// cache can be used over all pages in the ViewPager
-		if (ChannelListActivity.class.isInstance(context)) {
-			imageFetcher = ((ChannelListActivity) context).getImageFetcher();
-		}
-
-		final float density = context.getResources().getDisplayMetrics().density;
-		mCornerRadius = (int) (CORNER_RADIUS * density + 0.5f);
-		mMargin = (int) (MARGIN * density + 0.5f);
-	}
-
-	public ChannelAdapter(Context context, ArrayList<Channel> channels) {
-		this(context);
-		this.channels = channels;
-	}
-
-	@Override
-	public int getCount() {
-		return channels.size();
-	}
-
-	@Override
-	public Channel getItem(int position) {
-		return channels.get(position);
-	}
-
-	@Override
-	public long getItemId(int position) {
-		return position;
+		imageLoader(viewHolder, item.imageUrl);
 	}
 
 	@Override
 	public View getView(final int position, View convertView, ViewGroup parent) {
-		ViewHolder holder;
+		Holder holder;
 		ChannelView view;
-		Channel item = channels.get(position);
+		Channel item = new Channel(items.get(position));
 
 		switch (position) {
 		case 0:
 			RelativeLayout layout;
 			if (convertView == null || (convertView instanceof ChannelView)) {
-				layout = (RelativeLayout) View.inflate(context,
-						R.layout.university_item, null);
-				holder = new ViewHolder();
+				layout = (RelativeLayout) View.inflate(getContext(),
+						R.layout.university_list_item, null);
+				holder = new Holder();
 				holder.position = position;
 				holder.title = (TextView) layout.findViewById(R.id.univr_name);
 				holder.thumbnail = (RecyclingImageView) layout
 						.findViewById(R.id.univr_logo);
 				holder.title.setText(item.title);
-				holder.position = position;
-				holder.thumbnail
-						.setImageResource(Settings.getUniversity().logo_from_resource);
+				holder.thumbnail.setImageResource(logo_university);
 				layout.setTag(holder);
+				layout.setBackgroundResource(color_university);
 			} else {
 				layout = (RelativeLayout) convertView;
-				holder = (ViewHolder) layout.getTag();
 			}
-
-			layout.setBackgroundResource(Settings.getUniversity().color_from_resource);
 
 			return layout;
 		default:
 			if (convertView == null || !(convertView instanceof ChannelView)) {
-				view = (ChannelView) View.inflate(context,
-						R.layout.channel_item, null);
+				view = (ChannelView) View.inflate(getContext(), resource, null);
 				view.setChannelListener(channelListener);
-				holder = new ViewHolder();
+				holder = new Holder();
 				holder.position = position;
 				holder.title = (TextView) view.findViewById(R.id.channel_title);
 				holder.unreadCount = (TextView) view
 						.findViewById(R.id.channel_unreadCount);
 				holder.updated = (TextView) view
 						.findViewById(R.id.channel_updated);
-				holder.check = (ImageButton) view
-						.findViewById(R.id.channel_chek);
-				holder.star = (ImageButton) view
-						.findViewById(R.id.channel_star);
 				holder.thumbnail = (RecyclingImageView) view
 						.findViewById(R.id.channel_image);
 				view.setTag(holder);
 			} else {
 				view = (ChannelView) convertView;
-				holder = (ViewHolder) view.getTag();
+				holder = (Holder) view.getTag();
 			}
 		}
 
 		view.setItemViewSelected(item.isSelected);
 		view.setItemViewStarred(item.starred);
-		int unreadItems = item.countUnreadItems();
-		if (unreadItems > 0) {
-			holder.unreadCount.setText(String.valueOf(unreadItems));
-			holder.unreadCount.setVisibility(View.VISIBLE);
-		} else {
-			holder.unreadCount.setVisibility(View.GONE);
-		}
-		if (item.updating) {
-			holder.updated.setText(context.getResources().getString(
-					R.string.updating));
-		} else {
-			holder.updated.setText(context.getResources().getString(
-					R.string.updated)
-					+ " " + DateUtils.formatTimeMillis(item.updateTime));
-		}
-
-		holder.title.setText(item.title);
-		imageLoader(holder, item.imageUrl);
+		populateDataForRow(holder, item, position);
 
 		return view;
 	}
 
-	public void setChannels(ArrayList<Channel> channels) {
-		this.channels = channels;
-		this.notifyDataSetInvalidated();
+	public void setChannels(List<Channel> channels) {
+		super.setItems(channels);
+	}
+
+	public void addChannels(List<Channel> channels) {
+		super.addItems(channels);
 	}
 
 	public void setChannelViewlistener(OnChannelViewListener channelListener) {
 		this.channelListener = channelListener;
 	}
-
-	public void refresh() {
-		handler.sendEmptyMessage(REFRESH_MESSAGE);
-	}
-
-	private void imageLoader(ViewHolder holder, String imageUrl) {
-		if (imageUrl != null && imageUrl.length() > 0) {
-			if (!imageUrl.equals((String) holder.thumbnail.getTag())) {
-				imageFetcher.loadThumbnailImage(imageUrl, holder.thumbnail,
-						R.drawable.thumb);
-			}
-		} else if (holder.thumbnail.getTag() != null) {
-			holder.thumbnail.setTag(null);
-			// default image
-			holder.thumbnail.setImageResource(R.drawable.thumb);
-		}
-	}
-
-	public void clear() {
-		channels.clear();
-		this.notifyDataSetChanged();
-	}
-
 }

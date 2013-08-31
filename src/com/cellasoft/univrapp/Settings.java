@@ -11,13 +11,14 @@ import com.cellasoft.univrapp.model.University;
 import com.cellasoft.univrapp.model.University.Universites;
 
 public class Settings {
-	public static final String PREFS_NAME = "com.cellasoft.univrapp.activity_preferences";
+	public static final String PREFS_NAME = "com.cellasoft.univrapp_preferences";
 	public static final String AUTO_UPDATE_KEY = "auto_update";
+	public static final String NOTIFICATIONS_UNIVRAPP = "notifications_univrapp";
+	public static final String REG_ID_UNIVRAPP = "regid_univrapp";
 	public static final String UPDATE_INTERVAL_KEY = "update_interval";
 	public static final String WIFI_ONLY_KEY = "wifi_only";
 	public static final String KEEP_MAX_ITEMS_KEY = "keep_max_items";
 	public static final String MAX_ITEMS_FOR_CHANNEL_KEY = "max_items_for_channel";
-	public static final String ID_EDITORE = "a14fcb4caab6d83";
 	public static final String AD_CLICK_TIME = "ad_click_time";
 	private static Context context;
 
@@ -57,6 +58,9 @@ public class Settings {
 		editor.putBoolean(WIFI_ONLY_KEY, false);
 		editor.putLong(AD_CLICK_TIME, -25);
 
+		editor.putBoolean(NOTIFICATIONS_UNIVRAPP, true);
+		editor.putString(REG_ID_UNIVRAPP, "Not Registered");
+
 		editor.commit();
 	}
 
@@ -67,7 +71,7 @@ public class Settings {
 		editor.commit();
 	}
 
-	public static boolean hasPassed24Hour() {
+	public static boolean hasPassed24Hours() {
 		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
 		Date clickTime = new Date(prefs.getLong(AD_CLICK_TIME, 0));
 		Calendar cal = Calendar.getInstance(Locale.ITALY);
@@ -176,4 +180,29 @@ public class Settings {
 		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
 		return prefs.getBoolean("acra.enable", true);
 	}
+
+	public static boolean isEnabledNotificationUnivrApp() {
+		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+		return prefs.getBoolean(NOTIFICATIONS_UNIVRAPP, true);
+	}
+
+	public static void setNotificationUnivrApp(boolean enable) {
+		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putBoolean(NOTIFICATIONS_UNIVRAPP, enable);
+		editor.commit();
+	}
+
+	public static void setRegistrationId(String regid) {
+		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putString(REG_ID_UNIVRAPP, regid);
+		editor.commit();
+	}
+
+	public static String getRegistrationId() {
+		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+		return prefs.getString(REG_ID_UNIVRAPP, "Not Registered");
+	}
+
 }

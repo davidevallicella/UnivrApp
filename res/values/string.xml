@@ -9,6 +9,9 @@
   			<small><font size="2" face="sans">{message}</font></small>
     	]]>
     </string>
+    <string name="searchTxt">Search...</string>
+    <string name="header1title">Some Settings</string>
+    <string name="header1summary">A handful of values for you to tailor</string>
     <string name="desc"></string>
     <string name="auto_update_key">auto_update</string>
     <string name="download_images_key">download_images</string>
@@ -21,7 +24,9 @@
     <string name="info_about_me">Development by a student of \n\ Faculty Mathematical, Physical and Natural Sciences ,\n\ University of Verona 2012-2013</string>
     <string name="mark_all_read">Contrassegna tutto come letto</string>
     <string name="new_items_notification">Trovati {total} avvisi.</string>
+    <string name="new_lecturers_notification">Trovati {total} docenti.</string>
     <string name="not_load_notification">Impossibile caricare il feed.</string>
+    <string name="not_load_lecturer_notification">Impossibile caricare i docenti.</string>
     <string name="loading">Caricamento ...</string>
     <string name="save">Salva</string>
     <string name="back">Indietro</string>
@@ -90,6 +95,8 @@
     <string name="pref_notification_sound">Abilitare audio</string>
     <string name="pref_notification_vibrate">Abilitare vibrazione</string>
     <string name="pref_notification_light">Abilitare spia led</string>
+    <string name="pref_notification_univrapp">Notifiche UnivrApp</string>
+    <string name="pref_notification_univrapp_summary">Permette di ricevere notifiche da parte dello sviluppatore.</string>
     <!-- UPDATE INTERVAL -->
     <string name="minutes_15">Ogni 15 minuti</string>
     <string name="minutes_30">Ogni 30 minuti</string>

@@ -1,13 +1,11 @@
 package com.cellasoft.univrapp.activity;
 
-import static com.cellasoft.univrapp.Config.GCM_SENDER_ID;
 import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
 import static com.cellasoft.univrapp.utils.LogUtils.LOGE;
-import static com.cellasoft.univrapp.utils.LogUtils.LOGI;
 import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
 
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import android.annotation.SuppressLint;
@@ -19,28 +17,27 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import com.cellasoft.univrapp.Application;
+import com.cellasoft.univrapp.BuildConfig;
 import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
-import com.cellasoft.univrapp.gcm.ServerUtilities;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.manager.SynchronizationManager;
 import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.service.SynchronizationService;
 import com.cellasoft.univrapp.utils.AsyncTask;
-import com.cellasoft.univrapp.utils.ClosableAdView;
-import com.cellasoft.univrapp.utils.FontUtils;
+import com.cellasoft.univrapp.utils.GCMUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;
+import com.cellasoft.univrapp.utils.Lists;
 import com.cellasoft.univrapp.utils.UIUtils;
 import com.cellasoft.univrapp.widget.ChannelListView;
 import com.cellasoft.univrapp.widget.ChannelView;
@@ -50,18 +47,15 @@ import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
 import com.google.android.gcm.GCMRegistrar;
 
-public class ChannelListActivity extends SherlockListActivity {
+public class ChannelListActivity extends BaseListActivity {
 
 	private static final String TAG = makeLogTag(ChannelListActivity.class);
 
 	private static final int FIRST_TIME = 1;
 
-	private ArrayList<Channel> channels = null;
-	private ChannelListView channelListView;
-	private ClosableAdView adView;
+	private List<Channel> channels = null;
+	private ChannelListView listView;
 	private ImageFetcher imageFetcher;
-
-	private AsyncTask<Void, Void, Void> gcmRegisterTask;
 
 	private SynchronizationListener synchronizationListener = new SynchronizationListener() {
 		public void onStart(int id) {
@@ -70,7 +64,7 @@ public class ChannelListActivity extends SherlockListActivity {
 			for (Channel channel : channels) {
 				if (channel.id == id) {
 					channel.updating = true;
-					channelListView.refresh();
+					listView.refresh();
 					break;
 				}
 			}
@@ -83,7 +77,7 @@ public class ChannelListActivity extends SherlockListActivity {
 				if (channel.id == id) {
 					channel.updating = false;
 					channel.updateTime = updateTime;
-					channelListView.refresh();
+					listView.refresh();
 					break;
 				}
 			}
@@ -120,15 +114,16 @@ public class ChannelListActivity extends SherlockListActivity {
 		new AsyncTask<Boolean, Void, Void>() {
 
 			protected void onPostExecute(Void result) {
-				channelListView.refresh();
+				listView.refresh();
 			};
 
 			@Override
 			protected Void doInBackground(Boolean... isStarred) {
-				if (isStarred[0])
+				if (isStarred != null && isStarred.length > 0 && isStarred[0]) {
 					channels.get(position).markChannelToStarred();
-				else
+				} else {
 					channels.get(position).unmarkChannelToStarred();
+				}
 				return null;
 			}
 
@@ -137,33 +132,28 @@ public class ChannelListActivity extends SherlockListActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		if (Config.DEBUG_MODE) {
+		if (BuildConfig.DEBUG) {
 			LOGD(TAG, "onCreate()");
-			UIUtils.enableStrictMode();
 		}
+
 		super.onCreate(savedInstanceState);
 
 		if (isFinishing()) {
 			return;
 		}
 
-		UIUtils.enableDisableActivities(this);
+		// UIUtils.enableDisableActivities(this);
 
-		registerGCMClient();
-
-		imageFetcher = new ImageFetcher(this);
-		setContentView(R.layout.channel_view);
+		imageFetcher = ImageFetcher.getInstance(this);
+		setContentView(R.layout.channel_list);
 		init();
 	}
 
 	@Override
-	protected void onPostCreate(Bundle savedInstanceState) {
-		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
-		super.onPostCreate(savedInstanceState);
-	}
-
-	@Override
 	protected void onStart() {
+		if (BuildConfig.DEBUG) {
+			LOGD(TAG, "onStart()");
+		}
 		super.onStart();
 		Application.parents.clear();
 		loadData();
@@ -171,22 +161,23 @@ public class ChannelListActivity extends SherlockListActivity {
 
 	@Override
 	protected void onDestroy() {
-		if (gcmRegisterTask != null) {
-			gcmRegisterTask.cancel(true);
+		if (BuildConfig.DEBUG) {
+			LOGD(TAG, "onDestroy()");
 		}
-		try {
-			GCMRegistrar.onDestroy(getApplicationContext());
-		} catch (Exception e) {
-			LOGE("UnRegister Receiver Error", "> " + e.getMessage());
-		}
-
-		if (adView != null) {
-			adView.hideAd();
-		}
-
-		imageFetcher.closeCache();
-
 		super.onDestroy();
+		
+		GCMUtils.onDistroyGCMClient(this);
+
+		imageFetcher.destroy();
+		channels.clear();
+		listView.clean();
+
+		imageFetcher = null;
+		channels = null;
+		synchronizationListener = null;
+
+		unbindDrawables(listView);
+		System.gc();
 	}
 
 	@Override
@@ -196,24 +187,14 @@ public class ChannelListActivity extends SherlockListActivity {
 		SynchronizationManager.getInstance().registerSynchronizationListener(
 				synchronizationListener);
 		imageFetcher.setExitTasksEarly(false);
-		channelListView.refresh();
-		showAdmodBanner();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		imageFetcher.setPauseWork(false);
-		imageFetcher.setExitTasksEarly(true);
-		imageFetcher.flushCache();
+		imageFetcher.stop();
 		SynchronizationManager.getInstance().unregisterSynchronizationListener(
 				synchronizationListener);
-	}
-
-	private void showAdmodBanner() {
-		if (adView != null) {
-			adView.viewAd();
-		}
 	}
 
 	private void init() {
@@ -223,92 +204,21 @@ public class ChannelListActivity extends SherlockListActivity {
 		}
 
 		cancelNotification();
+
+		initActionBar();
+		initListView();
+	}
+
+	@Override
+	protected void initActionBar() {
 		getSupportActionBar().setTitle(
 				getResources().getString(R.string.channel_title));
-
-		// Init GUI
-		channelListView = (ChannelListView) getListView();
-		channelListView.setChannelViewlistener(channelListener);
-		channelListView.setOnScrollListener(new AbsListView.OnScrollListener() {
-			@Override
-			public void onScrollStateChanged(AbsListView absListView,
-					int scrollState) {
-				// Pause fetcher to ensure smoother scrolling when flinging
-				if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
-					imageFetcher.setPauseWork(true);
-				} else {
-					imageFetcher.setPauseWork(false);
-				}
-			}
-
-			@Override
-			public void onScroll(AbsListView absListView, int firstVisibleItem,
-					int visibleItemCount, int totalItemCount) {
-			}
-		});
-
-		// Add the footer before adding the adapter, else the footer will not
-		// load!
-		initBanner();
 	}
 
-	private void initBanner() {
-		// Look up the AdView as a resource and load a request.
-		adView = (ClosableAdView) this.findViewById(R.id.adView);
-		adView.inizialize();
-		adView.loadAd();
-	}
-
-	private void registerGCMClient() {
-		GCMRegistrar.checkDevice(this);
-
-		if (Config.DEBUG_MODE) {
-			GCMRegistrar.checkManifest(this);
-		}
-
-		final String regId = GCMRegistrar.getRegistrationId(this);
-
-		if (TextUtils.isEmpty(regId)) {
-			// Automatically registers application on startup.
-			GCMRegistrar.register(this, GCM_SENDER_ID);
-
-		} else {
-			// Device is already registered on GCM, check server.
-			if (GCMRegistrar.isRegisteredOnServer(this)) {
-				// Skips registration
-				LOGI(TAG, "Already registered on the GCM server");
-
-			} else {
-				// Try to register again, but not on the UI thread.
-				// It's also necessary to cancel the task in onDestroy().
-				gcmRegisterTask = new AsyncTask<Void, Void, Void>() {
-					@Override
-					protected Void doInBackground(Void... params) {
-						boolean registered = ServerUtilities.register(
-								getApplicationContext(),
-								Settings.getUniversity().name, regId);
-						if (!registered) {
-							GCMRegistrar.unregister(getApplicationContext());
-						}
-						return null;
-					}
-
-					@Override
-					protected void onPostExecute(Void result) {
-						gcmRegisterTask = null;
-					}
-				};
-				gcmRegisterTask.execute(null, null, null);
-			}
-		}
-	}
-
-	/**
-	 * Called by the ViewPager child fragments to load images via the one
-	 * ImageFetcher
-	 */
-	public ImageFetcher getImageFetcher() {
-		return imageFetcher;
+	@Override
+	protected void initListView() {
+		listView = (ChannelListView) getListView();
+		listView.setChannelViewlistener(channelListener);
 	}
 
 	private void onFirstTime() {
@@ -322,39 +232,37 @@ public class ChannelListActivity extends SherlockListActivity {
 	}
 
 	private void startServices() {
-		if (Config.DEBUG_MODE)
+		if (BuildConfig.DEBUG) {
 			LOGD(TAG, "Begin startServices " + new Date());
+		}
 		Intent service = new Intent(this, SynchronizationService.class);
 		startService(service);
 	}
 
 	private void stopServices() {
-		if (Config.DEBUG_MODE)
+		if (BuildConfig.DEBUG) {
 			LOGD(TAG, "Begin startServices " + new Date());
+		}
 		Intent service = new Intent(this, SynchronizationService.class);
 		stopService(service);
 	}
 
-	private void loadData() {
-		loadChannels();
-	}
-
-	private void loadChannels() {
+	@Override
+	protected void loadData() {
 		new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected void onPostExecute(Void result) {
-				super.onPostExecute(result);
-				channelListView.setChannels(channels);
+				listView.setChannels(channels);
 				refreshUnreadCounts();
 			}
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				channels = ContentManager
+				channels = Channel
 						.loadAllChannels(ContentManager.FULL_CHANNEL_LOADER);
 				if (channels == null || channels.isEmpty()) {
-					channels = new ArrayList<Channel>();
+					channels = Lists.newArrayList();
 				}
 				return null;
 			}
@@ -369,8 +277,13 @@ public class ChannelListActivity extends SherlockListActivity {
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(
-			com.actionbarsherlock.view.MenuItem item) {
+	public boolean onCreateOptionsMenu(Menu menu) {
+		new MenuInflater(this).inflate(R.menu.channel_menu, menu);
+		return (super.onCreateOptionsMenu(menu));
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
 
 		switch (item.getItemId()) {
 		case R.id.menu_subscribe:
@@ -395,20 +308,15 @@ public class ChannelListActivity extends SherlockListActivity {
 			showAboutScreen();
 			return true;
 		default:
-			return super.onOptionsItemSelected(item);
+			return (super.onOptionsItemSelected(item));
 		}
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(com.actionbarsherlock.view.Menu menu) {
-		getSupportMenuInflater().inflate(R.menu.channel_menu, menu);
-		return true;
 	}
 
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == FIRST_TIME) {
 			if (resultCode == RESULT_OK) {
 				saveFirstTime();
+				GCMUtils.doRegister(this);
 			}
 			if (resultCode == RESULT_CANCELED) {
 				finish();
@@ -436,7 +344,7 @@ public class ChannelListActivity extends SherlockListActivity {
 		for (int i = 1; i < channels.size(); i++) {
 			channels.get(i).isSelected = true;
 		}
-		channelListView.refresh();
+		listView.refresh();
 	}
 
 	private void showAboutScreen() {
@@ -450,7 +358,7 @@ public class ChannelListActivity extends SherlockListActivity {
 	}
 
 	private void showSubscriptions() {
-		Intent intent = new Intent(this, SubscribeActivity.class);
+		Intent intent = new Intent(this, ContactListActivity.class);
 		startActivity(intent);
 	}
 
@@ -572,7 +480,6 @@ public class ChannelListActivity extends SherlockListActivity {
 
 			@Override
 			protected void onPreExecute() {
-				super.onPreExecute();
 				progressDialog = new ProgressDialog(ChannelListActivity.this);
 				progressDialog.setMessage(getResources().getString(
 						R.string.unsub_channel_dialog2));
@@ -582,7 +489,6 @@ public class ChannelListActivity extends SherlockListActivity {
 			@SuppressLint("ShowToast")
 			@Override
 			protected void onPostExecute(Void result) {
-				super.onPostExecute(result);
 				progressDialog.dismiss();
 
 				String message = getResources().getString(R.string.success);
@@ -610,36 +516,39 @@ public class ChannelListActivity extends SherlockListActivity {
 
 			@Override
 			protected void onPreExecute() {
-				super.onPreExecute();
 				progressDialog = new ProgressDialog(ChannelListActivity.this);
 				progressDialog.setMessage("Reset");
+				progressDialog.setCancelable(false);
 				progressDialog.show();
 			}
 
 			@SuppressLint("ShowToast")
 			@Override
 			protected void onPostExecute(Void result) {
-				super.onPostExecute(result);
 				progressDialog.dismiss();
 
-				channels.clear();
-				channelListView.setChannels(channels);
+				listView.setChannels(channels);
 
 				String message = getResources().getString(R.string.success);
 				Toast.makeText(ChannelListActivity.this, message, 1000).show();
 
 				startServices();
+
+				System.gc();
 				onFirstTime();
 			}
 
 			@Override
 			protected Void doInBackground(Void... params) {
+				Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+
 				stopServices();
 				cancelNotification();
 
 				for (Channel channel : channels) {
 					channel.delete();
 				}
+				channels.clear();
 
 				ContentManager.deleteAllLecturers();
 				ContentManager.deleteAllImages();
@@ -647,6 +556,9 @@ public class ChannelListActivity extends SherlockListActivity {
 
 				Settings.setFirstTime(true);
 
+				GCMRegistrar.unregister(getApplicationContext());
+
+				Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
 				return null;
 			}
 		}.execute((Void[]) null);
@@ -658,11 +570,10 @@ public class ChannelListActivity extends SherlockListActivity {
 
 			@Override
 			protected void after(Context arg0, Void arg1) {
-				channelListView.refresh();
+				listView.refresh();
 			}
 
 			protected void handleError(Context context, Exception e) {
-				e.printStackTrace();
 				String message = getResources().getString(
 						R.string.not_load_notification);
 				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
@@ -683,11 +594,11 @@ public class ChannelListActivity extends SherlockListActivity {
 							channel.setUnreadItems(0);
 						}
 					} catch (Exception e) {
-						e.printStackTrace();
 						LOGE(TAG, e.getMessage());
 					}
 				}
-
+				unreadCounts.clear();
+				unreadCounts = null;
 				return null;
 			}
 		});
@@ -695,8 +606,9 @@ public class ChannelListActivity extends SherlockListActivity {
 		if (UIUtils.hasHoneycomb()) {
 			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
 					(Void[]) null);
-		} else
+		} else {
 			task.execute((Void[]) null);
+		}
 	}
 
 	private void refreshAllChannels() {
@@ -704,7 +616,6 @@ public class ChannelListActivity extends SherlockListActivity {
 				this) {
 
 			protected void handleError(Context context, Exception e) {
-				e.printStackTrace();
 				String message = getResources().getString(
 						R.string.not_load_notification);
 				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();

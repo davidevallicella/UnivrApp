@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.os.IBinder;
 
 import com.cellasoft.univrapp.Application;
+import com.cellasoft.univrapp.BuildConfig;
 import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
@@ -30,7 +31,7 @@ public class SynchronizationService extends BetterService {
 
 	@Override
 	public void onStart(Intent intent, int startId) {
-		if (Config.DEBUG_MODE)
+		if (BuildConfig.DEBUG)
 			LOGD(TAG, "Start Synchronization Service..");
 		super.onStart(intent, startId);
 		new Thread(new Runnable() {
@@ -42,14 +43,14 @@ public class SynchronizationService extends BetterService {
 
 	@Override
 	public void onDestroy() {
-		if (Config.DEBUG_MODE)
+		if (BuildConfig.DEBUG)
 			LOGD(TAG, "Destroy Synchronization Service!");
 		super.onDestroy();
 	}
 
 	@Override
 	public void onLowMemory() {
-		if (Config.DEBUG_MODE)
+		if (BuildConfig.DEBUG)
 			LOGD(TAG, "LowMemory Synchronization Service!");
 		super.onLowMemory();
 		SynchronizationManager.getInstance().stopSynchronizing();

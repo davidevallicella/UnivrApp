@@ -1,70 +1,60 @@
 package com.cellasoft.univrapp.adapter;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.model.University;
 
-public class UniversitylAdapter extends BaseAdapter {
+public class UniversitylAdapter extends BaseListAdapter<University> {
 
-	private ArrayList<University> universites;
-
-	private Context context;
-
-	static class ViewHolder {
-		ImageView logo;
+	class Holder extends ViewHolder {
 		TextView name;
 	}
 
-	public UniversitylAdapter(Context context) {
-		this.context = context;
-		this.universites = University.getAllUniversity();
+	public UniversitylAdapter(Context context, int resource) {
+		super(context, resource);
+		this.items = University.getAllUniversity();
 	}
 
-	public int getCount() {
-		return universites.size();
+	@Override
+	protected void populateDataForRow(ViewHolder viewHolder,
+			University university, int position) {
+		if (viewHolder instanceof Holder) {
+			Holder holder = (Holder) viewHolder;
+			holder.thumbnail.setImageResource(university.logo_from_resource);
+			holder.name.setText(university.name);
+		}
 	}
 
-	public University getItem(int position) {
-		return universites.get(position);
-	}
-
-	public long getItemId(int position) {
-		return position;
-	}
-
+	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		ViewHolder holder;
-		University university = universites.get(position);
+		Holder holder;
+		University university = new University(items.get(position));
 
 		if (convertView == null) {
-			convertView = View.inflate(context, R.layout.university_item, null);
-			holder = new ViewHolder();
-			holder.logo = (ImageView) convertView.findViewById(R.id.univr_logo);
+			convertView = View.inflate(getContext(), resource, null);
+			holder = new Holder();
+			holder.thumbnail = (ImageView) convertView
+					.findViewById(R.id.univr_logo);
 			holder.name = (TextView) convertView.findViewById(R.id.univr_name);
 			convertView.setTag(holder);
-		} else
-			holder = (ViewHolder) convertView.getTag();
+		} else {
+			holder = (Holder) convertView.getTag();
+		}
 
-		holder.logo.setImageResource(university.logo_from_resource);
-		holder.name.setText(university.name);
+		populateDataForRow(holder, university, position);
 		convertView.setBackgroundResource(university.color_from_resource);
+
 		return convertView;
 	}
 
-	public void setUniversites(ArrayList<University> universites) {
-		this.universites = universites;
-		notifyDataSetChanged();
-	}
-
-	public void refresh() {
-		notifyDataSetChanged();
+	public void setUniversites(List<University> universites) {
+		super.setItems(universites);
 	}
 }

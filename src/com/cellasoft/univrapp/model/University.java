@@ -1,18 +1,21 @@
 package com.cellasoft.univrapp.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.cellasoft.univrapp.R;
-
-import android.provider.BaseColumns;
+import com.cellasoft.univrapp.UnivrReaderFactory;
+import com.cellasoft.univrapp.reader.UnivrReader;
+import com.cellasoft.univrapp.utils.LecturersHandler;
+import com.cellasoft.univrapp.utils.Lists;
+import com.cellasoft.univrapp.widget.ContactItemInterface;
 
 public class University {
 
-	private static final String UNIVRAPP_URL = "http://wscunivrapp.cellasoft.cloudbees.net/";
-	public String GET_LECTURERS_LIST_URL = UNIVRAPP_URL
-			+ "json/lecturerService/lecturers?dest=";
+	private transient List<ContactItemInterface> lecturers;
+	private Object synRoot = new Object();
+	public boolean updating = false;
 
 	public String name;
 	public String url;
@@ -32,7 +35,15 @@ public class University {
 		this.url = Universites.URL.get(name);
 		this.logo_from_resource = Universites.LOGO.get(name);
 		this.color_from_resource = Universites.COLOR.get(name);
-		GET_LECTURERS_LIST_URL += dest;
+	}
+
+	public University(University university) {
+		this.name = university.name;
+		this.dest = university.dest;
+		this.domain = university.domain;
+		this.url = university.url;
+		this.logo_from_resource = university.logo_from_resource;
+		this.color_from_resource = university.color_from_resource;
 	}
 
 	public String getDomain() {
@@ -83,6 +94,89 @@ public class University {
 		this.color_from_resource = color_from_resource;
 	}
 
+	public List<ContactItemInterface> getLecturers() {
+		synchronized (synRoot) {
+			if (lecturers == null) {
+				lecturers = Lists.newArrayList();
+			}
+			return lecturers;
+		}
+	}
+
+	public boolean addItem(ContactItemInterface lecturer) {
+		synchronized (synRoot) {
+			List<ContactItemInterface> lecturers = this.getLecturers();
+			if (lecturers.indexOf(lecturer) < 0) {
+				lecturers.add(lecturer);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public void clearLecturers() {
+		getLecturers().clear();
+	}
+
+	public List<ContactItemInterface> setLecturers(
+			List<ContactItemInterface> lecturers) {
+		synchronized (synRoot) {
+			this.lecturers = lecturers;
+			return this.lecturers;
+		}
+	}
+
+	public List<ContactItemInterface> update() {
+		synchronized (synRoot) {
+			if (updating)
+				return null;
+			updating = true;
+		}
+
+		updateLecturers();
+
+		List<ContactItemInterface> newItems = saveLecturers();
+
+		synchronized (synRoot) {
+			updating = false;
+		}
+
+		return newItems;
+	}
+
+	private void updateLecturers() {
+		try {
+			UnivrReader reader = UnivrReaderFactory.getUnivrReader();
+
+			List<ContactItemInterface> lecturers = reader.executeGetJSON(this,
+					new LecturersHandler());
+
+			for (ContactItemInterface lecturer : lecturers) {
+				this.addItem(lecturer);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			// LOGE("ERROR", e.getMessage());
+		}
+	}
+
+	private List<ContactItemInterface> saveLecturers() {
+		List<ContactItemInterface> newItems = Lists.newArrayList();
+		if (lecturers != null && !lecturers.isEmpty()) {
+
+			for (ContactItemInterface lecturer : lecturers) {
+				if (((Lecturer) lecturer).save()) {
+					newItems.add(lecturer);
+				}
+			}
+
+		}
+
+		return newItems;
+	}
+
 	public static University getUniversityByDest(int dest) {
 		University university = null;
 
@@ -116,8 +210,8 @@ public class University {
 		return university;
 	}
 
-	public static ArrayList<University> getAllUniversity() {
-		ArrayList<University> universities = new ArrayList<University>();
+	public static List<University> getAllUniversity() {
+		List<University> universities = Lists.newArrayList();
 		universities.add(getUniversityByDest(Universites.DEST_ECONOMIA));
 		universities.add(getUniversityByDest(Universites.DEST_GIURISPRUDENZA));
 		universities
@@ -131,7 +225,7 @@ public class University {
 		return universities;
 	}
 
-	public static final class Universites implements BaseColumns {
+	public static final class Universites {
 		// Univeristes RSS post data
 		public static final String RSS_POST_DATA = "/fol/main?ent=avviso&rss=1&dest=";
 		// Universites name

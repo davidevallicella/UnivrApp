@@ -43,7 +43,8 @@ public class RecyclingImageView extends ImageView {
 	protected void onDetachedFromWindow() {
 		// This has been detached from Window, so clear the drawable
 		setImageDrawable(null);
-
+        // also clear out the tag so we can reload the image if necessary.
+        setTag(null);
 		super.onDetachedFromWindow();
 	}
 
@@ -84,5 +85,11 @@ public class RecyclingImageView extends ImageView {
 			}
 		}
 	}
+	
+	@Override
+    protected void drawableStateChanged() {
+        super.drawableStateChanged();
+        invalidate();
+    }
 
 }

@@ -13,14 +13,15 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.FontUtils;
+import com.cellasoft.univrapp.utils.UIUtils;
 import com.paypal.android.MEP.CheckoutButton;
 import com.paypal.android.MEP.PayPal;
 import com.paypal.android.MEP.PayPalActivity;
@@ -30,11 +31,9 @@ public class AboutScreen extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-				WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.about);
-		setProgressBarIndeterminateVisibility(true);
+
 		init();
 	}
 
@@ -45,6 +44,9 @@ public class AboutScreen extends Activity {
 	}
 
 	private void init() {
+		UIUtils.keepScreenOn(this, true);
+		setProgressBarIndeterminateVisibility(true);
+
 		AsyncTask<Void, Void, Void> loadPayPalTask = new AsyncTask<Void, Void, Void>() {
 
 			@Override
@@ -52,7 +54,7 @@ public class AboutScreen extends Activity {
 				Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 				final Vibrator vib = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
-				findViewById(R.id.contact_email_action).setOnTouchListener(
+				findViewById(R.id.about_email_action).setOnTouchListener(
 						new OnTouchListener() {
 
 							@Override
@@ -65,10 +67,8 @@ public class AboutScreen extends Activity {
 													R.anim.image_click));
 									Intent email_intent = new Intent(
 											Intent.ACTION_SENDTO,
-											Uri.fromParts(
-													"mailto",
-													"vallicella.davide@gmail.com",
-													null));
+											Uri.fromParts("mailto",
+													Config.SUPPORT_EMAIL, null));
 									startActivity(Intent.createChooser(
 											email_intent, "Send email..."));
 									return true;
@@ -78,7 +78,7 @@ public class AboutScreen extends Activity {
 						});
 
 				PayPal pp = PayPal.initWithAppID(AboutScreen.this,
-						"APP-02V829382W416122M", PayPal.ENV_LIVE);
+						Config.PAYPAL_APP_ID, PayPal.ENV_LIVE);
 
 				final CheckoutButton launchSimplePayment = pp
 						.getCheckoutButton(AboutScreen.this,
@@ -95,7 +95,7 @@ public class AboutScreen extends Activity {
 
 						payment.setCurrencyType("EUR");
 
-						payment.setRecipient("vallicella.davide@gmail.com");
+						payment.setRecipient(Config.PAYPAL_EMAIL);
 
 						payment.setPaymentType(PayPal.PAYMENT_TYPE_GOODS);
 
@@ -127,7 +127,8 @@ public class AboutScreen extends Activity {
 		switch (resultCode) {
 		case Activity.RESULT_OK:
 			// Il pagamento è stato effettuato
-			String payKey = data.getStringExtra(PayPalActivity.EXTRA_PAY_KEY);
+			// String payKey =
+			// data.getStringExtra(PayPalActivity.EXTRA_PAY_KEY);
 			Toast.makeText(this, ";) thanks for the contribution",
 					Toast.LENGTH_SHORT).show();
 			break;

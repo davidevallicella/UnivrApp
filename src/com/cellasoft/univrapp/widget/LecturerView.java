@@ -2,8 +2,6 @@ package com.cellasoft.univrapp.widget;
 
 import java.util.ArrayList;
 
-import com.cellasoft.univrapp.R;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -19,9 +17,13 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.cellasoft.univrapp.R;
+import com.cellasoft.univrapp.utils.Lists;
+import com.cellasoft.univrapp.utils.UIUtils;
+
 public class LecturerView extends LinearLayout {
 
-	private static int TOUCH_ADDITION = 90;
+	public static int TOUCH_ADDITION = 90;
 	private static final int COLOR_SELECT_AREA = Color.TRANSPARENT;
 
 	private static class TouchDelegateRecord {
@@ -34,7 +36,7 @@ public class LecturerView extends LinearLayout {
 		}
 	}
 
-	private final ArrayList<TouchDelegateRecord> mTouchDelegateRecords = new ArrayList<LecturerView.TouchDelegateRecord>();
+	private final ArrayList<TouchDelegateRecord> mTouchDelegateRecords = Lists.newArrayList();
 	private final Paint mPaint = new Paint();
 
 	private ImageButton mSelectButton;
@@ -69,8 +71,7 @@ public class LecturerView extends LinearLayout {
 		mTouchDelegateGroup = new TouchDelegateGroup(this);
 		mPaint.setStyle(Style.FILL);
 
-		final float density = context.getResources().getDisplayMetrics().density;
-		mTouchAddition = (int) (density * TOUCH_ADDITION + 0.5f);
+		mTouchAddition = UIUtils.getTouchAddition(context);
 
 		LayoutInflater.from(context).inflate(R.layout.lecturer, this);
 

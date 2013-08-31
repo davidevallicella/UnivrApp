@@ -3,10 +3,7 @@ package com.cellasoft.univrapp;
 import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
 import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
-
-import org.apache.http.HttpStatus;
+import java.io.IOException;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,6 +11,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.cellasoft.univrapp.service.SynchronizationService;
 
@@ -30,12 +28,12 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 				.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 		if (hasGoodEnoughNetworkConnection(info, context)) {
 			// should start background service to update
-			if (Config.DEBUG_MODE)
+			if (BuildConfig.DEBUG)
 				LOGD(TAG,
 						"Have WIFI or 3G connection, start background services...");
 			context.startService(updatingService);
 		} else {
-			if (Config.DEBUG_MODE)
+			if (BuildConfig.DEBUG)
 				LOGD(TAG,
 						"No WIFI or 3G connection, stop background services...");
 			context.stopService(updatingService);
@@ -82,21 +80,41 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 	}
 
 	public static boolean isOnline() {
-		HttpURLConnection urlc = null;
-		int statusCode = HttpStatus.SC_NO_CONTENT;
 		try {
-			URL url = new URL("http://www.google.com");
-			urlc = (HttpURLConnection) url.openConnection();
-			urlc.setConnectTimeout(3000);
-			urlc.connect();
-			statusCode = urlc.getResponseCode();
-			urlc.getOutputStream().close();
+			int r = pingHost("8.8.8.8", 0);
+			if (r == 0) {
+				return true;
+			}
 		} catch (Exception e) {
-		} finally {
-			urlc.disconnect();
+			return false;
 		}
 
-		return statusCode == HttpStatus.SC_OK;
+		return false;
+	}
+
+	/**
+	 * Ping a host and return an int value of 0 or 1 or 2 0=success, 1=fail,
+	 * 2=error
+	 * 
+	 * Does not work in Android emulator and also delay by '1' second if host
+	 * not pingable In the Android emulator only ping to 127.0.0.1 works
+	 * 
+	 * @param String
+	 *            host in dotted IP address format
+	 * @return
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static int pingHost(String host, int timeout) throws IOException,
+			InterruptedException {
+		Runtime runtime = Runtime.getRuntime();
+		timeout /= 1000;
+		String cmd = "/system/bin/ping -c 1 -W " + timeout + " " + host;
+		Process proc = runtime.exec(cmd);
+		Log.d(TAG, cmd);
+		proc.waitFor();
+		int exit = proc.exitValue();
+		return exit;
 	}
 
 	/**

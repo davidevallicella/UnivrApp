@@ -23,11 +23,11 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
 
-import com.cellasoft.univrapp.model.Lecturer;
+import com.cellasoft.univrapp.widget.ContactItemInterface;
 
 /**
  * An abstract object that is in charge of parsing JSON data with a given, known
@@ -35,13 +35,8 @@ import com.cellasoft.univrapp.model.Lecturer;
  * etc.) representing the data.
  */
 public abstract class JSONHandler {
-	protected static Context mContext;
 
-	protected JSONHandler(Context context) {
-		mContext = context;
-	}
-
-	public abstract ArrayList<Lecturer> parse(String json)
+	public abstract List<ContactItemInterface> parse(String json)
 			throws IOException;
 
 	/**
@@ -61,7 +56,7 @@ public abstract class JSONHandler {
 				writer.write(buffer, 0, n);
 			}
 		} finally {
-			is.close();
+			StreamUtils.closeQuietly(is);
 		}
 
 		return writer.toString();

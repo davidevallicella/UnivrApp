@@ -23,7 +23,7 @@
             android:typeface="serif" />
 
         <TextView
-            android:id="@+id/contact_title"
+            android:id="@+id/about_title"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
@@ -39,14 +39,14 @@
             android:textStyle="bold" />
 
         <LinearLayout
-            android:id="@+id/contact_thumbnail"
+            android:id="@+id/about_thumbnail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/image"
             android:padding="3dip" >
 
             <ImageView
-                android:id="@+id/contact_image"
+                android:id="@+id/about_image"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:contentDescription="@string/desc"
@@ -64,14 +64,14 @@
         android:singleLine="true"
         android:text="@string/contact_header"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/abs__primary_text_holo_light"
+        android:textColor="@color/blue"
         android:textSize="13sp"
         android:textStyle="bold" />
 
     <View style="@style/HeaderDivider" />
 
     <LinearLayout
-        android:id="@+id/contact_mail_row_view"
+        android:id="@+id/about_mail_row_view"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:orientation="vertical" >
@@ -97,7 +97,7 @@
             android:paddingLeft="5dp" >
 
             <TextView
-                android:id="@+id/contact_email"
+                android:id="@+id/about_email"
                 android:layout_width="wrap_content"
                 android:layout_height="35dp"
                 android:layout_alignBottom="@+id/email"
@@ -130,7 +130,7 @@
                 android:padding="3dp" >
 
                 <ImageView
-                    android:id="@+id/contact_email_action"
+                    android:id="@+id/about_email_action"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:clickable="true"
@@ -151,7 +151,7 @@
         android:singleLine="true"
         android:text="Offrimi un caffè"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/abs__primary_text_holo_light"
+        android:textColor="@color/blue"
         android:textSize="13sp"
         android:textStyle="bold" />
 

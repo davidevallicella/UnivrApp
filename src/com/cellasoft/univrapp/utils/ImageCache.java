@@ -21,6 +21,8 @@ import static com.cellasoft.univrapp.utils.LogUtils.LOGE;
 import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,6 +38,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StatFs;
@@ -43,7 +46,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.util.LruCache;
 
-import com.cellasoft.univrapp.utils.ImageCache.ImageCacheParams;
+import com.cellasoft.univrapp.BuildConfig;
 
 /**
  * This class handles disk and memory caching of bitmaps in conjunction with the
@@ -77,7 +80,7 @@ public class ImageCache {
 	private static final boolean DEFAULT_INIT_DISK_CACHE_ON_CREATE = false;
 
 	private DiskLruCache mDiskLruCache;
-	private LruCache<String, Bitmap> memoryCache;
+	private LruCache<String, BitmapDrawable> memoryCache;
 	private ImageCacheParams mCacheParams;
 	private final Object mDiskCacheLock = new Object();
 	private boolean mDiskCacheStarting = true;
@@ -95,16 +98,6 @@ public class ImageCache {
 	}
 
 	/**
-	 * Creating a new ImageCache object using the default parameters.
-	 * 
-	 * @param context
-	 *            The context to use
-	 */
-	public ImageCache(Context context) {
-		init(new ImageCacheParams(context));
-	}
-
-	/**
 	 * Find and return an existing ImageCache stored in a {@link RetainFragment}
 	 * , if not found a new one is created using the supplied params and saved
 	 * to a {@link RetainFragment}.
@@ -117,20 +110,20 @@ public class ImageCache {
 	 * @return An existing retained ImageCache object or a new one if one did
 	 *         not exist
 	 */
-	public static ImageCache findOrCreateCache(
-			ImageCacheParams cacheParams) {
+	public static ImageCache findOrCreateCache(ImageCacheParams cacheParams) {
 
 		// Search for, or create an instance of the non-UI RetainFragment
-		//final RetainFragment mRetainFragment = findOrCreateRetainFragment(fragmentManager);
+		// final RetainFragment mRetainFragment =
+		// findOrCreateRetainFragment(fragmentManager);
 
 		// See if we already have an ImageCache stored in RetainFragment
-		//ImageCache imageCache = (ImageCache) mRetainFragment.getObject();
+		// ImageCache imageCache = (ImageCache) mRetainFragment.getObject();
 
 		// No existing ImageCache, create one and store it in RetainFragment
-//		if (imageCache == null) {
-//			imageCache = new ImageCache(cacheParams);
-//			mRetainFragment.setObject(imageCache);
-//		}
+		// if (imageCache == null) {
+		// imageCache = new ImageCache(cacheParams);
+		// mRetainFragment.setObject(imageCache);
+		// }
 		ImageCache imageCache = new ImageCache(cacheParams);
 		return imageCache;
 	}
@@ -148,17 +141,42 @@ public class ImageCache {
 		if (mCacheParams.memoryCacheEnabled) {
 			LOGD(TAG, "Memory cache created (size = "
 					+ mCacheParams.memCacheSize + ")");
-			memoryCache = new LruCache<String, Bitmap>(
+			memoryCache = new LruCache<String, BitmapDrawable>(
 					mCacheParams.memCacheSize) {
 				/**
 				 * Measure item size in kilobytes rather than units which is
 				 * more practical for a bitmap cache
 				 */
 				@Override
-				protected int sizeOf(String key, Bitmap bitmap) {
+				protected int sizeOf(String key, BitmapDrawable bitmap) {
 					final int bitmapSize = getBitmapSize(bitmap) / 1024;
 					return bitmapSize == 0 ? 1 : bitmapSize;
 				}
+
+				@Override
+				protected void entryRemoved(boolean evicted, String key,
+						BitmapDrawable oldValue, BitmapDrawable newBitmap) {
+
+					if (RecyclingBitmapDrawable.class.isInstance(oldValue)) {
+						// The removed entry is a recycling drawable, so notify
+						// it
+						// that it has been removed from the memory cache
+						((RecyclingBitmapDrawable) oldValue).setIsCached(false);
+					} else {
+						// The removed entry is a standard BitmapDrawable
+
+						if (UIUtils.hasHoneycomb()) {
+							// We're running on Honeycomb or later, so add the
+							// bitmap
+							// to a SoftRefrence set for possible use with
+							// inBitmap later
+							mReusableBitmaps.add(new SoftReference<Bitmap>(
+									oldValue.getBitmap()));
+						}
+					}
+
+				}
+
 			};
 		}
 
@@ -227,14 +245,19 @@ public class ImageCache {
 	 * @param bitmap
 	 *            The bitmap to store
 	 */
-	public void addBitmapToCache(String data, Bitmap bitmap) {
-		if (data == null || bitmap == null) {
+	public void addBitmapToCache(String data, BitmapDrawable value) {
+		if (String.valueOf(data) == null || value == null) {
 			return;
 		}
 
 		// Add to memory cache
-		if (memoryCache != null && memoryCache.get(data) == null) {
-			memoryCache.put(data, bitmap);
+		if (memoryCache != null) {
+			if (RecyclingBitmapDrawable.class.isInstance(value)) {
+				// The removed entry is a recycling drawable, so notify it
+				// that it has been added into the memory cache
+				((RecyclingBitmapDrawable) value).setIsCached(true);
+			}
+			memoryCache.put(data, value);
 		}
 
 		synchronized (mDiskCacheLock) {
@@ -249,10 +272,10 @@ public class ImageCache {
 								.edit(key);
 						if (editor != null) {
 							out = editor.newOutputStream(DISK_CACHE_INDEX);
-							bitmap.compress(mCacheParams.compressFormat,
+							value.getBitmap().compress(
+									mCacheParams.compressFormat,
 									mCacheParams.compressQuality, out);
 							editor.commit();
-							out.close();
 						}
 					} else {
 						snapshot.getInputStream(DISK_CACHE_INDEX).close();
@@ -262,12 +285,7 @@ public class ImageCache {
 				} catch (Exception e) {
 					LOGE(TAG, "addBitmapToCache - " + e);
 				} finally {
-					try {
-						if (out != null) {
-							out.close();
-						}
-					} catch (IOException e) {
-					}
+					StreamUtils.closeQuietly(out);
 				}
 			}
 		}
@@ -278,17 +296,20 @@ public class ImageCache {
 	 * 
 	 * @param data
 	 *            Unique identifier for which item to get
-	 * @return The bitmap if found in cache, null otherwise
+	 * @return The bitmap drawable if found in cache, null otherwise
 	 */
-	public Bitmap getBitmapFromMemCache(String data) {
+	public BitmapDrawable getBitmapFromMemCache(String data) {
+		BitmapDrawable memValue = null;
+
 		if (memoryCache != null) {
-			final Bitmap memBitmap = memoryCache.get(data);
-			if (memBitmap != null) {
-				LOGD(TAG, "Memory cache hit");
-				return memBitmap;
-			}
+			memValue = memoryCache.get(data);
 		}
-		return null;
+
+		if (BuildConfig.DEBUG && memValue != null) {
+			LOGD(TAG, "Memory cache hit");
+		}
+
+		return memValue;
 	}
 
 	/**
@@ -300,6 +321,8 @@ public class ImageCache {
 	 */
 	public Bitmap getBitmapFromDiskCache(String data) {
 		final String key = hashKeyForDisk(data);
+		Bitmap bitmap = null;
+
 		synchronized (mDiskCacheLock) {
 			while (mDiskCacheStarting) {
 				try {
@@ -313,26 +336,30 @@ public class ImageCache {
 					final DiskLruCache.Snapshot snapshot = mDiskLruCache
 							.get(key);
 					if (snapshot != null) {
-						LOGD(TAG, "Disk cache hit");
+						if (BuildConfig.DEBUG) {
+							LOGD(TAG, "Disk cache hit");
+						}
 						inputStream = snapshot.getInputStream(DISK_CACHE_INDEX);
 						if (inputStream != null) {
-							final Bitmap bitmap = BitmapFactory
-									.decodeStream(inputStream);
-							return bitmap;
+							FileDescriptor fd = ((FileInputStream) inputStream)
+									.getFD();
+
+							// Decode bitmap, but we don't want to sample so
+							// give
+							// MAX_VALUE as the target dimensions
+							bitmap = ImageResizer
+									.decodeSampledBitmapFromDescriptor(fd,
+											Integer.MAX_VALUE,
+											Integer.MAX_VALUE, this);
 						}
 					}
 				} catch (final IOException e) {
 					LOGE(TAG, "getBitmapFromDiskCache - " + e);
 				} finally {
-					try {
-						if (inputStream != null) {
-							inputStream.close();
-						}
-					} catch (IOException e) {
-					}
+					StreamUtils.closeQuietly(inputStream);
 				}
 			}
-			return null;
+			return bitmap;
 		}
 	}
 
@@ -379,7 +406,9 @@ public class ImageCache {
 	public void clearCache() {
 		if (memoryCache != null) {
 			memoryCache.evictAll();
-			LOGD(TAG, "Memory cache cleared");
+			if (BuildConfig.DEBUG) {
+				LOGD(TAG, "Memory cache cleared");
+			}
 		}
 
 		synchronized (mDiskCacheLock) {
@@ -407,7 +436,9 @@ public class ImageCache {
 			if (mDiskLruCache != null) {
 				try {
 					mDiskLruCache.flush();
-					LOGD(TAG, "Disk cache flushed");
+					if (BuildConfig.DEBUG) {
+						LOGD(TAG, "Disk cache flushed");
+					}
 				} catch (IOException e) {
 					LOGE(TAG, "flush - " + e);
 				}
@@ -427,7 +458,17 @@ public class ImageCache {
 					if (!mDiskLruCache.isClosed()) {
 						mDiskLruCache.close();
 						mDiskLruCache = null;
-						LOGD(TAG, "Disk cache closed");
+
+						if (mReusableBitmaps != null) {
+							mReusableBitmaps.clear();
+							mReusableBitmaps = null;
+						}
+
+						mCacheParams = null;
+
+						if (BuildConfig.DEBUG) {
+							LOGD(TAG, "Disk cache closed");
+						}
 					}
 				} catch (IOException e) {
 					LOGE(TAG, "close - " + e);
@@ -440,63 +481,144 @@ public class ImageCache {
 	 * A holder class that contains cache parameters.
 	 */
 	public static class ImageCacheParams {
-		public int memCacheSize;
-		public int diskCacheSize = DEFAULT_DISK_CACHE_SIZE;
+		final Context context;
+		final int memCacheSize;
+		final int diskCacheSize;
 		public File diskCacheDir;
-		public CompressFormat compressFormat = DEFAULT_COMPRESS_FORMAT;
-		public int compressQuality = DEFAULT_COMPRESS_QUALITY;
-		public boolean memoryCacheEnabled = DEFAULT_MEM_CACHE_ENABLED;
-		public boolean diskCacheEnabled = DEFAULT_DISK_CACHE_ENABLED;
-		public boolean clearDiskCacheOnStart = DEFAULT_CLEAR_DISK_CACHE_ON_START;
-		public boolean initDiskCacheOnCreate = DEFAULT_INIT_DISK_CACHE_ON_CREATE;
+		final CompressFormat compressFormat;
+		final int compressQuality;
+		final boolean memoryCacheEnabled;
+		final boolean diskCacheEnabled;
+		final boolean clearDiskCacheOnStart;
+		final boolean initDiskCacheOnCreate;
 
-		public ImageCacheParams(Context context) {
-			init(getDiskCacheDir(context, DEFAULT_DISK_CACHE_DIR));
+		public ImageCacheParams(Builder builder) {
+			this.context = builder.context;
+			this.memCacheSize = Math.round(builder.memCacheSizePercent);
+			this.diskCacheDir = getDiskCacheDir(context, builder.diskCacheDir);
+			this.diskCacheSize = builder.diskCacheSize;
+			this.compressFormat = builder.compressFormat;
+			this.compressQuality = builder.compressQuality;
+			this.memoryCacheEnabled = builder.memoryCacheEnabled;
+			this.diskCacheEnabled = builder.diskCacheEnabled;
+			this.clearDiskCacheOnStart = builder.clearDiskCacheOnStart;
+			this.initDiskCacheOnCreate = builder.initDiskCacheOnCreate;
 		}
 
-		public ImageCacheParams(Context context, String uniqueName) {
-			init(getDiskCacheDir(context, uniqueName));
-		}
+		public static class Builder {
+			private Context context;
+			private float memCacheSizePercent = 0;
+			private String diskCacheDir = null;
+			private int diskCacheSize = 0;
+			private CompressFormat compressFormat = null;
+			private int compressQuality = 0;
+			private boolean memoryCacheEnabled = DEFAULT_MEM_CACHE_ENABLED;
+			private boolean diskCacheEnabled = DEFAULT_DISK_CACHE_ENABLED;
+			private boolean clearDiskCacheOnStart = DEFAULT_CLEAR_DISK_CACHE_ON_START;
+			private boolean initDiskCacheOnCreate = DEFAULT_INIT_DISK_CACHE_ON_CREATE;
 
-		public ImageCacheParams(File diskCacheDir) {
-			init(diskCacheDir);
-		}
-
-		private void init(File diskCacheDir) {
-			setMemCacheSizePercent(DEFAULT_MEM_CACHE_PERCENT);
-			this.diskCacheDir = diskCacheDir;
-		}
-
-		/**
-		 * Sets the memory cache size based on a percentage of the max available
-		 * VM memory. Eg. setting percent to 0.2 would set the memory cache to
-		 * one fifth of the avilable memory. Throws
-		 * {@link IllegalArgumentException} if percent is < 0.05 or > .8.
-		 * memCacheSize is stored in kilobytes instead of bytes as this will
-		 * eventually be passed to construct a LruCache which takes an int in
-		 * its constructor.
-		 * 
-		 * This value should be chosen carefully based on a number of factors
-		 * Refer to the corresponding Android Training class for more
-		 * discussion: http://developer.android.com/training/displaying-bitmaps/
-		 * 
-		 * @param percent
-		 *            Percent of memory class to use to size memory cache
-		 */
-		public void setMemCacheSizePercent(float percent) {
-			if (percent < 0.05f || percent > 0.8f) {
-				throw new IllegalArgumentException(
-						"setMemCacheSizePercent - percent must be "
-								+ "between 0.05 and 0.8 (inclusive)");
+			public Builder(Context context) {
+				this.context = context.getApplicationContext();
 			}
-			memCacheSize = Math.round(percent
-					* Runtime.getRuntime().maxMemory() / 1024);
-		}
 
-		private static int getMemoryClass(Context context) {
-			return ((ActivityManager) context
-					.getSystemService(Context.ACTIVITY_SERVICE))
-					.getMemoryClass();
+			/**
+			 * Sets the memory cache size based on a percentage of the max
+			 * available VM memory. Eg. setting percent to 0.2 would set the
+			 * memory cache to one fifth of the avilable memory. Throws
+			 * {@link IllegalArgumentException} if percent is < 0.05 or > .8.
+			 * memCacheSize is stored in kilobytes instead of bytes as this will
+			 * eventually be passed to construct a LruCache which takes an int
+			 * in its constructor.
+			 * 
+			 * This value should be chosen carefully based on a number of
+			 * factors Refer to the corresponding Android Training class for
+			 * more discussion:
+			 * http://developer.android.com/training/displaying-bitmaps/
+			 * 
+			 * @param percent
+			 *            Percent of memory class to use to size memory cache
+			 */
+			public Builder memoryCacheSizePercentage(float percent) {
+				if (percent < 0.05f || percent > 0.8f) {
+					throw new IllegalArgumentException(
+							"setMemCacheSizePercent - percent must be "
+									+ "between 0.05 and 0.8 (inclusive)");
+				}
+
+				this.memCacheSizePercent = percent * getMemoryClass(context)
+						* 1024 * 1024;
+				return this;
+			}
+
+			private static int getMemoryClass(Context context) {
+				return ((ActivityManager) context
+						.getSystemService(Context.ACTIVITY_SERVICE))
+						.getMemoryClass();
+			}
+
+			public Builder diskCacheDir(String dir) {
+				this.diskCacheDir = dir;
+				return this;
+			}
+
+			public Builder diskCacheSize(int size) {
+				this.diskCacheSize = size;
+				return this;
+			}
+
+			public Builder compressFormat(CompressFormat format) {
+				this.compressFormat = format;
+				return this;
+			}
+
+			public Builder compressQuality(int quality) {
+				this.compressQuality = quality;
+				return this;
+			}
+
+			public Builder memoryCached(boolean value) {
+				this.memoryCacheEnabled = value;
+				return this;
+			}
+
+			public Builder diskCached(boolean value) {
+				this.diskCacheEnabled = value;
+				return this;
+			}
+
+			public Builder clearDiskCachedOnStart(boolean value) {
+				this.clearDiskCacheOnStart = value;
+				return this;
+			}
+
+			public Builder initDiskCacheOnCreate(boolean value) {
+				this.initDiskCacheOnCreate = value;
+				return this;
+			}
+
+			private void initEmptyFieldsWithDefaultValues() {
+				if (memCacheSizePercent == 0) {
+					memCacheSizePercent = DEFAULT_MEM_CACHE_PERCENT;
+				}
+				if (diskCacheDir == null) {
+					diskCacheDir = DEFAULT_DISK_CACHE_DIR;
+				}
+				if (diskCacheSize == 0) {
+					diskCacheSize = DEFAULT_DISK_CACHE_SIZE;
+				}
+				if (compressFormat == null) {
+					compressFormat = DEFAULT_COMPRESS_FORMAT;
+				}
+				if (compressQuality == 0) {
+					compressQuality = DEFAULT_COMPRESS_QUALITY;
+				}
+			}
+
+			/** Builds configured {@link ImageLoaderConfiguration} object */
+			public ImageCacheParams build() {
+				initEmptyFieldsWithDefaultValues();
+				return new ImageCacheParams(this);
+			}
 		}
 	}
 
@@ -533,6 +655,8 @@ public class ImageCache {
 			cacheKey = bytesToHexString(mDigest.digest());
 		} catch (NoSuchAlgorithmException e) {
 			cacheKey = String.valueOf(key.hashCode());
+		} catch (Exception e) {
+			cacheKey = String.valueOf(key.hashCode());
 		}
 		return cacheKey;
 	}
@@ -557,7 +681,9 @@ public class ImageCache {
 	 * @return size in bytes
 	 */
 	@TargetApi(12)
-	public static int getBitmapSize(Bitmap bitmap) {
+	public static int getBitmapSize(BitmapDrawable value) {
+		Bitmap bitmap = value.getBitmap();
+
 		if (UIUtils.hasHoneycombMR1()) {
 			return bitmap.getByteCount();
 		}

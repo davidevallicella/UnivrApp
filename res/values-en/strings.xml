@@ -5,6 +5,8 @@
     <string name="subscribe_title">Lecturers</string>
     <string name="new_items_notification">Find {total} news.</string>
     <string name="not_load_notification">Cannot load the feed.</string>
+    <string name="new_lecturers_notification">Find {total} lecturers.</string>
+    <string name="not_load_lecturer_notification">>Cannot load lecturers.</string>
     <string name="loading">Loading ...</string>
     <string name="save">Save</string>
     <string name="back">Back</string>
@@ -74,6 +76,8 @@
     <string name="pref_notification_sound">Enable sound</string>
     <string name="pref_notification_vibrate">Enable vibration</string>
     <string name="pref_notification_light">Enable light led</string>
+    <string name="pref_notification_enable">Notifications UnivrApp</string>
+    <string name="pref_notification_enable_summary">It allows you to receive notifications from the developer</string>
 
     <!-- UPDATE INTERVAL -->
     <string name="minutes_15">Every 15 minutes</string>

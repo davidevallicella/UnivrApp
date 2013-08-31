@@ -1,30 +1,21 @@
 package com.cellasoft.univrapp;
 
-import static com.cellasoft.univrapp.Config.GCM_SENDER_ID;
-import static com.cellasoft.univrapp.utils.LogUtils.LOGE;
-import static com.cellasoft.univrapp.utils.LogUtils.LOGI;
+import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
 import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
 
 import java.util.Stack;
 
-import org.acra.ACRA;
 import org.acra.annotation.ReportsCrashes;
 
-import android.text.TextUtils;
-
-import com.cellasoft.univrapp.gcm.ServerUtilities;
-import com.cellasoft.univrapp.utils.AsyncTask;
+import com.cellasoft.univrapp.utils.ImageFetcher;
 import com.github.droidfu.DroidFuApplication;
-import com.google.android.gcm.GCMRegistrar;
 
 @ReportsCrashes(formKey = "dFFyRWpQWXV4blpmazN3MFo4VllKTUE6MQ")
 public class Application extends DroidFuApplication {
-	private static final String TAG = makeLogTag(Application.class);
 
+	private static final String TAG = makeLogTag("UnivrApp");
 	private static Application instance;
 	public static Stack<Class<?>> parents = new Stack<Class<?>>();
-	private AsyncTask<Void, Void, Void> gcmRegisterTask;
-	private boolean isReceiverRegistered = false;
 
 	public Application() {
 		instance = this;
@@ -36,8 +27,21 @@ public class Application extends DroidFuApplication {
 
 	@Override
 	public void onCreate() {
+		if (BuildConfig.DEBUG) {
+			LOGD(TAG, "onCreate()");
+		}
 		super.onCreate();
-		ACRA.init(this);
+
+		// ACRA.init(this);
 	}
 
+	@Override
+	public void onLowMemory() {
+		if (BuildConfig.DEBUG) {
+			LOGD(TAG, "onLowMemory()");
+		}
+		super.onLowMemory();
+		ImageFetcher.getInstance(getApplicationContext()).clearCache();
+		System.gc();
+	}
 }

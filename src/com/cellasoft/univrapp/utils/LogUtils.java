@@ -18,7 +18,7 @@ package com.cellasoft.univrapp.utils;
 
 import android.util.Log;
 
-import com.cellasoft.univrapp.Config;
+import com.cellasoft.univrapp.BuildConfig;
 
 /**
  * Helper methods that make logging more consistent throughout the app.
@@ -59,14 +59,14 @@ public class LogUtils {
 
 	public static void LOGV(final String tag, String message) {
 		// noinspection PointlessBooleanExpression,ConstantConditions
-		if (Config.DEBUG_MODE && Log.isLoggable(tag, Log.VERBOSE)) {
+		if (BuildConfig.DEBUG && Log.isLoggable(tag, Log.VERBOSE)) {
 			Log.v(tag, message);
 		}
 	}
 
 	public static void LOGV(final String tag, String message, Throwable cause) {
 		// noinspection PointlessBooleanExpression,ConstantConditions
-		if (Config.DEBUG_MODE && Log.isLoggable(tag, Log.VERBOSE)) {
+		if (BuildConfig.DEBUG && Log.isLoggable(tag, Log.VERBOSE)) {
 			Log.v(tag, message, cause);
 		}
 	}

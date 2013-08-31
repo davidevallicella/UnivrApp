@@ -2,6 +2,7 @@
 <resources>
 
     <color name="aliceBlue">#E5F2F7</color>
+    <color name="blue">#33b5e5</color>
     <color name="honeycombish_blue">#FF58BAED</color>
     <color name="soft_grey">#FF777777</color>
     <color name="background">#FFEFEFEF</color>
@@ -15,7 +16,6 @@
     <color name="shadow_dark">#5000</color>
     <color name="shadow_light">#0000</color>
     <color name="transparent">#00000000</color>
-
     <color name="btn_text_selected">#99CCFF</color>
     <color name="btn_text_normal">#FFF</color>
     <color name="btn_text_disabled">#777</color>
@@ -32,5 +32,14 @@
     <color name="btn_blue_dark">#36C</color>
     <color name="btn_green_dark">#093</color>
     <color name="btn_green_light">#6F9</color>
+    
+    
+    <color name="lvHeaderTextColor">#168686</color>
+    <color name="primaryTextColor">#333333</color>
+    <color name="secondaryTextColor">#777777</color>
+
+    <color name="goblinGreen">#168686</color>
+    <color name="lvHeaderDividerColor">#168686</color>
+    <color name="lvDividerColor">#E0E0E0</color>
 
 </resources>

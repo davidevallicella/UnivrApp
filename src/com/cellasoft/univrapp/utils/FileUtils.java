@@ -9,13 +9,7 @@ import java.nio.channels.FileChannel;
 
 import android.content.Context;
 
-import com.cellasoft.univrapp.Application;
-
 public class FileUtils {
-	private static Context context;
-	static {
-		context = Application.getInstance();
-	}
 
 	public static void copyFile(File sourceFile, File destFile)
 			throws IOException {
@@ -43,13 +37,14 @@ public class FileUtils {
 		StreamUtils.closeQuietly(os);
 	}
 
-	public static String getFileFromAssets(String fileName) {
+	public static String getFileFromAssets(Context context, String fileName) {
 		try {
 			return StreamUtils.readAllText(context.getAssets().open(fileName));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		return "";
+		return "<p>Errore durante l'appertura del file <b>" + fileName
+				+ "</b></p>";
 	}
 }

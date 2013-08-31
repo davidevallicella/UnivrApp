@@ -7,6 +7,7 @@ import java.util.Date;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import com.cellasoft.univrapp.loader.ItemLoader;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.provider.Provider;
 
@@ -50,6 +51,18 @@ public class Item implements ActionSupport, Comparable<Item>, Serializable {
 		if (pubDate != null)
 			this.pubDate = pubDate;
 		this.guid = guid;
+	}
+
+	public Item(Item item) {
+		this.id = item.id;
+		this.title = item.title;
+		this.link = item.link;
+		this.description = item.description;
+		this.pubDate = item.pubDate;
+		this.guid = item.guid;
+		this.read = item.read;
+		this.updateTime = item.updateTime;
+		this.channel = item.channel;
 	}
 
 	public boolean isRead() {
@@ -153,6 +166,11 @@ public class Item implements ActionSupport, Comparable<Item>, Serializable {
 	@Override
 	public boolean exist() {
 		return ContentManager.existItem(this);
+	}
+
+	public static Item findItemById(int id, ItemLoader loader) {
+		return ContentManager.loadItem(id, loader,
+				ContentManager.LIGHTWEIGHT_CHANNEL_LOADER);
 	}
 
 	@Override

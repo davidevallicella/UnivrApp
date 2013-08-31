@@ -17,6 +17,8 @@ package com.cellasoft.univrapp.widget;
 
 import java.util.ArrayList;
 
+import com.cellasoft.univrapp.utils.Lists;
+
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.TouchDelegate;
@@ -68,7 +70,7 @@ public class TouchDelegateGroup extends TouchDelegate {
 	 */
 	public void addTouchDelegate(TouchDelegate touchDelegate) {
 		if (mTouchDelegates == null) {
-			mTouchDelegates = new ArrayList<TouchDelegate>();
+			mTouchDelegates = Lists.newArrayList();
 		}
 		mTouchDelegates.add(touchDelegate);
 	}

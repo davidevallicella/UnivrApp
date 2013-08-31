@@ -1,6 +1,5 @@
 package com.cellasoft.univrapp.utils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,7 +47,7 @@ public class Html {
 	}
 
 	public static List<String> getAttachment(String html) {
-		List<String> attachment = new ArrayList<String>();
+		List<String> attachment = Lists.newArrayList();
 		Document doc = Jsoup.parse(html);
 
 		Elements files = doc.select("a.LinkContent");
@@ -87,6 +86,9 @@ public class Html {
 			return article.html();
 		} catch (Exception e) {
 			return "";
+		} finally {
+			doc = null;
 		}
 	}
+
 }
