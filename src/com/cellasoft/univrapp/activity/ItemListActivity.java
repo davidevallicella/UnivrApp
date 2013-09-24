@@ -7,6 +7,8 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.AnimationUtils;
@@ -126,6 +128,7 @@ public class ItemListActivity extends BaseListActivity {
 		SynchronizationManager.getInstance().registerSynchronizationListener(
 				synchronizationListener);
 		onChannelUpdated();
+		listView.refresh();
 	}
 
 	@Override
@@ -145,15 +148,20 @@ public class ItemListActivity extends BaseListActivity {
 		}
 		super.onDestroy();
 
-		channel.clearItems();
-		listView.clean();
-		listView.clearAnimation();
+		if (channel != null) {
+			channel.clearItems();
+			channel = null;
+		}
 
-		channel = null;
+		if (listView != null) {
+			listView.clean();
+			unbindDrawables(listView);
+			listView = null;
+		}
+
 		progressBar = null;
 		synchronizationListener = null;
 
-		unbindDrawables(listView);
 		System.gc();
 	}
 
@@ -167,10 +175,11 @@ public class ItemListActivity extends BaseListActivity {
 
 	@Override
 	protected void initActionBar() {
-		try {
-			getSupportActionBar().setIcon(
-					ImageFetcher.getInstance(this).get(channel.imageUrl));
-		} catch (Exception e) {
+
+		Bitmap b = ImageFetcher.getInstance(this).get(channel.imageUrl);
+		if (b != null) {
+			getSupportActionBar().setIcon(new BitmapDrawable(b));
+		} else {
 			getSupportActionBar().setIcon(R.drawable.user);
 		}
 
@@ -263,7 +272,6 @@ public class ItemListActivity extends BaseListActivity {
 				DateUtils.formatTimeMillis(getApplicationContext(),
 						channel.updateTime));
 		getSupportActionBar().setSubtitle(lastUpdate);
-
 	}
 
 	private void refresh() {

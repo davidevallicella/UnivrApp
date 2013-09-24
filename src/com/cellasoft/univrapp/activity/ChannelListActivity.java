@@ -1,12 +1,10 @@
 package com.cellasoft.univrapp.activity;
 
 import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
-import static com.cellasoft.univrapp.utils.LogUtils.LOGE;
 import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -17,6 +15,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ListView;
@@ -53,7 +52,7 @@ public class ChannelListActivity extends BaseListActivity {
 
 	private static final int FIRST_TIME = 1;
 
-	private List<Channel> channels = null;
+	private List<Channel> channels;
 	private ChannelListView listView;
 	private ImageFetcher imageFetcher;
 
@@ -165,18 +164,27 @@ public class ChannelListActivity extends BaseListActivity {
 			LOGD(TAG, "onDestroy()");
 		}
 		super.onDestroy();
-		
+
 		GCMUtils.onDistroyGCMClient(this);
 
-		imageFetcher.destroy();
-		channels.clear();
-		listView.clean();
+		if (imageFetcher != null) {
+			imageFetcher.destroy();
+			imageFetcher = null;
+		}
 
-		imageFetcher = null;
-		channels = null;
+		if (channels != null) {
+			channels.clear();
+			channels = null;
+		}
+
+		if (listView != null) {
+			listView.clean();
+			unbindDrawables(listView);
+			listView = null;
+		}
+
 		synchronizationListener = null;
 
-		unbindDrawables(listView);
 		System.gc();
 	}
 
@@ -187,6 +195,7 @@ public class ChannelListActivity extends BaseListActivity {
 		SynchronizationManager.getInstance().registerSynchronizationListener(
 				synchronizationListener);
 		imageFetcher.setExitTasksEarly(false);
+		listView.refresh();
 	}
 
 	@Override
@@ -199,8 +208,13 @@ public class ChannelListActivity extends BaseListActivity {
 
 	private void init() {
 		startServices();
+
 		if (Settings.getFirstTime()) {
 			onFirstTime();
+		} else if (Settings.isEnabledNotificationUnivrApp()) {
+			GCMUtils.doRegister(this);
+		} else if (GCMUtils.isRegistered(this)) {
+			GCMUtils.doUnregister(this);
 		}
 
 		cancelNotification();
@@ -253,6 +267,9 @@ public class ChannelListActivity extends BaseListActivity {
 
 			@Override
 			protected void onPostExecute(Void result) {
+				if (channels == null) {
+					channels = Lists.newArrayList();
+				}
 				listView.setChannels(channels);
 				refreshUnreadCounts();
 			}
@@ -261,9 +278,6 @@ public class ChannelListActivity extends BaseListActivity {
 			protected Void doInBackground(Void... params) {
 				channels = Channel
 						.loadAllChannels(ContentManager.FULL_CHANNEL_LOADER);
-				if (channels == null || channels.isEmpty()) {
-					channels = Lists.newArrayList();
-				}
 				return null;
 			}
 		}.execute();
@@ -584,18 +598,10 @@ public class ChannelListActivity extends BaseListActivity {
 			public Void call(BetterAsyncTask<Void, Void, Void> task)
 					throws Exception {
 
-				Map<Integer, Integer> unreadCounts = ContentManager
+				SparseArray<Integer> unreadCounts = ContentManager
 						.countUnreadItemsForEachChannel();
 				for (Channel channel : channels) {
-					try {
-						if (unreadCounts.containsKey(channel.id)) {
-							channel.setUnreadItems(unreadCounts.get(channel.id));
-						} else {
-							channel.setUnreadItems(0);
-						}
-					} catch (Exception e) {
-						LOGE(TAG, e.getMessage());
-					}
+					channel.setUnreadItems(unreadCounts.get(channel.id, 0));
 				}
 				unreadCounts.clear();
 				unreadCounts = null;

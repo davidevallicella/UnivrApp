@@ -7,6 +7,7 @@ import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
 import android.app.Activity;
 import android.text.TextUtils;
 
+import com.actionbarsherlock.app.SherlockPreferenceActivity;
 import com.cellasoft.univrapp.BuildConfig;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.gcm.ServerUtilities;
@@ -14,7 +15,7 @@ import com.google.android.gcm.GCMRegistrar;
 
 public class GCMUtils {
 	private static final String TAG = makeLogTag(GCMUtils.class);
-	private static AsyncTask<Void, Void, Void> gcmRegisterTask;
+	private static AsyncTask<Void, Void, Void> gcmRegisterTask, gcmUnregisterTask;
 
 	public static void doRegister(final Activity activity) {
 		GCMRegistrar.checkDevice(activity);
@@ -54,6 +55,11 @@ public class GCMUtils {
 
 					@Override
 					protected void onPostExecute(Void result) {
+						if (activity instanceof SherlockPreferenceActivity) {
+							SherlockPreferenceActivity prefAct = (SherlockPreferenceActivity) activity;
+							prefAct.findPreference("univrapp_regid")
+									.setSummary(Settings.getRegistrationId());
+						}
 						gcmRegisterTask = null;
 					}
 				};
@@ -62,18 +68,44 @@ public class GCMUtils {
 		}
 	}
 
-	public static void doUnregister(Activity activity) {
-		ServerUtilities.unregister(activity, Settings.getRegistrationId());
+	public static void doUnregister(final Activity activity) {
+		gcmUnregisterTask = new AsyncTask<Void, Void, Void>() {
+			@Override
+			protected Void doInBackground(Void... params) {
+				ServerUtilities.unregister(activity,
+						Settings.getRegistrationId());
+				return null;
+			}
+
+			@Override
+			protected void onPostExecute(Void result) {
+				if (activity instanceof SherlockPreferenceActivity) {
+					SherlockPreferenceActivity prefAct = (SherlockPreferenceActivity) activity;
+					prefAct.findPreference("univrapp_regid").setSummary(
+							"Not Registered");
+				}
+				gcmUnregisterTask = null;
+			}
+		};
+
+		gcmUnregisterTask.execute(null, null, null);
 	}
 
 	public static void onDistroyGCMClient(Activity activity) {
 		if (gcmRegisterTask != null) {
 			gcmRegisterTask.cancel(true);
 		}
+		if (gcmUnregisterTask != null) {
+			gcmUnregisterTask.cancel(true);
+		}
 		try {
 			GCMRegistrar.onDestroy(activity.getApplicationContext());
 		} catch (Exception e) {
 			LOGE("UnRegister Receiver Error", "> " + e.getMessage());
 		}
+	}
+
+	public static boolean isRegistered(Activity activity) {
+		return GCMRegistrar.isRegistered(activity);
 	}
 }

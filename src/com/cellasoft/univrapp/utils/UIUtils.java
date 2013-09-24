@@ -32,14 +32,12 @@ import android.preference.PreferenceManager;
 import android.text.Html;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.cellasoft.univrapp.BuildConfig;
-import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.activity.AboutScreen;
 import com.cellasoft.univrapp.activity.ChannelListActivity;
 import com.cellasoft.univrapp.activity.ChooseMainFeedActivity;
@@ -54,8 +52,6 @@ import com.cellasoft.univrapp.widget.LecturerView;
  * An assortment of UI helpers.
  */
 public class UIUtils {
-	private static final String IMAGE_CACHE_DIR = "images";
-
 	private static final int SECOND_MILLIS = 1000;
 	private static final int MINUTE_MILLIS = 60 * SECOND_MILLIS;
 	private static final int HOUR_MILLIS = 60 * MINUTE_MILLIS;
@@ -199,6 +195,7 @@ public class UIUtils {
 			AboutScreen.class, SettingsActivity.class, };
 
 	public static void enableDisableActivities(final Context context) {
+		
 		boolean isHoneycombTablet = isHoneycombTablet(context);
 		PackageManager pm = context.getPackageManager();
 
@@ -219,6 +216,7 @@ public class UIUtils {
 
 	@TargetApi(11)
 	public static void enableStrictMode() {
+		if(BuildConfig.DEBUG) return;
 		if (UIUtils.hasGingerbread()) {
 			StrictMode.ThreadPolicy.Builder threadPolicyBuilder = new StrictMode.ThreadPolicy.Builder()
 					.detectAll().penaltyLog().penaltyDialog();

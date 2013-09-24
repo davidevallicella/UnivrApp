@@ -10,10 +10,8 @@ import android.widget.AdapterView;
 import com.actionbarsherlock.app.SherlockListActivity;
 import com.cellasoft.univrapp.BuildConfig;
 import com.cellasoft.univrapp.R;
-import com.cellasoft.univrapp.adapter.BaseListAdapter;
 import com.cellasoft.univrapp.utils.ClosableAdView;
 import com.cellasoft.univrapp.utils.FontUtils;
-import com.cellasoft.univrapp.utils.UIUtils;
 
 public abstract class BaseListActivity extends SherlockListActivity {
 	private static final String TAG = makeLogTag(BaseListActivity.class);
@@ -24,7 +22,7 @@ public abstract class BaseListActivity extends SherlockListActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		if (BuildConfig.DEBUG) {
-			UIUtils.enableStrictMode();
+			//UIUtils.enableStrictMode();
 		}
 		super.onCreate(savedInstanceState);
 	}

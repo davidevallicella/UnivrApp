@@ -152,6 +152,14 @@ public abstract class BaseListAdapter<T> extends ArrayAdapter<T> {
 		handler.sendEmptyMessage(REFRESH_MESSAGE);
 	}
 
+	public synchronized List<T> getItems() {
+		if (this.items == null) {
+			this.items = Lists.newArrayList();
+		}
+		
+		return items;
+	}
+
 	@Override
 	public void clear() {
 		items.clear();

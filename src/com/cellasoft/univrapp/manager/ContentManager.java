@@ -1,7 +1,6 @@
 package com.cellasoft.univrapp.manager;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +13,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
+import android.util.SparseArray;
 
 import com.cellasoft.univrapp.Application;
 import com.cellasoft.univrapp.BuildConfig;
@@ -255,10 +255,10 @@ public class ContentManager {
 		return items;
 	}
 
-	public static ArrayList<Channel> loadAllChannels(ChannelLoader loader) {
+	public static List<Channel> loadAllChannels(ChannelLoader loader) {
 		Cursor cursor = cr.query(Channels.CONTENT_URI, loader.getProjection(),
 				null, null, null);
-		ArrayList<Channel> channels = new ActiveList<Channel>();
+		List<Channel> channels = Lists.newArrayList();
 		while (cursor.moveToNext()) {
 			Channel channel = loader.load(cursor);
 			putChannelToCache(channel);
@@ -296,20 +296,6 @@ public class ContentManager {
 		return result;
 	}
 
-	public static ArrayList<Lecturer> loadLecturersOfDest(int dest,
-			LecturerLoader loader) {
-		Cursor cursor = cr.query(Lecturers.CONTENT_URI, loader.getProjection(),
-				Lecturers.DEST + "=?", new String[] { String.valueOf(dest) },
-				Lecturers.NAME + " ASC, " + Lecturers.ID + " ASC");
-		ArrayList<Lecturer> lecturers = new ActiveList<Lecturer>();
-		while (cursor.moveToNext()) {
-			Lecturer lecturer = loader.load(cursor);
-			lecturers.add(lecturer);
-		}
-		cursor.close();
-		return lecturers;
-	}
-
 	public static List<ContactItemInterface> loadAllLecturers(
 			LecturerLoader loader) {
 		Cursor cursor = cr.query(Lecturers.CONTENT_URI, loader.getProjection(),
@@ -335,7 +321,7 @@ public class ContentManager {
 		return lecturer;
 	}
 
-	public static ArrayList<Image> loadAllQueuedImages() {
+	public static List<Image> loadAllQueuedImages() {
 		return loadImages(Image.IMAGE_STATUS_QUEUED);
 	}
 
@@ -352,13 +338,13 @@ public class ContentManager {
 		return image;
 	}
 
-	public static ArrayList<Image> loadImages(int status) {
+	public static List<Image> loadImages(int status) {
 		Cursor cursor = cr.query(Images.CONTENT_URI, new String[] { Images.ID,
 				Images.URL, Images.STATUS, Images.RETRIES }, Images.STATUS
 				+ "=?", new String[] { String.valueOf(status) },
 				Images.UPDATE_TIME + " DESC, " + Images.RETRIES + " ASC, "
 						+ Images.ID);
-		ArrayList<Image> images = Lists.newArrayList();
+		List<Image> images = Lists.newArrayList();
 		while (cursor.moveToNext()) {
 			Image image = new Image(cursor.getInt(0), cursor.getString(1),
 					(byte) cursor.getInt(2));
@@ -399,7 +385,7 @@ public class ContentManager {
 			totalImages = cursor.getInt(0);
 		}
 		cursor.close();
-		ArrayList<Integer> images = Lists.newArrayList();
+		List<Integer> images = Lists.newArrayList();
 		if (totalImages - keepMaxItems > 0) {
 			cursor = cr.query(Images.limit(totalImages - keepMaxItems),
 					new String[] { Images.ID }, null, null, Images.ID + " ASC");
@@ -596,14 +582,15 @@ public class ContentManager {
 	 * @param cr
 	 * @return a map of ChannelId <-> Unread count
 	 */
-	public static Map<Integer, Integer> countUnreadItemsForEachChannel() {
+	public static SparseArray<Integer> countUnreadItemsForEachChannel() {
 		Cursor cursor = cr.query(
 				Items.countUnreadEachChannel(),
 				new String[] { Items.CHANNEL_ID, Items.UNREAD_COUNT },
 				Items.READ + "=? OR " + Items.READ + "=?",
 				new String[] { String.valueOf(Item.UNREAD),
 						String.valueOf(Item.KEPT_UNREAD) }, null);
-		Map<Integer, Integer> unreadCounts = new HashMap<Integer, Integer>();
+
+		SparseArray<Integer> unreadCounts = new SparseArray<Integer>(cursor.getCount());
 		while (cursor.moveToNext()) {
 			unreadCounts.put(cursor.getInt(0), cursor.getInt(1));
 		}

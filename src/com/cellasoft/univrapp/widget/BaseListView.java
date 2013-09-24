@@ -8,6 +8,7 @@ import android.widget.ListView;
 
 import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.adapter.BaseListAdapter;
+import com.cellasoft.univrapp.utils.Lists;
 
 public class BaseListView<T> extends ListView {
 
@@ -52,6 +53,9 @@ public class BaseListView<T> extends ListView {
 	}
 
 	public void setItems(List<T> items) {
+		if (items == null) {
+			items = Lists.newArrayList();
+		}
 		adapter.setItems(items);
 		this.setSelection(1);
 	}

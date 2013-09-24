@@ -76,8 +76,8 @@
     <string name="pref_notification_sound">Enable sound</string>
     <string name="pref_notification_vibrate">Enable vibration</string>
     <string name="pref_notification_light">Enable light led</string>
-    <string name="pref_notification_enable">Notifications UnivrApp</string>
-    <string name="pref_notification_enable_summary">It allows you to receive notifications from the developer</string>
+    <string name="pref_notification_univrapp">Notifications UnivrApp</string>
+    <string name="pref_notification_univrapp_summary">It allows you to receive notifications from the developer</string>
 
     <!-- UPDATE INTERVAL -->
     <string name="minutes_15">Every 15 minutes</string>

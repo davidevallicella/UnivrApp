@@ -47,6 +47,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.util.LruCache;
 
 import com.cellasoft.univrapp.BuildConfig;
+import com.cellasoft.univrapp.utils.ImageCache.ImageCacheParams;
 
 /**
  * This class handles disk and memory caching of bitmaps in conjunction with the
@@ -141,6 +142,12 @@ public class ImageCache {
 		if (mCacheParams.memoryCacheEnabled) {
 			LOGD(TAG, "Memory cache created (size = "
 					+ mCacheParams.memCacheSize + ")");
+
+			// If we're running on Honeycomb or newer, then
+			if (UIUtils.hasHoneycomb()) {
+				mReusableBitmaps = new HashSet<SoftReference<Bitmap>>();
+			}
+
 			memoryCache = new LruCache<String, BitmapDrawable>(
 					mCacheParams.memCacheSize) {
 				/**

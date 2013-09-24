@@ -84,6 +84,8 @@ public class ClosableAdView extends AdView implements AdListener {
 		}
 
 		setVisibility(View.VISIBLE);
+		setFocusable(true);
+		requestFocus();
 
 		loadAd();
 	}

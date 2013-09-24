@@ -59,6 +59,7 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		this();
 		this.title = title;
 		this.url = url;
+		this.starred = true;
 	}
 
 	public Channel(int lecturerId, String title, String url, String imageUrl,

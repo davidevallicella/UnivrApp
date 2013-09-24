@@ -89,7 +89,7 @@ public final class ServerUtilities {
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("regId", regId);
 		try {
-			post(serverUrl, params);
+			post(serverUrl, params); // Unregister for UnivrApp server
 			GCMRegistrar.setRegisteredOnServer(context, false);
 			Settings.setRegistrationId("Not Registered");
 		} catch (IOException e) {

@@ -51,6 +51,9 @@ public class ConnectivityReceiver extends BroadcastReceiver {
 	public static boolean hasGoodEnoughNetworkConnection(NetworkInfo info,
 			Context context) {
 
+		if (BuildConfig.DEBUG)
+			return true;
+
 		if (info == null)
 			return false;
 

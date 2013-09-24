@@ -56,8 +56,8 @@ public class ImageFetcher extends ImageResizer {
 	private static final int MAX_THUMBNAIL_BYTES = 70 * 1024; // 70KB
 	private static final int HTTP_CACHE_SIZE = 10 * 1024 * 1024; // 10MB
 	private static final String HTTP_CACHE_DIR = "http";
-	private static final int DEFAULT_MAX_IMAGE_HEIGHT = 512;
-	private static final int DEFAULT_MAX_IMAGE_WIDTH = 512;
+	private static final int DEFAULT_MAX_IMAGE_HEIGHT = 240;
+	private static final int DEFAULT_MAX_IMAGE_WIDTH = 240;
 
 	private DiskLruCache mHttpDiskCache;
 	private File mHttpCacheDir;
@@ -129,25 +129,32 @@ public class ImageFetcher extends ImageResizer {
 			mHttpCacheDir.mkdirs();
 		}
 
-		final DisplayMetrics displayMetrics = new DisplayMetrics();
-		((Activity) context).getWindowManager().getDefaultDisplay()
-				.getMetrics(displayMetrics);
-		final int height = displayMetrics.heightPixels;
-		final int width = displayMetrics.widthPixels;
+		if (context instanceof Activity) {
+			final DisplayMetrics displayMetrics = new DisplayMetrics();
+			((Activity) context).getWindowManager().getDefaultDisplay()
+					.getMetrics(displayMetrics);
+			final int height = displayMetrics.heightPixels;
+			final int width = displayMetrics.widthPixels;
 
-		// For this sample we'll use half of the longest width to resize our
-		// images. As the
-		// image scaling ensures the image is larger than this, we should be
-		// left with a
-		// resolution that is appropriate for both portrait and landscape. For
-		// best image quality
-		// we shouldn't divide by 2, but this will use more memory and require a
-		// larger memory
-		// cache.
-		final int longest = (height > width ? height : width) / 2;
+			// For this sample we'll use half of the longest width to resize
+			// our
+			// images. As the
+			// image scaling ensures the image is larger than this, we
+			// should be
+			// left with a
+			// resolution that is appropriate for both portrait and
+			// landscape.
+			// For
+			// best image quality
+			// we shouldn't divide by 2, but this will use more memory and
+			// require a
+			// larger memory
+			// cache.
+			final int longest = (height > width ? height : width) / 2;
+			setImageSize(longest);
+		}
 
 		setImageFadeIn(true);
-		setImageSize(longest);
 		setLoadingImage(R.drawable.user);
 		ImageCacheParams cacheParams = new ImageCacheParams.Builder(context)
 				.diskCacheDir(IMAGE_CACHE_DIR).memoryCacheSizePercentage(0.25f)
@@ -291,7 +298,6 @@ public class ImageFetcher extends ImageResizer {
 					mImageWidth, mImageHeight);
 		}
 
-		StreamUtils.closeQuietly(fileInputStream);
 		return bitmap;
 	}
 

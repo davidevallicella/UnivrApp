@@ -1,5 +1,6 @@
 package com.cellasoft.univrapp.activity;
 
+import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
 import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -25,8 +26,6 @@ import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.service.SynchronizationService;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.GCMUtils;
-import com.cellasoft.univrapp.utils.UIUtils;
-import static com.cellasoft.univrapp.utils.LogUtils.LOGD;
 
 public class SettingsActivity extends SherlockPreferenceActivity implements
 		OnSharedPreferenceChangeListener {
@@ -35,11 +34,11 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		if (!UIUtils.hasHoneycomb()) {
-			onCreatePreferenceActivity();
-		} else {
-			onCreatePreferenceFragment();
-		}
+		// if (!UIUtils.hasHoneycomb()) {
+		onCreatePreferenceActivity();
+		// } else {
+		// onCreatePreferenceFragment();
+		// }
 
 		findPreferenceBykey("app_version").setSummary(
 				Config.getAppVersion(getApplicationContext()));
@@ -121,24 +120,14 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 	}
 
 	private void registerGCMClient() {
-		if (ConnectivityReceiver
-				.hasGoodEnoughNetworkConnection()) {
+		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 			GCMUtils.doRegister(this);
-
-			try {
-				Thread.sleep(1000);
-				findPreferenceBykey("univrapp_regid").setSummary(
-						Settings.getRegistrationId());
-			} catch (InterruptedException e) {
-			}
 		}
 	}
 
 	private void unregisterGCMClient() {
-		if (ConnectivityReceiver
-				.hasGoodEnoughNetworkConnection()) {
+		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 			GCMUtils.doUnregister(this);
-			findPreferenceBykey("univrapp_regid").setSummary("Not Registered");
 		}
 	}
 
@@ -148,8 +137,7 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 	}
 
 	private void startSynchronizationService() {
-		if (ConnectivityReceiver
-				.hasGoodEnoughNetworkConnection()) {
+		if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 			Intent service = new Intent(this, SynchronizationService.class);
 			startService(service);
 		}

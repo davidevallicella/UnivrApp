@@ -17,12 +17,12 @@ package com.cellasoft.univrapp.widget;
 
 import java.util.ArrayList;
 
-import com.cellasoft.univrapp.utils.Lists;
-
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.TouchDelegate;
 import android.view.View;
+
+import com.cellasoft.univrapp.utils.Lists;
 
 /**
  * An implementation of a {@link TouchDelegate} container. This class can be

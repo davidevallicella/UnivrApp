@@ -13,7 +13,6 @@ import com.cellasoft.univrapp.widget.ContactItemInterface;
 
 public class University {
 
-	private transient List<ContactItemInterface> lecturers;
 	private Object synRoot = new Object();
 	public boolean updating = false;
 
@@ -94,39 +93,6 @@ public class University {
 		this.color_from_resource = color_from_resource;
 	}
 
-	public List<ContactItemInterface> getLecturers() {
-		synchronized (synRoot) {
-			if (lecturers == null) {
-				lecturers = Lists.newArrayList();
-			}
-			return lecturers;
-		}
-	}
-
-	public boolean addItem(ContactItemInterface lecturer) {
-		synchronized (synRoot) {
-			List<ContactItemInterface> lecturers = this.getLecturers();
-			if (lecturers.indexOf(lecturer) < 0) {
-				lecturers.add(lecturer);
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	public void clearLecturers() {
-		getLecturers().clear();
-	}
-
-	public List<ContactItemInterface> setLecturers(
-			List<ContactItemInterface> lecturers) {
-		synchronized (synRoot) {
-			this.lecturers = lecturers;
-			return this.lecturers;
-		}
-	}
-
 	public List<ContactItemInterface> update() {
 		synchronized (synRoot) {
 			if (updating)
@@ -134,9 +100,9 @@ public class University {
 			updating = true;
 		}
 
-		updateLecturers();
+		List<ContactItemInterface> lecturers = updateLecturers();
 
-		List<ContactItemInterface> newItems = saveLecturers();
+		List<ContactItemInterface> newItems = saveLecturers(lecturers);
 
 		synchronized (synRoot) {
 			updating = false;
@@ -145,24 +111,21 @@ public class University {
 		return newItems;
 	}
 
-	private void updateLecturers() {
+	private List<ContactItemInterface> updateLecturers() {
+		List<ContactItemInterface> lecturers = Lists.newArrayList();
 		try {
 			UnivrReader reader = UnivrReaderFactory.getUnivrReader();
 
-			List<ContactItemInterface> lecturers = reader.executeGetJSON(this,
-					new LecturersHandler());
-
-			for (ContactItemInterface lecturer : lecturers) {
-				this.addItem(lecturer);
-			}
+			lecturers = reader.executeGetJSON(this, new LecturersHandler());
 
 		} catch (Exception e) {
-			e.printStackTrace();
 			// LOGE("ERROR", e.getMessage());
 		}
+		return lecturers;
 	}
 
-	private List<ContactItemInterface> saveLecturers() {
+	private List<ContactItemInterface> saveLecturers(
+			List<ContactItemInterface> lecturers) {
 		List<ContactItemInterface> newItems = Lists.newArrayList();
 		if (lecturers != null && !lecturers.isEmpty()) {
 
@@ -202,6 +165,9 @@ public class University {
 		case Universites.DEST_SCIENZE_MM_FF_NN:
 			university = new University(Universites.SCIENZE_MM_FF_NN);
 			break;
+		case Universites.DEST_SCIENZE_MOTORIE_TRIENNALE:
+			university = new University(Universites.SCIENZE_MOTORIE);
+			break;
 		default:
 			university = new University();
 			break;
@@ -222,6 +188,8 @@ public class University {
 				.add(getUniversityByDest(Universites.DEST_SCIENZE_FORMAZIONE));
 		universities
 				.add(getUniversityByDest(Universites.DEST_SCIENZE_MM_FF_NN));
+		universities
+				.add(getUniversityByDest(Universites.DEST_SCIENZE_MOTORIE_TRIENNALE));
 		return universities;
 	}
 
@@ -236,6 +204,7 @@ public class University {
 		public static final String LETTERE_FILOSOFIA = "Lettere e Filosofia";
 		public static final String LINGUE = "Lingue e letteratre straniere";
 		public static final String MEDICINA = "Medicina e Chirurgia";
+		public static final String SCIENZE_MOTORIE = "Scienze motorie";
 		// Universites dest
 		public static final int DEST_SCIENZE_MM_FF_NN = 1;
 		public static final int DEST_ECONOMIA = 5;
@@ -244,6 +213,8 @@ public class University {
 		public static final int DEST_LETTERE_FILOSOFIA = 17;
 		public static final int DEST_LINGUE = 21;
 		public static final int DEST_MEDICINA = 25;
+		public static final int DEST_SCIENZE_MOTORIE_TRIENNALE = 29;
+		public static final int DEST_SCIENZE_MOTORIE_SPECIALISTICA = 37;
 
 		public static final Map<String, String> DOMAIN;
 		static {
@@ -255,6 +226,7 @@ public class University {
 			DOMAIN.put(MEDICINA, "http://www.medicina.univr.it");
 			DOMAIN.put(SCIENZE_FORMAZIONE, "http://www.formazione.univr.it");
 			DOMAIN.put(SCIENZE_MM_FF_NN, "http://www.scienze.univr.it");
+			DOMAIN.put(SCIENZE_MOTORIE, "http://www.motorie.univr.it");
 		}
 
 		public static final Map<String, Integer> DEST;
@@ -267,6 +239,7 @@ public class University {
 			DEST.put(MEDICINA, DEST_MEDICINA);
 			DEST.put(SCIENZE_FORMAZIONE, DEST_SCIENZE_FORMAZIONE);
 			DEST.put(SCIENZE_MM_FF_NN, DEST_SCIENZE_MM_FF_NN);
+			DEST.put(SCIENZE_MOTORIE, DEST_SCIENZE_MOTORIE_TRIENNALE);
 		}
 
 		public static final Map<String, Integer> LOGO;
@@ -279,6 +252,7 @@ public class University {
 			LOGO.put(MEDICINA, R.drawable.med_logo);
 			LOGO.put(SCIENZE_FORMAZIONE, R.drawable.sci_form_logo);
 			LOGO.put(SCIENZE_MM_FF_NN, R.drawable.scie_logo);
+			LOGO.put(SCIENZE_MOTORIE, R.drawable.scie_mot_logo);
 		}
 
 		public static final Map<String, Integer> COLOR;
@@ -291,6 +265,7 @@ public class University {
 			COLOR.put(MEDICINA, R.color.medicina);
 			COLOR.put(SCIENZE_FORMAZIONE, R.color.scienze_formazione);
 			COLOR.put(SCIENZE_MM_FF_NN, R.color.scineze_mm_ff_nn);
+			COLOR.put(SCIENZE_MOTORIE, R.color.scienze_motorie);
 		}
 
 		public static final Map<String, String> URL;
@@ -309,6 +284,8 @@ public class University {
 					+ RSS_POST_DATA + DEST_SCIENZE_MM_FF_NN);
 			URL.put(SCIENZE_MM_FF_NN, DOMAIN.get(SCIENZE_MM_FF_NN)
 					+ RSS_POST_DATA + DEST_SCIENZE_MM_FF_NN);
+			URL.put(SCIENZE_MOTORIE, DOMAIN.get(SCIENZE_MOTORIE)
+					+ RSS_POST_DATA + DEST_SCIENZE_MOTORIE_TRIENNALE);
 		}
 	}
 }

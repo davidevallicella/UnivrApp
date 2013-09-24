@@ -13,6 +13,7 @@ public class LecturerListView extends ContactListView {
 
 	public LecturerListView(Context context, AttributeSet attrs) {
 		super(context, attrs);
+		setFastScrollEnabled(true);
 	}
 
 	@Override
@@ -21,7 +22,6 @@ public class LecturerListView extends ContactListView {
 		adapter = new LecturerContactAdapter(context,
 				R.layout.lecturer_list_item);
 		this.setAdapter(adapter);
-		setFastScrollEnabled(true);
 	}
 
 	public void createScroller() {

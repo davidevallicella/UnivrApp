@@ -28,6 +28,7 @@ public class LecturerContactAdapter extends ContactListAdapter {
 
 		if (item instanceof Lecturer) {
 			Lecturer contactItem = (Lecturer) item;
+
 			if (viewHolder instanceof Holder) {
 				Holder holder = (Holder) viewHolder;
 				checked(holder, contactItem.id);

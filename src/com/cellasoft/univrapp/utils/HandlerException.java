@@ -24,6 +24,8 @@ import java.io.IOException;
  */
 public class HandlerException extends IOException {
 
+	private static final long serialVersionUID = 1L;
+
 	public HandlerException() {
 		super();
 	}
@@ -47,6 +49,9 @@ public class HandlerException extends IOException {
 	}
 
 	public static class UnauthorizedException extends HandlerException {
+		
+		private static final long serialVersionUID = 1L;
+
 		public UnauthorizedException() {
 		}
 
@@ -60,6 +65,9 @@ public class HandlerException extends IOException {
 	}
 
 	public static class NoDevsiteProfileException extends HandlerException {
+	
+		private static final long serialVersionUID = 1L;
+
 		public NoDevsiteProfileException() {
 		}
 

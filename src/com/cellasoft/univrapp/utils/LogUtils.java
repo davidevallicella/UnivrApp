@@ -88,7 +88,8 @@ public class LogUtils {
 	}
 
 	public static void LOGE(final String tag, String message) {
-		Log.e(tag, message);
+		if (message != null)
+			Log.e(tag, message);
 	}
 
 	public static void LOGE(final String tag, String message, Throwable cause) {

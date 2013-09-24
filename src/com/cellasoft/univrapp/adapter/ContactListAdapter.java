@@ -10,7 +10,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.cellasoft.univrapp.R;
-import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.widget.ContactItemInterface;
 import com.cellasoft.univrapp.widget.ContactsSectionIndexer;

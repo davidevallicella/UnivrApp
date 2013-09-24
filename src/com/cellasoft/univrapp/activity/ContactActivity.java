@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -90,20 +91,12 @@ public class ContactActivity extends SherlockActivity {
 
 	private void loadContactInfo(final int lecturerId,
 			final String lecturerName, final String lecturerOffice,
-			final String lecturerThumb) {
+			final String imageUrl) {
 		BetterAsyncTask<Void, Void, Void> task = new BetterAsyncTask<Void, Void, Void>(
 				this) {
 
 			@Override
 			protected void before(Context context) {
-				ImageView image = (ImageView) findViewById(R.id.contact_image);
-
-				try {
-					ImageFetcher.getInstance(context).loadImage(lecturerThumb,
-							image);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
 
 				((TextView) findViewById(R.id.contact_title))
 						.setText(lecturerName);
@@ -125,6 +118,14 @@ public class ContactActivity extends SherlockActivity {
 			public Void call(BetterAsyncTask<Void, Void, Void> task)
 					throws Exception {
 
+				ImageView image = (ImageView) findViewById(R.id.contact_image);
+				Bitmap b = ImageFetcher.getInstance(ContactActivity.this).get(
+						imageUrl);
+				if (b != null) {
+					image.setImageBitmap(b);
+				}
+				// ImageFetcher.getInstance(ContactActivity.this).loadImage(imageUrl,
+				// image, R.drawable.user);
 				lecturer = Lecturer.findById(lecturerId);
 
 				final Vibrator vib = (Vibrator) getSystemService(VIBRATOR_SERVICE);

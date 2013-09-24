@@ -50,12 +50,13 @@ import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
 import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
-public class ContactListActivity extends BaseListActivity
-		implements OnQueryTextListener {
+public class ContactListActivity extends BaseListActivity implements
+		OnQueryTextListener {
 
 	private final static String TAG = makeLogTag(ContactListActivity.class);
 
 	private LecturerListView listView;
+	private List<ContactItemInterface> lecturers = null;
 	private List<ContactItemInterface> filterList = null;
 	private SearchListTask curSearchTask = null;
 
@@ -90,6 +91,7 @@ public class ContactListActivity extends BaseListActivity
 
 	private void init() {
 		university = Settings.getUniversity();
+		lecturers = Lists.newArrayList();
 		filterList = Lists.newArrayList();
 		post_data = new PostData();
 
@@ -183,6 +185,7 @@ public class ContactListActivity extends BaseListActivity
 		super.onResume();
 
 		imageFetcher.setExitTasksEarly(false);
+		listView.refresh();
 	}
 
 	@Override
@@ -197,16 +200,25 @@ public class ContactListActivity extends BaseListActivity
 			curSearchTask = null;
 		}
 
-		university.clearLecturers();
-		listView.clean();
-		listView.clearAnimation();
-		filterList.clear();
+		if (listView != null) {
+			listView.clean();
+			unbindDrawables(listView);
+			listView = null;
+		}
+
+		if (filterList != null) {
+			filterList.clear();
+			filterList = null;
+		}
+
+		if (lecturers != null) {
+			lecturers.clear();
+			lecturers = null;
+		}
 
 		university = null;
-		filterList = null;
 		post_data = null;
 
-		unbindDrawables(listView);
 		System.gc();
 	}
 
@@ -217,7 +229,7 @@ public class ContactListActivity extends BaseListActivity
 
 		refresh = true;
 
-		BetterAsyncTask<Void, Void, List<ContactItemInterface>> task = new BetterAsyncTask<Void, Void, List<ContactItemInterface>>(
+		BetterAsyncTask<Void, Void, Void> task = new BetterAsyncTask<Void, Void, Void>(
 				this) {
 
 			@Override
@@ -226,11 +238,9 @@ public class ContactListActivity extends BaseListActivity
 			}
 
 			@Override
-			protected void after(Context arg0,
-					List<ContactItemInterface> lecturers) {
+			protected void after(Context arg0, Void items) {
 				listView.setItems(lecturers);
 				listView.startLayoutAnimation();
-				university.getLecturers().addAll(lecturers);
 				refresh = false;
 			}
 
@@ -243,11 +253,11 @@ public class ContactListActivity extends BaseListActivity
 			}
 		};
 
-		task.setCallable(new BetterAsyncTaskCallable<Void, Void, List<ContactItemInterface>>() {
-			public List<ContactItemInterface> call(
-					BetterAsyncTask<Void, Void, List<ContactItemInterface>> task)
+		task.setCallable(new BetterAsyncTaskCallable<Void, Void, Void>() {
+			public Void call(BetterAsyncTask<Void, Void, Void> task)
 					throws Exception {
-				return Lecturer.loadFullLecturers();
+				lecturers = Lecturer.loadFullLecturers();
+				return null;
 			}
 		});
 		task.disableDialog();
@@ -411,8 +421,7 @@ public class ContactListActivity extends BaseListActivity
 				.setCallable(new BetterAsyncTaskCallable<Void, Void, Void>() {
 					public Void call(BetterAsyncTask<Void, Void, Void> arg0)
 							throws Exception {
-						for (ContactItemInterface item : university
-								.getLecturers()) {
+						for (ContactItemInterface item : lecturers) {
 							Lecturer lecturer = (Lecturer) item;
 							if (lecturer.isSelected) {
 								post_data.setPersoneMittente(lecturer.key);
@@ -541,7 +550,7 @@ public class ContactListActivity extends BaseListActivity
 
 			if (inSearchMode) {
 				// get all the items matching this
-				for (ContactItemInterface item : university.getLecturers()) {
+				for (ContactItemInterface item : lecturers) {
 					Lecturer contact = (Lecturer) item;
 
 					if ((contact.getItemForIndex()
@@ -566,7 +575,7 @@ public class ContactListActivity extends BaseListActivity
 							listView.setItems(filterList);
 						} else {
 							listView.setInSearchMode(false);
-							listView.setItems(university.getLecturers());
+							listView.setItems(lecturers);
 						}
 					}
 				});

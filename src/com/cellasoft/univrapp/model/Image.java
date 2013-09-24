@@ -1,6 +1,6 @@
 package com.cellasoft.univrapp.model;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -73,7 +73,7 @@ public class Image implements ActionSupport {
 					+ limit);
 		}
 
-		public static ArrayList<Image> loadAllQueuedImages() {
+		public static List<Image> loadAllQueuedImages() {
 			return ContentManager.loadAllQueuedImages();
 		}
 	}

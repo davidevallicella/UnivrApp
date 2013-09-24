@@ -65,7 +65,7 @@ public abstract class ImageWorker {
 		mResources = context.getResources();
 	}
 
-	public BitmapDrawable get(String key) {
+	public Bitmap get(String key) {
 		if (mImageCache == null || key == null)
 			return null;
 		synchronized (mImageCache) {
@@ -73,7 +73,7 @@ public abstract class ImageWorker {
 			if (bitmap == null)
 				bitmap = new RecyclingBitmapDrawable(mResources,
 						mImageCache.getBitmapFromDiskCache(key));
-			return bitmap;
+			return bitmap.getBitmap();
 		}
 	}
 

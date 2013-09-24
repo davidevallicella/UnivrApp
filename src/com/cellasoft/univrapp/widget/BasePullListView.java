@@ -7,6 +7,7 @@ import android.util.AttributeSet;
 
 import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.adapter.BaseListAdapter;
+import com.cellasoft.univrapp.utils.Lists;
 import com.markupartist.android.widget.PullToRefreshListView;
 
 public class BasePullListView<T> extends PullToRefreshListView {
@@ -52,12 +53,21 @@ public class BasePullListView<T> extends PullToRefreshListView {
 	}
 
 	public void setItems(List<T> items) {
+		if (items == null) {
+			items = Lists.newArrayList();
+		}
 		adapter.setItems(items);
 		this.setSelection(1);
 	}
 
 	public void addItems(List<T> items) {
-		adapter.addItems(items);
+		if (items != null) {
+			adapter.addItems(items);
+		}
+	}
+
+	public List<T> getItems() {
+		return adapter.getItems();
 	}
 
 	@Override

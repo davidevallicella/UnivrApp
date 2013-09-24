@@ -27,7 +27,6 @@ public class ChooseMainFeedActivity extends BaseListActivity {
 		super.onDestroy();
 		adapter.clear();
 		unbindDrawables(getListView());
-		System.gc();
 	}
 
 	private void init() {
