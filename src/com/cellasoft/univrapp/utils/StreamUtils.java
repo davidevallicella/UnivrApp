@@ -17,6 +17,17 @@ public class StreamUtils {
 	public static final String DEFAULT_ENCODING = "UTF-8";
 	public static final int BUFFER_SIZE = 1024 * 8;
 
+	/**
+	 * Workaround for bug pre-Froyo, see here for more info:
+	 * http://android-developers.blogspot.com/2011/09/androids-http-clients.html
+	 */
+	public static void disableConnectionReuseIfNecessary() {
+		// HTTP connection reuse which was buggy pre-froyo
+		if (!UIUtils.hasFroyo()) {
+			System.setProperty("http.keepAlive", "false");
+		}
+	}
+
 	public static String readFromUrl(String url) {
 		return readFromUrl(url, DEFAULT_ENCODING);
 	}
@@ -29,6 +40,7 @@ public class StreamUtils {
 	 * @return
 	 */
 	public static String readFromUrl(String url, String encoding) {
+		disableConnectionReuseIfNecessary();
 		HttpClient client = new DefaultHttpClient();
 		HttpGet get = new HttpGet(url);
 		try {

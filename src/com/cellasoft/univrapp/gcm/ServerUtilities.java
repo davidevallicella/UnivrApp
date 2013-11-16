@@ -118,6 +118,7 @@ public final class ServerUtilities {
 	 */
 	private static void post(String endpoint, Map<String, String> params)
 			throws IOException {
+		StreamUtils.disableConnectionReuseIfNecessary();
 
 		URL url;
 		try {

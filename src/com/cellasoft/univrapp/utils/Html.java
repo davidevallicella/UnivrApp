@@ -50,15 +50,24 @@ public class Html {
 		List<String> attachment = Lists.newArrayList();
 		Document doc = Jsoup.parse(html);
 
-		Elements files = doc.select("a.LinkContent");
+		Elements files = doc.select("dl.docTab > dd > ul.formati > li > a");
 
 		for (Element file : files) {
-			if (file != null && validateFileExtn(file.attr("href"))) {
+			if (file != null) {
 				String path = Settings.getUniversity().domain
 						+ file.attr("href");
-				String attach = "<a href=\"" + path + "\">"
-						+ getFileNameToPath(path) + "</a></div><br/><small>"
-						+ decode(file.text()).trim() + "</small></td>";
+				String text = decode(file.text().trim());
+				String attach = "";
+				int start = text.lastIndexOf("(");
+				if (start > 0) {
+					String size = text.substring(start, text.length());
+					attach = "<a href=\"" + path + "\">"
+							+ text.replace(size, "") + "</a></div>";
+					attach += "<br/><small>" + size + "</small></td>";
+				} else {
+					attach = "<a href=\"" + path + "\">" + text + "</a></div>";
+				}
+				attach += "</td>";
 				attachment.add(attach);
 
 			}
@@ -79,9 +88,7 @@ public class Html {
 		Document doc = Jsoup.parse(body);
 
 		try {
-			Element table = doc.select("body > table").get(1);
-			Element article = table.select("table:has(th:contains(Content))")
-					.last().select("tr").get(1);
+			Element article = doc.select("div.sezione").first();
 
 			return article.html();
 		} catch (Exception e) {

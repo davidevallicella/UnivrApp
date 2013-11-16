@@ -232,14 +232,6 @@ public class Channel extends Observable implements ActionSupport, Serializable {
 		return newItems;
 	}
 
-	public int countUnreadItems() {
-		return this.unread;
-	}
-
-	public void setUnreadItems(int unread) {
-		this.unread = unread;
-	}
-
 	public boolean isEmpty() {
 		return this.getItems().size() == 0;
 	}

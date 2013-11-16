@@ -47,7 +47,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.util.LruCache;
 
 import com.cellasoft.univrapp.BuildConfig;
-import com.cellasoft.univrapp.utils.ImageCache.ImageCacheParams;
 
 /**
  * This class handles disk and memory caching of bitmaps in conjunction with the

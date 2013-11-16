@@ -1,7 +1,6 @@
 package com.cellasoft.univrapp.activity;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
@@ -25,8 +24,6 @@ import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;
 import com.cellasoft.univrapp.utils.UIUtils;
-import com.github.droidfu.concurrent.BetterAsyncTask;
-import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
 
 public class ContactActivity extends SherlockActivity {
 
@@ -35,6 +32,7 @@ public class ContactActivity extends SherlockActivity {
 	public static final String LECTURER_OFFICE_PARAM = "LecturerOffice";
 	public static final String LECTURER_THUMB_PARAM = "LecturerThumb";
 	private Lecturer lecturer;
+	protected volatile boolean running;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -55,12 +53,19 @@ public class ContactActivity extends SherlockActivity {
 		getSupportActionBar().setTitle(
 				getResources().getString(R.string.contact_title));
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		running = true;
 	}
 
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
 		super.onPostCreate(savedInstanceState);
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		running = false;
 	}
 
 	@Override
@@ -92,12 +97,10 @@ public class ContactActivity extends SherlockActivity {
 	private void loadContactInfo(final int lecturerId,
 			final String lecturerName, final String lecturerOffice,
 			final String imageUrl) {
-		BetterAsyncTask<Void, Void, Void> task = new BetterAsyncTask<Void, Void, Void>(
-				this) {
+		new AsyncTask<Void, Void, Void>() {
 
 			@Override
-			protected void before(Context context) {
-
+			protected void onPreExecute() {
 				((TextView) findViewById(R.id.contact_title))
 						.setText(lecturerName);
 				((TextView) findViewById(R.id.contact_office))
@@ -105,33 +108,21 @@ public class ContactActivity extends SherlockActivity {
 			}
 
 			@Override
-			protected void handleError(Context context, Exception e) {
-			}
+			protected Void doInBackground(Void... params) {
+				final ImageView image = (ImageView) findViewById(R.id.contact_image);
+				final Bitmap b = ImageFetcher.getInstance(ContactActivity.this)
+						.get(imageUrl);
 
-			@Override
-			protected void after(Context arg0, Void arg1) {
-
-			}
-
-		};
-		task.setCallable(new BetterAsyncTaskCallable<Void, Void, Void>() {
-			public Void call(BetterAsyncTask<Void, Void, Void> task)
-					throws Exception {
-
-				ImageView image = (ImageView) findViewById(R.id.contact_image);
-				Bitmap b = ImageFetcher.getInstance(ContactActivity.this).get(
-						imageUrl);
-				if (b != null) {
-					image.setImageBitmap(b);
-				}
-				// ImageFetcher.getInstance(ContactActivity.this).loadImage(imageUrl,
-				// image, R.drawable.user);
 				lecturer = Lecturer.findById(lecturerId);
 
 				final Vibrator vib = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
 				runOnUiThread(new Runnable() {
 					public void run() {
+						if (b != null) {
+							image.setImageBitmap(b);
+						}
+
 						if (lecturer.telephone != null
 								&& lecturer.telephone.length() > 0) {
 
@@ -258,13 +249,8 @@ public class ContactActivity extends SherlockActivity {
 
 				return null;
 			}
-		});
-		task.disableDialog();
-		if (UIUtils.hasHoneycomb())
-			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-					(Void[]) null);
-		else
-			task.execute((Void[]) null);
+
+		}.execute((Void[]) null);
 	}
 
 	private void chooseNumberDialog(final String[] telephones) {

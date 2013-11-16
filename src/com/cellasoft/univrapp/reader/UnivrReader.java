@@ -39,13 +39,13 @@ public class UnivrReader implements Serializable {
 	private String userAgent;
 
 	public UnivrReader(Context context) {
-		//this.context = context;
 		userAgent = buildUserAgent(context);
 	}
 
 	public RSSFeed fetchEntriesOfFeed(Channel channel, int maxItems,
 			OnNewEntryCallback callback) throws IOException {
 
+		StreamUtils.disableConnectionReuseIfNecessary();
 		URL url = new URL(channel.url);
 		HttpURLConnection urlConnection = (HttpURLConnection) url
 				.openConnection();
@@ -64,6 +64,8 @@ public class UnivrReader implements Serializable {
 			JSONHandler handler) throws IOException {
 		LOGI(TAG, "get Json (dest = " + uni.dest + ")");
 
+		StreamUtils.disableConnectionReuseIfNecessary();
+
 		String serverUrl = SERVER_URL + "/lecturers.php?format=json&dest="
 				+ uni.dest;
 
@@ -78,7 +80,7 @@ public class UnivrReader implements Serializable {
 
 		InputStream is = urlConnection.getInputStream();
 		String response = StreamUtils.readAllText(is);
-		
+
 		LOGV(TAG, "HTTP response: " + response);
 		return handler.parse(response);
 	}

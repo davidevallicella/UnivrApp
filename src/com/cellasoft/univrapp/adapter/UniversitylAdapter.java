@@ -27,7 +27,9 @@ public class UniversitylAdapter extends BaseListAdapter<University> {
 			University university, int position) {
 		if (viewHolder instanceof Holder) {
 			Holder holder = (Holder) viewHolder;
+
 			holder.thumbnail.setImageResource(university.logo_from_resource);
+
 			holder.name.setText(university.name);
 		}
 	}
@@ -49,7 +51,7 @@ public class UniversitylAdapter extends BaseListAdapter<University> {
 		}
 
 		populateDataForRow(holder, university, position);
-		convertView.setBackgroundResource(university.color_from_resource);
+		convertView.setBackgroundResource(R.color.aliceBlue);
 
 		return convertView;
 	}

@@ -2,36 +2,25 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_name">UnivrApp</string>
+    <string name="about_name">Davide Vallicella</string>
+    <string name="about_email">vallicella.davide@gmail.com</string>
+    <string name="about_coffe">Offrimi un caffè</string>
     <string name="channel_title">Sottoscrizioni</string>
     <string name="subscribe_title">Docenti</string>
-    <string name="progress_txt">
-<![CDATA[
-  			<small><font size="2" face="sans">{message}</font></small>
-    	]]>
-    </string>
-    <string name="searchTxt">Search...</string>
-    <string name="header1title">Some Settings</string>
-    <string name="header1summary">A handful of values for you to tailor</string>
     <string name="desc"></string>
+    <string name="subscribed">Iscritto</string>
     <string name="auto_update_key">auto_update</string>
-    <string name="download_images_key">download_images</string>
     <string name="update_interval_key">update_interval</string>
-    <string name="max_items_for_channel_key">max_items_for_channel</string>
     <string name="language_key">language</string>
     <string name="show_updated_channels_key">show_updated_channels</string>
     <string name="first_time_key">first_time</string>
     <string name="last_update_notification">{date}</string>
-    <string name="info_about_me">Development by a student of \n\ Faculty Mathematical, Physical and Natural Sciences ,\n\ University of Verona 2012-2013</string>
+    <string name="info_about_me">Development by a student of \n\ Faculty Mathematical, Physical and Natural Sciences ,\n\ University of Verona 2012&#8211;2013</string>
     <string name="mark_all_read">Contrassegna tutto come letto</string>
     <string name="new_items_notification">Trovati {total} avvisi.</string>
     <string name="new_lecturers_notification">Trovati {total} docenti.</string>
     <string name="not_load_notification">Impossibile caricare il feed.</string>
     <string name="not_load_lecturer_notification">Impossibile caricare i docenti.</string>
-    <string name="loading">Caricamento ...</string>
-    <string name="save">Salva</string>
-    <string name="back">Indietro</string>
-    <string name="change">Cambia</string>
-    <string name="lecturers">Professori</string>
     <string name="clean">Rimosse {total} avvisi</string>
     <string name="unsub_channel_dialog_title">Cancellazione canali</string>
     <string name="unsub_channel_dialog">I canali selezionati verranno rimossi, continuare?</string>
@@ -44,12 +33,13 @@
     <string name="no">no</string>
     <string name="success">Riuscito</string>
     <string name="updated">Aggiornato</string>
-    <string name="updating">Aggiornamento...</string>
+    <string name="updating">Aggiornamento&#8230;</string>
     <string name="clear_cache_menu">Svuota Caches</string>
     <string name="clear_cache_complete_toast">La Caches è stata pulita</string>
+    <string name="loading">Caricamento&#8230;</string>
+    <string name="search">Trova</string>
 
     <!-- EXCEPTION -->
-    <string name="univrapp_server_exception">Il server è momentaneamente inattivo. \n\ Attendere alcuni secondi e riprovare.</string>
     <string name="univrapp_connection_exception">Connettività limitata o assente</string>
 
     <!-- MENU -->
@@ -65,7 +55,6 @@
     <string name="up">Attiva notifiche</string>
     <string name="mute">Mantieni silenzioso</string>
     <string name="web_page">Pagina Web</string>
-    <string name="share">Condividi</string>
     <!-- CONTACT -->
     <string name="contact_title">Contatto</string>
     <string name="contact_header">Contatti</string>
@@ -86,8 +75,6 @@
     <string name="pref_auto_update_summary">Aggiornamento automatico di tutte le sottoscrizioni</string>
     <string name="pref_update_interval">Intervallo di aggiornamento</string>
     <string name="pref_update_interval_summary">Definire la frequenza di aggiornamenti che verrà eseguita</string>
-    <string name="pref_downloads_lecturers">Miniature docenti</string>
-    <string name="pref_downloads_lecturers_summary">Scarica e aggiorna le miniature dei docenti in background</string>
     <string name="pref_keep_max_items">Numero di elementi più recenti da mantenere</string>
     <string name="pref_keep_max_items_summary">Massimo dumero di avvisi da tenere durante la pulitura del canale</string>
     <string name="pref_max_items_for_channel">Max avvisi per sottoscrizione</string>
@@ -116,28 +103,12 @@
     <string name="max_50">Max 50 avvisi</string>
     <string name="max_100">Max 100 avvisi</string>
     <string name="max_200">Max 200 avvisi</string>
-    <string name="pull_to_refresh_pull_label">Tirare per aggiornare...</string>
-    <string name="pull_to_refresh_release_label">Rilascia per aggiornare...</string>
-    <string name="pull_to_refresh_refreshing_label">Caricamento...</string>
-    <string name="pull_to_refresh_tap_label">Premere per aggiornare...</string>
+    <string name="pull_to_refresh_pull_label">Tirare per aggiornare&#8230;</string>
+    <string name="pull_to_refresh_release_label">Rilascia per aggiornare&#8230;</string>
+    <string name="pull_to_refresh_refreshing_label">Caricamento&#8230;</string>
+    <string name="pull_to_refresh_tap_label">Premere per aggiornare&#8230;</string>
 
     <!-- GCM -->
-    <string name="error_config">Please set the %1$s constant and recompile the app.</string>
-    <string name="already_registered">Device is already registered on server.</string>
-    <string name="gcm_registered">From GCM: device successfully registered!</string>
-    <string name="gcm_unregistered">From GCM: device successfully unregistered!</string>
-    <string name="gcm_message">From GCM: you got message!</string>
-    <string name="gcm_error">From GCM: error (%1$s).</string>
-    <string name="gcm_recoverable_error">From GCM: recoverable error (%1$s).</string>
-    <string name="gcm_deleted">From GCM: server deleted %1$d pending messages!</string>
-    <string name="server_registering">Trying (attempt %1$d/%2$d) to register device on Demo Server.</string>
-    <string name="server_registered">From Demo Server: successfully added device!</string>
-    <string name="server_unregistered">From Demo Server: successfully removed device!</string>
-    <string name="server_register_error">Could not register device on Demo Server after %1$d attempts.</string>
     <string name="server_unregister_error">Could not unregister device on Demo Server (%1$s).</string>
-    <string name="options_register">Register</string>
-    <string name="options_unregister">Unregister</string>
-    <string name="options_clear">Clear</string>
-    <string name="options_exit">Exit</string>
 
 </resources>

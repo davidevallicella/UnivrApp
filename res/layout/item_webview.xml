@@ -1,24 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/articleLayout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#303030"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
     android:gravity="center" >
 
-    <FrameLayout
+    <com.cellasoft.univrapp.widget.NonLeakingWebView
+        android:id="@+id/itemWebView"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent" >
+        android:layout_height="fill_parent" />
 
-        <com.cellasoft.univrapp.widget.NonLeakingWebView
-            android:id="@+id/itemWebView"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent" />
+    <include
+        android:id="@+id/progressBar"
+        layout="@layout/progress_bar"
+        android:visibility="visible" />
 
-        <include
-            android:id="@+id/progressBar"
-            layout="@layout/progress_bar"
-            android:visibility="visible" />
-    </FrameLayout>
-
-</LinearLayout>
+</merge>

@@ -15,7 +15,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.util.SparseArray;
+import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ListView;
@@ -36,7 +36,6 @@ import com.cellasoft.univrapp.service.SynchronizationService;
 import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.GCMUtils;
 import com.cellasoft.univrapp.utils.ImageFetcher;
-import com.cellasoft.univrapp.utils.Lists;
 import com.cellasoft.univrapp.utils.UIUtils;
 import com.cellasoft.univrapp.widget.ChannelListView;
 import com.cellasoft.univrapp.widget.ChannelView;
@@ -52,6 +51,7 @@ public class ChannelListActivity extends BaseListActivity {
 
 	private static final int FIRST_TIME = 1;
 
+	private boolean loadingData;
 	private List<Channel> channels;
 	private ChannelListView listView;
 	private ImageFetcher imageFetcher;
@@ -113,7 +113,9 @@ public class ChannelListActivity extends BaseListActivity {
 		new AsyncTask<Boolean, Void, Void>() {
 
 			protected void onPostExecute(Void result) {
-				listView.refresh();
+				if (running) {
+					listView.refresh();
+				}
 			};
 
 			@Override
@@ -169,12 +171,10 @@ public class ChannelListActivity extends BaseListActivity {
 
 		if (imageFetcher != null) {
 			imageFetcher.destroy();
-			imageFetcher = null;
 		}
 
 		if (channels != null) {
 			channels.clear();
-			channels = null;
 		}
 
 		if (listView != null) {
@@ -182,8 +182,6 @@ public class ChannelListActivity extends BaseListActivity {
 			unbindDrawables(listView);
 			listView = null;
 		}
-
-		synchronizationListener = null;
 
 		System.gc();
 	}
@@ -236,7 +234,7 @@ public class ChannelListActivity extends BaseListActivity {
 	}
 
 	private void onFirstTime() {
-		Intent intent = new Intent(this, ChooseMainFeedActivity.class);
+		Intent intent = new Intent(this, DepartmentsActivity.class);
 		startActivityForResult(intent, FIRST_TIME);
 	}
 
@@ -263,22 +261,28 @@ public class ChannelListActivity extends BaseListActivity {
 
 	@Override
 	protected void loadData() {
-		new AsyncTask<Void, Void, Void>() {
+		new AsyncTask<Void, Void, Boolean>() {
 
 			@Override
-			protected void onPostExecute(Void result) {
-				if (channels == null) {
-					channels = Lists.newArrayList();
+			protected void onPostExecute(Boolean success) {
+				if (running && success) {
+					listView.setChannels(channels);
+					refreshUnreadCounts();
 				}
-				listView.setChannels(channels);
-				refreshUnreadCounts();
+
+				loadingData = false;
 			}
 
 			@Override
-			protected Void doInBackground(Void... params) {
-				channels = Channel
-						.loadAllChannels(ContentManager.FULL_CHANNEL_LOADER);
-				return null;
+			protected Boolean doInBackground(Void... params) {
+				if (loadingData == false) {
+					loadingData = true;
+					channels = Channel
+							.loadAllChannels(ContentManager.FULL_CHANNEL_LOADER);
+					return true;
+				}
+
+				return false;
 			}
 		}.execute();
 
@@ -331,6 +335,7 @@ public class ChannelListActivity extends BaseListActivity {
 			if (resultCode == RESULT_OK) {
 				saveFirstTime();
 				GCMUtils.doRegister(this);
+				listView.refresh();
 			}
 			if (resultCode == RESULT_CANCELED) {
 				finish();
@@ -342,7 +347,8 @@ public class ChannelListActivity extends BaseListActivity {
 		new AsyncTask<Void, Void, Void>() {
 
 			protected void onPostExecute(Void result) {
-				infoDialog();
+				if (running)
+					infoDialog();
 			};
 
 			@Override
@@ -505,10 +511,13 @@ public class ChannelListActivity extends BaseListActivity {
 			protected void onPostExecute(Void result) {
 				progressDialog.dismiss();
 
-				String message = getResources().getString(R.string.success);
-				Toast.makeText(ChannelListActivity.this, message, 1000).show();
+				if (running) {
+					String message = getResources().getString(R.string.success);
+					Toast.makeText(ChannelListActivity.this, message, 1000)
+							.show();
 
-				loadData();
+					loadData();
+				}
 			}
 
 			@Override
@@ -534,6 +543,7 @@ public class ChannelListActivity extends BaseListActivity {
 				progressDialog.setMessage("Reset");
 				progressDialog.setCancelable(false);
 				progressDialog.show();
+
 			}
 
 			@SuppressLint("ShowToast")
@@ -541,15 +551,15 @@ public class ChannelListActivity extends BaseListActivity {
 			protected void onPostExecute(Void result) {
 				progressDialog.dismiss();
 
-				listView.setChannels(channels);
+				if (running) {
+					String message = getResources().getString(R.string.success);
+					Toast.makeText(ChannelListActivity.this, message, 1000)
+							.show();
 
-				String message = getResources().getString(R.string.success);
-				Toast.makeText(ChannelListActivity.this, message, 1000).show();
+					startServices();
 
-				startServices();
-
-				System.gc();
-				onFirstTime();
+					onFirstTime();
+				}
 			}
 
 			@Override
@@ -563,6 +573,15 @@ public class ChannelListActivity extends BaseListActivity {
 					channel.delete();
 				}
 				channels.clear();
+
+				runOnUiThread(new Runnable() {
+
+					@Override
+					public void run() {
+						listView.clean();
+						unbindDrawables(listView);
+					}
+				});
 
 				ContentManager.deleteAllLecturers();
 				ContentManager.deleteAllImages();
@@ -584,13 +603,16 @@ public class ChannelListActivity extends BaseListActivity {
 
 			@Override
 			protected void after(Context arg0, Void arg1) {
-				listView.refresh();
+				if (running)
+					listView.refresh();
 			}
 
 			protected void handleError(Context context, Exception e) {
-				String message = getResources().getString(
-						R.string.not_load_notification);
-				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				if (running) {
+					String message = getResources().getString(
+							R.string.not_load_notification);
+					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				}
 			}
 
 		};
@@ -598,10 +620,10 @@ public class ChannelListActivity extends BaseListActivity {
 			public Void call(BetterAsyncTask<Void, Void, Void> task)
 					throws Exception {
 
-				SparseArray<Integer> unreadCounts = ContentManager
+				SparseIntArray unreadCounts = ContentManager
 						.countUnreadItemsForEachChannel();
 				for (Channel channel : channels) {
-					channel.setUnreadItems(unreadCounts.get(channel.id, 0));
+					channel.unread = unreadCounts.get(channel.id, 0);
 				}
 				unreadCounts.clear();
 				unreadCounts = null;
@@ -609,12 +631,7 @@ public class ChannelListActivity extends BaseListActivity {
 			}
 		});
 		task.disableDialog();
-		if (UIUtils.hasHoneycomb()) {
-			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-					(Void[]) null);
-		} else {
-			task.execute((Void[]) null);
-		}
+		UIUtils.execute(task, (Void[]) null);
 	}
 
 	private void refreshAllChannels() {
@@ -622,9 +639,11 @@ public class ChannelListActivity extends BaseListActivity {
 				this) {
 
 			protected void handleError(Context context, Exception e) {
-				String message = getResources().getString(
-						R.string.not_load_notification);
-				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				if (running) {
+					String message = getResources().getString(
+							R.string.not_load_notification);
+					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				}
 			}
 
 			@Override
@@ -640,11 +659,7 @@ public class ChannelListActivity extends BaseListActivity {
 			}
 		});
 		task.disableDialog();
-		if (UIUtils.hasHoneycomb()) {
-			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-					(Void[]) null);
-		} else
-			task.execute((Void[]) null);
+		UIUtils.execute(task, (Void[]) null);
 
 	}
 }

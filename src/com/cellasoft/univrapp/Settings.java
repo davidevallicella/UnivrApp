@@ -97,7 +97,7 @@ public class Settings {
 	public static void setUniversity(String university) {
 		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
 		SharedPreferences.Editor editor = prefs.edit();
-		editor.putInt("UNIVERSITY", Universites.DEST.get(university));
+		editor.putInt("UNIVERSITY", Universites.DIP_DEST.get(university));
 		editor.commit();
 	}
 
@@ -114,8 +114,7 @@ public class Settings {
 
 	public static University getUniversity() {
 		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-		int dest = prefs
-				.getInt("UNIVERSITY", Universites.DEST_SCIENZE_MM_FF_NN);
+		int dest = prefs.getInt("UNIVERSITY", Universites.DEST_DIP_INFORMATICA);
 		return University.getUniversityByDest(dest);
 	}
 

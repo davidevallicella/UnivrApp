@@ -41,7 +41,7 @@ public class LogUtils {
 	/**
 	 * WARNING: Don't use this when obfuscating class names with Proguard!
 	 */
-	public static String makeLogTag(Class cls) {
+	public static String makeLogTag(Class<?> cls) {
 		return makeLogTag(cls.getSimpleName());
 	}
 

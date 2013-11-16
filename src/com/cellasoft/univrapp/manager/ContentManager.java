@@ -1,10 +1,8 @@
 package com.cellasoft.univrapp.manager;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import android.content.ContentResolver;
@@ -14,6 +12,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 import android.util.SparseArray;
+import android.util.SparseIntArray;
 
 import com.cellasoft.univrapp.Application;
 import com.cellasoft.univrapp.BuildConfig;
@@ -54,7 +53,7 @@ public class ContentManager {
 	public static final int ITEM_TYPE_ITEM = 2;
 
 	private static Set<String> recentReadArticles = new HashSet<String>();
-	private static final Map<Integer, WeakReference<Channel>> channelCache = new HashMap<Integer, WeakReference<Channel>>();
+	private static final SparseArray<WeakReference<Channel>> channelCache = new SparseArray<WeakReference<Channel>>();
 
 	private static ContentResolver cr;
 
@@ -582,7 +581,7 @@ public class ContentManager {
 	 * @param cr
 	 * @return a map of ChannelId <-> Unread count
 	 */
-	public static SparseArray<Integer> countUnreadItemsForEachChannel() {
+	public static SparseIntArray countUnreadItemsForEachChannel() {
 		Cursor cursor = cr.query(
 				Items.countUnreadEachChannel(),
 				new String[] { Items.CHANNEL_ID, Items.UNREAD_COUNT },
@@ -590,7 +589,7 @@ public class ContentManager {
 				new String[] { String.valueOf(Item.UNREAD),
 						String.valueOf(Item.KEPT_UNREAD) }, null);
 
-		SparseArray<Integer> unreadCounts = new SparseArray<Integer>(cursor.getCount());
+		SparseIntArray unreadCounts = new SparseIntArray(cursor.getCount());
 		while (cursor.moveToNext()) {
 			unreadCounts.put(cursor.getInt(0), cursor.getInt(1));
 		}
@@ -613,8 +612,8 @@ public class ContentManager {
 		return unreadCounts;
 	}
 
-	private static boolean isChannelInCache(long channelId) {
-		return channelCache.containsKey(channelId);
+	private static boolean isChannelInCache(int channelId) {
+		return channelCache.indexOfKey(channelId) >= 0;
 	}
 
 	private static void putChannelToCache(Channel channel) {

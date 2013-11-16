@@ -147,22 +147,6 @@ public class ItemListActivity extends BaseListActivity {
 			LOGD(TAG, "onDestroy()");
 		}
 		super.onDestroy();
-
-		if (channel != null) {
-			channel.clearItems();
-			channel = null;
-		}
-
-		if (listView != null) {
-			listView.clean();
-			unbindDrawables(listView);
-			listView = null;
-		}
-
-		progressBar = null;
-		synchronizationListener = null;
-
-		System.gc();
 	}
 
 	private void init() {
@@ -231,9 +215,11 @@ public class ItemListActivity extends BaseListActivity {
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		Item item = (Item) l.getItemAtPosition(position);
-		markItemAsRead(item);
-		showItem(item);
+		if (position > 0) {
+			Item item = (Item) l.getItemAtPosition(position);
+			markItemAsRead(item);
+			showItem(item);
+		}
 	}
 
 	@Override
@@ -283,32 +269,37 @@ public class ItemListActivity extends BaseListActivity {
 
 			@Override
 			protected void after(Context context, final List<Item> newItems) {
-				String size = "0";
-				if (newItems != null && newItems.size() > 0) {
-					new Runnable() {
-						public void run() {
-							listView.addItems(newItems);
-						}
-					}.run();
+				if (running) {
+					String size = "0";
+					if (newItems != null && newItems.size() > 0) {
+						new Runnable() {
+							public void run() {
+								listView.addItems(newItems);
+							}
+						}.run();
 
-					size = String.valueOf(newItems.size());
+						size = String.valueOf(newItems.size());
+					}
+					listView.onRefreshComplete();
+
+					String message = getResources().getString(
+							R.string.new_items_notification).replace("{total}",
+							size);
+					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 				}
-				listView.onRefreshComplete();
 				onChannelUpdated();
-				String message = getResources().getString(
-						R.string.new_items_notification).replace("{total}",
-						size);
-				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 				refresh = false;
 			}
 
 			@Override
 			protected void handleError(Context context, Exception e) {
-				listView.onRefreshComplete();
-				String message = getResources().getString(
-						R.string.not_load_notification);
-				Toast.makeText(context, message + "\n" + e.getMessage(),
-						Toast.LENGTH_SHORT).show();
+				if (running) {
+					listView.onRefreshComplete();
+					String message = getResources().getString(
+							R.string.not_load_notification);
+					Toast.makeText(context, message + "\n" + e.getMessage(),
+							Toast.LENGTH_SHORT).show();
+				}
 				refresh = false;
 			}
 		};
@@ -325,11 +316,7 @@ public class ItemListActivity extends BaseListActivity {
 			}
 		});
 		task.disableDialog();
-		if (UIUtils.hasHoneycomb()) {
-			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-					(Void[]) null);
-		} else
-			task.execute((Void[]) null);
+		UIUtils.execute(task, (Void[]) null);
 	}
 
 	@Override
@@ -343,23 +330,26 @@ public class ItemListActivity extends BaseListActivity {
 			}
 
 			protected void after(Context context, final ActiveList<Item> items) {
-				listView.setItemRequestListener(onItemRequestListener);
-				listView.setItems(items);
-				listView.startLayoutAnimation();
+				if (running) {
+					listView.setItemRequestListener(onItemRequestListener);
+					listView.setItems(items);
+					listView.startLayoutAnimation();
 
-				if (items.size() == Config.MAX_ITEMS)
-					listView.addFooterView();
-				else
-					listView.removeFooterView();
+					if (items.size() == Config.MAX_ITEMS)
+						listView.addFooterView();
+					else
+						listView.removeFooterView();
 
+				}
 				onChannelUpdated();
 			}
 
 			protected void handleError(Context context, Exception e) {
-				e.printStackTrace();
-				String message = getResources().getString(
-						R.string.not_load_notification);
-				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				if (running) {
+					String message = getResources().getString(
+							R.string.not_load_notification);
+					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				}
 			}
 		};
 		task.setCallable(new BetterAsyncTaskCallable<Void, Void, ActiveList<Item>>() {
@@ -377,11 +367,7 @@ public class ItemListActivity extends BaseListActivity {
 			}
 		});
 		task.disableDialog();
-		if (UIUtils.hasHoneycomb()) {
-			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-					(Void[]) null);
-		} else
-			task.execute((Void[]) null);
+		UIUtils.execute(task, (Void[]) null);
 	}
 
 	protected void loadMoreItems(final Item lastItem) {
@@ -391,46 +377,38 @@ public class ItemListActivity extends BaseListActivity {
 
 		loading = true;
 
-		BetterAsyncTask<Void, Void, List<Item>> loadMoreItemsTask = new BetterAsyncTask<Void, Void, List<Item>>(
+		BetterAsyncTask<Void, Void, List<Item>> task = new BetterAsyncTask<Void, Void, List<Item>>(
 				this) {
 			protected void after(Context context, final List<Item> items) {
-				listView.addItems(items);
+				if (running) {
+					listView.addItems(items);
 
-				if (items.size() < Config.MAX_ITEMS
-						|| listView.getCount() >= Settings
-								.getMaxItemsForChannel()) {
+					if (items.size() < Config.MAX_ITEMS
+							|| listView.getCount() >= Settings
+									.getMaxItemsForChannel()) {
 
-					listView.removeFooterView();
-					listView.setItemRequestListener(null);
+						listView.removeFooterView();
+						listView.setItemRequestListener(null);
+					}
 				}
-
 				loading = false;
 			}
 
 			protected void handleError(Context context, Exception e) {
-				e.printStackTrace();
 				loading = false;
 			}
 		};
-		loadMoreItemsTask
-				.setCallable(new BetterAsyncTaskCallable<Void, Void, List<Item>>() {
-					public List<Item> call(
-							BetterAsyncTask<Void, Void, List<Item>> task)
-							throws Exception {
-						return ContentManager.loadItems(new LatestItems(
-								channel.id, lastItem, LatestItems.OLDER,
-								Config.MAX_ITEMS),
-								ContentManager.FULL_ITEM_LOADER,
-								ContentManager.LIGHTWEIGHT_CHANNEL_LOADER);
-					}
-				});
-		loadMoreItemsTask.disableDialog();
-
-		if (UIUtils.hasHoneycomb()) {
-			loadMoreItemsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-					(Void[]) null);
-		} else
-			loadMoreItemsTask.execute((Void[]) null);
+		task.setCallable(new BetterAsyncTaskCallable<Void, Void, List<Item>>() {
+			public List<Item> call(BetterAsyncTask<Void, Void, List<Item>> task)
+					throws Exception {
+				return ContentManager.loadItems(new LatestItems(channel.id,
+						lastItem, LatestItems.OLDER, Config.MAX_ITEMS),
+						ContentManager.FULL_ITEM_LOADER,
+						ContentManager.LIGHTWEIGHT_CHANNEL_LOADER);
+			}
+		});
+		task.disableDialog();
+		UIUtils.execute(task, (Void[]) null);
 	}
 
 	private void markChannelToMute() {
@@ -465,7 +443,9 @@ public class ItemListActivity extends BaseListActivity {
 		new AsyncTask<Void, Void, Void>() {
 
 			protected void onPostExecute(Void result) {
-				loadData();
+				if (running) {
+					loadData();
+				}
 			};
 
 			@Override
@@ -495,16 +475,19 @@ public class ItemListActivity extends BaseListActivity {
 		new AsyncTask<Void, Void, Lecturer>() {
 
 			protected void onPostExecute(Lecturer lecturer) {
-				Intent intent = new Intent(ItemListActivity.this,
-						ContactActivity.class);
-				intent.putExtra(ContactActivity.LECTURER_ID_PARAM, lecturer.id);
-				intent.putExtra(ContactActivity.LECTURER_NAME_PARAM,
-						lecturer.name);
-				intent.putExtra(ContactActivity.LECTURER_OFFICE_PARAM,
-						lecturer.office);
-				intent.putExtra(ContactActivity.LECTURER_THUMB_PARAM,
-						lecturer.thumbnail);
-				startActivity(intent);
+				if (running) {
+					Intent intent = new Intent(ItemListActivity.this,
+							ContactActivity.class);
+					intent.putExtra(ContactActivity.LECTURER_ID_PARAM,
+							lecturer.id);
+					intent.putExtra(ContactActivity.LECTURER_NAME_PARAM,
+							lecturer.name);
+					intent.putExtra(ContactActivity.LECTURER_OFFICE_PARAM,
+							lecturer.office);
+					intent.putExtra(ContactActivity.LECTURER_THUMB_PARAM,
+							lecturer.thumbnail);
+					startActivity(intent);
+				}
 			};
 
 			@Override
@@ -546,14 +529,16 @@ public class ItemListActivity extends BaseListActivity {
 
 			protected void onPostExecute(Integer delettedItems) {
 				progressBar.setVisibility(View.GONE);
-				listView.setEnabled(true);
-				listView.setClickable(true);
-				listView.clean();
-				Toast.makeText(
-						ItemListActivity.this,
-						getResources().getString(R.string.clean).replace(
-								"{total}", String.valueOf(delettedItems)),
-						Toast.LENGTH_SHORT).show();
+				if (running) {
+					listView.setEnabled(true);
+					listView.setClickable(true);
+					listView.clean();
+					Toast.makeText(
+							ItemListActivity.this,
+							getResources().getString(R.string.clean).replace(
+									"{total}", String.valueOf(delettedItems)),
+							Toast.LENGTH_SHORT).show();
+				}
 				refresh = false;
 			};
 

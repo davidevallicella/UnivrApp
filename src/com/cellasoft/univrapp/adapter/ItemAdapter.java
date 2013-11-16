@@ -77,10 +77,10 @@ public class ItemAdapter extends BaseListAdapter<Item> {
 			int position) {
 		if (viewHolder instanceof Holder) {
 			Holder holder = (Holder) viewHolder;
-			holder.title.setText(item.getTitle());
+			holder.title.setText(item.title);
 
-			String description = item.getDescription().replace(
-					"Pubblicato da:", "<b>Pubblicato da:</b>");
+			String description = item.description.replace("Pubblicato da:",
+					"<b>Pubblicato da:</b>");
 			holder.description.setText(Html.fromHtml(description));
 			holder.date.setText(DateUtils.formatDate(item.pubDate));
 		}

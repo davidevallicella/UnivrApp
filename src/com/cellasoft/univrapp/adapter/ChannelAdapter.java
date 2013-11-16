@@ -3,6 +3,7 @@ package com.cellasoft.univrapp.adapter;
 import java.util.List;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
@@ -22,8 +23,9 @@ public class ChannelAdapter extends BaseListAdapter<Channel> {
 	public static int mMargin;
 
 	private OnChannelViewListener channelListener;
-	private int color_university;
+	// private int color_university;
 	private int logo_university;
+	private Context context;
 
 	class Holder extends ViewHolder {
 		TextView title;
@@ -33,24 +35,23 @@ public class ChannelAdapter extends BaseListAdapter<Channel> {
 
 	public ChannelAdapter(Context context, int resource) {
 		super(context, resource);
-		color_university = Settings.getUniversity().color_from_resource;
+		this.context = context;
 		logo_university = Settings.getUniversity().logo_from_resource;
 	}
 
 	@Override
-	protected void populateDataForRow(ViewHolder viewHolder, Channel item,
+	protected void populateDataForRow(ViewHolder viewHolder, Channel channel,
 			int position) {
 		if (viewHolder instanceof Holder) {
 			Holder holder = (Holder) viewHolder;
 
-			int unreadItems = item.countUnreadItems();
-			if (unreadItems > 0) {
-				holder.unreadCount.setText(String.valueOf(unreadItems));
+			if (channel.unread > 0) {
+				holder.unreadCount.setText(String.valueOf(channel.unread));
 				holder.unreadCount.setVisibility(View.VISIBLE);
 			} else {
 				holder.unreadCount.setVisibility(View.GONE);
 			}
-			if (item.updating) {
+			if (channel.updating) {
 				holder.updated.setText(getContext().getResources().getString(
 						R.string.updating));
 			} else {
@@ -58,12 +59,12 @@ public class ChannelAdapter extends BaseListAdapter<Channel> {
 						R.string.updated)
 						+ " "
 						+ DateUtils.formatTimeMillis(getContext(),
-								item.updateTime));
+								channel.updateTime));
 			}
 
-			holder.title.setText(item.title);
+			holder.title.setText(channel.title);
 		}
-		imageLoader(viewHolder, item.imageUrl);
+		imageLoader(viewHolder, channel.imageUrl);
 	}
 
 	@Override
@@ -84,9 +85,10 @@ public class ChannelAdapter extends BaseListAdapter<Channel> {
 				holder.thumbnail = (RecyclingImageView) layout
 						.findViewById(R.id.univr_logo);
 				holder.title.setText(item.title);
-				holder.thumbnail.setImageResource(logo_university);
+				Drawable drawable = context.getResources().getDrawable(
+						logo_university);
+				holder.thumbnail.setImageDrawable(drawable);
 				layout.setTag(holder);
-				layout.setBackgroundResource(color_university);
 			} else {
 				layout = (RelativeLayout) convertView;
 			}

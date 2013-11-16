@@ -6,13 +6,6 @@
         android:icon="@drawable/ic_action_tick"
         android:showAsAction="ifRoom"
         android:title="@string/subscribe"/>
-
-    <!-- <item -->
-    <!-- android:id="@+id/menu_reload" -->
-    <!-- android:icon="@drawable/ic_action_reload" -->
-    <!-- android:showAsAction="ifRoom" -->
-    <!-- android:title="@string/reload"/> -->
-
     <item
         android:id="@+id/clear_cache"
         android:icon="@android:drawable/ic_menu_delete"
@@ -23,6 +16,6 @@
         android:actionViewClass="com.actionbarsherlock.widget.SearchView"
         android:icon="@drawable/ic_action_search"
         android:showAsAction="ifRoom|collapseActionView"
-        android:title="Search"/>
+        android:title="@string/search"/>
 
 </menu>

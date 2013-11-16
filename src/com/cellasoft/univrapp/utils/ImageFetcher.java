@@ -32,12 +32,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.DisplayMetrics;
 import android.widget.ImageView;
 
 import com.cellasoft.univrapp.BuildConfig;
@@ -49,6 +48,8 @@ import com.cellasoft.univrapp.utils.ImageCache.ImageCacheParams;
  */
 public class ImageFetcher extends ImageResizer {
 	private static final String TAG = makeLogTag(ImageFetcher.class);
+
+	private static final String IMAGE_RESIZER_SERVICE_URL = "http://droidreader.appspot.com/resize/";
 
 	public static final int IO_BUFFER_SIZE_BYTES = 4 * 1024; // 4KB
 	private static final String IMAGE_CACHE_DIR = "images";
@@ -109,7 +110,7 @@ public class ImageFetcher extends ImageResizer {
 				if (BuildConfig.DEBUG) {
 					LOGD(TAG, "Inizialize ImageFetcher");
 				}
-				instance = new ImageFetcher(context);
+				instance = new ImageFetcher(context.getApplicationContext());
 			}
 		}
 		return instance;
@@ -127,31 +128,6 @@ public class ImageFetcher extends ImageResizer {
 		mHttpCacheDir = ImageCache.getDiskCacheDir(context, HTTP_CACHE_DIR);
 		if (!mHttpCacheDir.exists()) {
 			mHttpCacheDir.mkdirs();
-		}
-
-		if (context instanceof Activity) {
-			final DisplayMetrics displayMetrics = new DisplayMetrics();
-			((Activity) context).getWindowManager().getDefaultDisplay()
-					.getMetrics(displayMetrics);
-			final int height = displayMetrics.heightPixels;
-			final int width = displayMetrics.widthPixels;
-
-			// For this sample we'll use half of the longest width to resize
-			// our
-			// images. As the
-			// image scaling ensures the image is larger than this, we
-			// should be
-			// left with a
-			// resolution that is appropriate for both portrait and
-			// landscape.
-			// For
-			// best image quality
-			// we shouldn't divide by 2, but this will use more memory and
-			// require a
-			// larger memory
-			// cache.
-			final int longest = (height > width ? height : width) / 2;
-			setImageSize(longest);
 		}
 
 		setImageFadeIn(true);
@@ -339,13 +315,16 @@ public class ImageFetcher extends ImageResizer {
 	public static byte[] downloadBitmapToMemory(String urlString, int maxBytes) {
 		LOGD(TAG, "downloadBitmapToMemory - downloading - " + urlString);
 
-		disableConnectionReuseIfNecessary();
+		StreamUtils.disableConnectionReuseIfNecessary();
 		HttpURLConnection urlConnection = null;
 		ByteArrayOutputStream out = null;
 		InputStream in = null;
 
 		try {
-			final URL url = new URL(urlString);
+			String cachedImageUrl = IMAGE_RESIZER_SERVICE_URL
+					+ "?width=50&height=0&op=resize&url="
+					+ URLEncoder.encode(urlString);
+			final URL url = new URL(cachedImageUrl);
 			urlConnection = (HttpURLConnection) url.openConnection();
 			if (urlConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
 				return null;
@@ -389,7 +368,7 @@ public class ImageFetcher extends ImageResizer {
 	 */
 	public boolean downloadUrlToStream(String urlString,
 			OutputStream outputStream) {
-		disableConnectionReuseIfNecessary();
+		StreamUtils.disableConnectionReuseIfNecessary();
 		HttpURLConnection urlConnection = null;
 		BufferedOutputStream out = null;
 		BufferedInputStream in = null;
@@ -432,7 +411,7 @@ public class ImageFetcher extends ImageResizer {
 	public static File downloadBitmapToFile(String urlString, File cacheDir) {
 		LOGD(TAG, "downloadBitmap - downloading - " + urlString);
 
-		disableConnectionReuseIfNecessary();
+		StreamUtils.disableConnectionReuseIfNecessary();
 		HttpURLConnection urlConnection = null;
 		BufferedOutputStream out = null;
 		BufferedInputStream in = null;
@@ -589,28 +568,6 @@ public class ImageFetcher extends ImageResizer {
 			}
 		}
 		return inSampleSize;
-	}
-
-	/**
-	 * Workaround for bug pre-Froyo, see here for more info:
-	 * http://android-developers.blogspot.com/2011/09/androids-http-clients.html
-	 */
-	public static void disableConnectionReuseIfNecessary() {
-		// HTTP connection reuse which was buggy pre-froyo
-		if (hasHttpConnectionBug()) {
-			System.setProperty("http.keepAlive", "false");
-		}
-	}
-
-	/**
-	 * Check if OS version has a http URLConnection bug. See here for more
-	 * information:
-	 * http://android-developers.blogspot.com/2011/09/androids-http-clients.html
-	 * 
-	 * @return true if this OS version is affected, false otherwise
-	 */
-	public static boolean hasHttpConnectionBug() {
-		return !UIUtils.hasFroyo();
 	}
 
 	@Override

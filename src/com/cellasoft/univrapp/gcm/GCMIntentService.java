@@ -21,6 +21,7 @@ import static com.cellasoft.univrapp.utils.LogUtils.LOGE;
 import static com.cellasoft.univrapp.utils.LogUtils.LOGI;
 import static com.cellasoft.univrapp.utils.LogUtils.LOGW;
 import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -32,6 +33,7 @@ import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.Settings;
 import com.cellasoft.univrapp.activity.ChannelListActivity;
+import com.cellasoft.univrapp.utils.GCMUtils;
 import com.google.android.gcm.GCMBaseIntentService;
 import com.google.android.gcm.GCMRegistrar;
 
@@ -87,21 +89,15 @@ public class GCMIntentService extends GCMBaseIntentService {
 			return;
 		}
 
-		// int jitterMillis = (int) (sRandom.nextFloat() *
-		// TRIGGER_SYNC_MAX_JITTER_MILLIS);
-		// final String debugMessage = "Received message to trigger sync; "
-		// + "jitter = " + jitterMillis + "ms";
-		// LOGI(TAG, debugMessage);
-		//
-		// if (BuildConfig.DEBUG) {
-		// displayNotification(context, debugMessage);
-		// }
-		//
-		// ((AlarmManager) context.getSystemService(ALARM_SERVICE)).set(
-		// AlarmManager.RTC, System.currentTimeMillis() + jitterMillis,
-		// PendingIntent.getBroadcast(context, 0, new Intent(context,
-		// TriggerSyncReceiver.class),
-		// PendingIntent.FLAG_CANCEL_CURRENT));
+		String check = intent.getExtras().getString("check");
+		if (check != null) {
+			if (Settings.isEnabledNotificationUnivrApp()) {
+				GCMUtils.doRegister(context);
+			} else {
+				GCMUtils.doUnregister((Activity) context);
+			}
+			return;
+		}
 	}
 
 	/**
@@ -110,9 +106,6 @@ public class GCMIntentService extends GCMBaseIntentService {
 	@Override
 	protected void onDeletedMessages(Context context, int total) {
 		LOGI(TAG, "Received deleted messages notification");
-		String message = getString(R.string.gcm_deleted, total);
-		// notifies user
-		displayNotification(context, message);
 	}
 
 	/**

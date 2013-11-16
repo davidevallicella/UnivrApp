@@ -7,12 +7,8 @@
     <string name="not_load_notification">Cannot load the feed.</string>
     <string name="new_lecturers_notification">Find {total} lecturers.</string>
     <string name="not_load_lecturer_notification">>Cannot load lecturers.</string>
-    <string name="loading">Loading ...</string>
-    <string name="save">Save</string>
-    <string name="back">Back</string>
-    <string name="change">Change</string>
-    <string name="lecturers">Lecturers</string>
     <string name="clean">Removed {total} news</string>
+    <string name="subscribed">Subscribed</string>
     <string name="unsub_channel_dialog_title">Unsubscribe channels</string>
     <string name="unsub_channel_dialog">The selected channels will be removed, continue?</string>
     <string name="unsub_channel_dialog2">Unsubscribe selected channels</string>
@@ -24,13 +20,14 @@
     <string name="no">no</string>
     <string name="success">Successful</string>
     <string name="updated">Updated</string>
-    <string name="updating">Updating now...</string>
+    <string name="updating">Updating now&#8230;</string>
     <string name="mark_all_read">Mark all read</string>
     <string name="clear_cache_menu">Clear Caches</string>
     <string name="clear_cache_complete_toast">Caches have been cleared</string>
+    <string name="loading">Loading&#8230;</string>
+    <string name="search">Search</string>
 
     <!-- EXCEPTION -->
-    <string name="univrapp_server_exception">The server is temporarily inactive. \n\ Wait a few seconds and try again.</string>
     <string name="univrapp_connection_exception">Limited or no connectivity</string>
 
     <!-- MENU -->
@@ -46,7 +43,6 @@
     <string name="up">Enable notifications</string>
     <string name="mute">keep silent</string>
     <string name="web_page">Web page</string>
-    <string name="share">Share</string>
     <!-- CONTACT -->
     <string name="contact_title">Contact</string>
     <string name="contact_header">Contacts</string>
@@ -67,8 +63,6 @@
     <string name="pref_auto_update_summary">Automatic update of all subscriptions</string>
     <string name="pref_update_interval">Updates interval</string>
     <string name="pref_update_interval_summary">Define how often updates will be performed</string>
-    <string name="pref_downloads_lecturers">Lecturers thumbnail</string>
-    <string name="pref_downloads_lecturers_summary">Download and update lecturers thumbnail</string>
     <string name="pref_keep_max_items">Number of latest items to keep</string>
     <string name="pref_keep_max_items_summary">Maximum number of news to be taken during cleaning</string>
     <string name="pref_max_items_for_channel">Max news for channel</string>

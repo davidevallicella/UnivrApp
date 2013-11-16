@@ -41,7 +41,6 @@ public class LecturerView extends LinearLayout {
 
 	private ImageButton mSelectButton;
 	private TextView mTextView;
-	private TextView description;
 
 	private TouchDelegateGroup mTouchDelegateGroup;
 	private OnLecturerViewListener lecturerListener;

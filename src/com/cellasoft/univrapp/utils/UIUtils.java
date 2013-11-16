@@ -40,13 +40,14 @@ import android.widget.Toast;
 import com.cellasoft.univrapp.BuildConfig;
 import com.cellasoft.univrapp.activity.AboutScreen;
 import com.cellasoft.univrapp.activity.ChannelListActivity;
-import com.cellasoft.univrapp.activity.ChooseMainFeedActivity;
+import com.cellasoft.univrapp.activity.DepartmentsActivity;
 import com.cellasoft.univrapp.activity.ContactActivity;
 import com.cellasoft.univrapp.activity.ContactListActivity;
 import com.cellasoft.univrapp.activity.DisPlayWebPageActivity;
 import com.cellasoft.univrapp.activity.ItemListActivity;
 import com.cellasoft.univrapp.activity.SettingsActivity;
 import com.cellasoft.univrapp.widget.LecturerView;
+import com.github.droidfu.concurrent.BetterAsyncTask;
 
 /**
  * An assortment of UI helpers.
@@ -116,41 +117,42 @@ public class UIUtils {
 		}
 	}
 
-//	public static void getImageFetcher(final Context context) {
-//		// Fetch screen height and width, to use as our max size when loading
-//		// images as this
-//		// activity runs full screen
-//		final DisplayMetrics displayMetrics = new DisplayMetrics();
-//		((Activity) context).getWindowManager().getDefaultDisplay()
-//				.getMetrics(displayMetrics);
-//		final int height = displayMetrics.heightPixels;
-//		final int width = displayMetrics.widthPixels;
-//
-//		// For this sample we'll use half of the longest width to resize our
-//		// images. As the
-//		// image scaling ensures the image is larger than this, we should be
-//		// left with a
-//		// resolution that is appropriate for both portrait and landscape. For
-//		// best image quality
-//		// we shouldn't divide by 2, but this will use more memory and require a
-//		// larger memory
-//		// cache.
-//		final int longest = (height > width ? height : width) / 2;
-//
-//		// The ImageFetcher takes care of loading remote images into our
-//		// ImageView
-//		ImageFetcher fetcher = ImageFetcher.getInstance();
-//		fetcher.init(context);
-//		fetcher.setImageFadeIn(true);
-//		fetcher.setImageSize(longest, longest);
-//		fetcher.setLoadingImage(R.drawable.user);
-//		ImageCache.ImageCacheParams cacheParams = new ImageCache.ImageCacheParams(
-//				context, IMAGE_CACHE_DIR);
-//		// Set memory cache to 25% of app memory
-//		cacheParams.setMemCacheSizePercent(0.25f);
-//		fetcher.addImageCache(cacheParams);
-//		return fetcher;
-//	}
+	// public static void getImageFetcher(final Context context) {
+	// // Fetch screen height and width, to use as our max size when loading
+	// // images as this
+	// // activity runs full screen
+	// final DisplayMetrics displayMetrics = new DisplayMetrics();
+	// ((Activity) context).getWindowManager().getDefaultDisplay()
+	// .getMetrics(displayMetrics);
+	// final int height = displayMetrics.heightPixels;
+	// final int width = displayMetrics.widthPixels;
+	//
+	// // For this sample we'll use half of the longest width to resize our
+	// // images. As the
+	// // image scaling ensures the image is larger than this, we should be
+	// // left with a
+	// // resolution that is appropriate for both portrait and landscape. For
+	// // best image quality
+	// // we shouldn't divide by 2, but this will use more memory and require a
+	// // larger memory
+	// // cache.
+	// final int longest = (height > width ? height : width) / 2;
+	//
+	// // The ImageFetcher takes care of loading remote images into our
+	// // ImageView
+	// ImageFetcher fetcher = ImageFetcher.getInstance();
+	// fetcher.init(context);
+	// fetcher.setImageFadeIn(true);
+	// fetcher.setImageSize(longest, longest);
+	// fetcher.setLoadingImage(R.drawable.user);
+	// ImageCache.ImageCacheParams cacheParams = new
+	// ImageCache.ImageCacheParams(
+	// context, IMAGE_CACHE_DIR);
+	// // Set memory cache to 25% of app memory
+	// cacheParams.setMemCacheSizePercent(0.25f);
+	// fetcher.addImageCache(cacheParams);
+	// return fetcher;
+	// }
 
 	// Shows whether a notification was fired for a particular session time
 	// block. In the
@@ -189,13 +191,13 @@ public class UIUtils {
 	}
 
 	private static final Class<?>[] sPhoneActivities = new Class[] {
-			ChooseMainFeedActivity.class, ChannelListActivity.class,
+			DepartmentsActivity.class, ChannelListActivity.class,
 			ContactActivity.class, ItemListActivity.class,
 			DisPlayWebPageActivity.class, ContactListActivity.class,
 			AboutScreen.class, SettingsActivity.class, };
 
 	public static void enableDisableActivities(final Context context) {
-		
+
 		boolean isHoneycombTablet = isHoneycombTablet(context);
 		PackageManager pm = context.getPackageManager();
 
@@ -216,7 +218,8 @@ public class UIUtils {
 
 	@TargetApi(11)
 	public static void enableStrictMode() {
-		if(BuildConfig.DEBUG) return;
+		if (BuildConfig.DEBUG)
+			return;
 		if (UIUtils.hasGingerbread()) {
 			StrictMode.ThreadPolicy.Builder threadPolicyBuilder = new StrictMode.ThreadPolicy.Builder()
 					.detectAll().penaltyLog().penaltyDialog();
@@ -230,12 +233,22 @@ public class UIUtils {
 						.setClassInstanceLimit(ContactListActivity.class, 1)
 						.setClassInstanceLimit(ContactActivity.class, 1)
 						.setClassInstanceLimit(ItemListActivity.class, 1)
-						.setClassInstanceLimit(ChooseMainFeedActivity.class, 1)
+						.setClassInstanceLimit(DepartmentsActivity.class, 1)
 						.setClassInstanceLimit(AboutScreen.class, 1)
 						.setClassInstanceLimit(DisPlayWebPageActivity.class, 1);
 			}
 			StrictMode.setThreadPolicy(threadPolicyBuilder.build());
 			StrictMode.setVmPolicy(vmPolicyBuilder.build());
+		}
+	}
+
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public static <P, T extends BetterAsyncTask<P, ?, ?>> void execute(T task,
+			P... params) {
+		if (hasHoneycomb()) {
+			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+		} else {
+			task.execute(params);
 		}
 	}
 

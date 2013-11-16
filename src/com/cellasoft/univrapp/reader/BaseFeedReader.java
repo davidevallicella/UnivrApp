@@ -7,6 +7,8 @@ import java.net.URL;
 
 import org.xml.sax.InputSource;
 
+import com.cellasoft.univrapp.utils.StreamUtils;
+
 public abstract class BaseFeedReader {
 
 	public static enum XML_TAGS {
@@ -24,6 +26,8 @@ public abstract class BaseFeedReader {
 	}
 
 	protected static InputSource getInputStream() {
+		StreamUtils.disableConnectionReuseIfNecessary();
+
 		try {
 			InputStream is = feedUrl.openConnection().getInputStream();
 			return new InputSource(is);

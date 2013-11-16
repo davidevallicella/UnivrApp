@@ -69,54 +69,6 @@ public class Item implements ActionSupport, Comparable<Item>, Serializable {
 		return this.read == READ;
 	}
 
-	/**
-	 * All SET methods
-	 * */
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
-	public void setLink(String link) {
-		this.link = link;
-	}
-
-	public void setDescription(String description) {
-		this.description = description.trim();
-	}
-
-	public void setDate(Date pubDate) {
-		if (pubDate != null) {
-			this.pubDate = pubDate;
-		}
-	}
-
-	public void setGuid(String guid) {
-		this.guid = guid;
-	}
-
-	/**
-	 * All GET methods
-	 * */
-	public String getTitle() {
-		return title;
-	}
-
-	public String getLink() {
-		return link;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public Date getPubDate() {
-		return pubDate;
-	}
-
-	public String getGuid() {
-		return guid;
-	}
-
 	@Override
 	public int compareTo(Item another) {
 		if (another == null)

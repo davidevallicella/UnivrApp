@@ -14,7 +14,6 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.webkit.DownloadListener;
 import android.webkit.WebSettings;
-import android.webkit.WebSettings.RenderPriority;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
@@ -46,23 +45,22 @@ public class NonLeakingWebView extends WebView {
 
 	public NonLeakingWebView(Context context) {
 		super(context.getApplicationContext());
-		init(context);
+		init(context.getApplicationContext());
 	}
 
 	public NonLeakingWebView(Context context, AttributeSet attrs) {
 		super(context.getApplicationContext(), attrs);
-		init(context);
+		init(context.getApplicationContext());
 	}
 
 	public NonLeakingWebView(Context context, AttributeSet attrs, int defStyle) {
 		super(context.getApplicationContext(), attrs, defStyle);
-		init(context);
+		init(context.getApplicationContext());
 	}
 
 	private void init(final Context context) {
 		setWebViewClient(new MyWebViewClient((Activity) context));
 		getSettings().setAllowFileAccess(true);
-		getSettings().setRenderPriority(RenderPriority.HIGH);
 		getSettings().setAppCacheEnabled(true);
 		getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
 		setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);

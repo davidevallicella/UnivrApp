@@ -2,13 +2,16 @@ package com.cellasoft.univrapp.widget;
 
 import java.util.List;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.ListView;
 
 import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.adapter.BaseListAdapter;
 import com.cellasoft.univrapp.utils.Lists;
+import com.cellasoft.univrapp.utils.UIUtils;
 
 public class BaseListView<T> extends ListView {
 
@@ -60,7 +63,17 @@ public class BaseListView<T> extends ListView {
 		this.setSelection(1);
 	}
 
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public void addItems(List<T> items) {
-		adapter.addAll(items);
+		if (items != null) {
+			// If the platform supports it, use addAll, otherwise add in loop
+			if (UIUtils.hasHoneycomb()) {
+				adapter.addAll(items);
+			} else {
+				for (T item : items) {
+					adapter.add(item);
+				}
+			}
+		}
 	}
 }

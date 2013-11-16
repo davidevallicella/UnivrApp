@@ -4,7 +4,7 @@ import static com.cellasoft.univrapp.Config.GCM_SENDER_ID;
 import static com.cellasoft.univrapp.utils.LogUtils.LOGE;
 import static com.cellasoft.univrapp.utils.LogUtils.LOGI;
 import static com.cellasoft.univrapp.utils.LogUtils.makeLogTag;
-import android.app.Activity;
+import android.content.Context;
 import android.text.TextUtils;
 
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
@@ -15,9 +15,10 @@ import com.google.android.gcm.GCMRegistrar;
 
 public class GCMUtils {
 	private static final String TAG = makeLogTag(GCMUtils.class);
-	private static AsyncTask<Void, Void, Void> gcmRegisterTask, gcmUnregisterTask;
+	private static AsyncTask<Void, Void, Void> gcmRegisterTask,
+			gcmUnregisterTask;
 
-	public static void doRegister(final Activity activity) {
+	public static void doRegister(final Context activity) {
 		GCMRegistrar.checkDevice(activity);
 
 		if (BuildConfig.DEBUG) {
@@ -50,6 +51,9 @@ public class GCMUtils {
 							GCMRegistrar.unregister(activity
 									.getApplicationContext());
 						}
+
+						Settings.setNotificationUnivrApp(registered);
+
 						return null;
 					}
 
@@ -68,12 +72,13 @@ public class GCMUtils {
 		}
 	}
 
-	public static void doUnregister(final Activity activity) {
+	public static void doUnregister(final Context activity) {
 		gcmUnregisterTask = new AsyncTask<Void, Void, Void>() {
 			@Override
 			protected Void doInBackground(Void... params) {
 				ServerUtilities.unregister(activity,
 						Settings.getRegistrationId());
+				Settings.setNotificationUnivrApp(false);
 				return null;
 			}
 
@@ -91,7 +96,7 @@ public class GCMUtils {
 		gcmUnregisterTask.execute(null, null, null);
 	}
 
-	public static void onDistroyGCMClient(Activity activity) {
+	public static void onDistroyGCMClient(Context activity) {
 		if (gcmRegisterTask != null) {
 			gcmRegisterTask.cancel(true);
 		}
@@ -105,7 +110,7 @@ public class GCMUtils {
 		}
 	}
 
-	public static boolean isRegistered(Activity activity) {
+	public static boolean isRegistered(Context activity) {
 		return GCMRegistrar.isRegistered(activity);
 	}
 }

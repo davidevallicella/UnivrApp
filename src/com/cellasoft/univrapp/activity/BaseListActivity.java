@@ -18,13 +18,15 @@ public abstract class BaseListActivity extends SherlockListActivity {
 
 	protected ClosableAdView adView;
 	protected boolean refresh = false;
+	protected volatile boolean running;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		if (BuildConfig.DEBUG) {
-			//UIUtils.enableStrictMode();
+			// UIUtils.enableStrictMode();
 		}
 		super.onCreate(savedInstanceState);
+		running = true;
 	}
 
 	@Override
@@ -44,13 +46,11 @@ public abstract class BaseListActivity extends SherlockListActivity {
 
 	@Override
 	protected void onDestroy() {
-		super.onDestroy();
-
+		running = false;
 		if (adView != null) {
 			adView.hideAd();
-			adView = null;
 		}
-
+		super.onDestroy();
 	}
 
 	private void initBanner() {

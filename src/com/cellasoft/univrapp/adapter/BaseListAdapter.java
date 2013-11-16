@@ -126,6 +126,7 @@ public abstract class BaseListAdapter<T> extends ArrayAdapter<T> {
 	}
 
 	public synchronized void setItems(List<T> items) {
+		this.items.clear();
 		this.items = items;
 		this.notifyDataSetInvalidated();
 	}
@@ -142,7 +143,8 @@ public abstract class BaseListAdapter<T> extends ArrayAdapter<T> {
 
 	public synchronized void addItemsOnTop(List<T> items) {
 		if (this.items != null) {
-			items.addAll(0, items);
+			this.items.addAll(0, items);
+			refresh();
 		} else {
 			addItems(items);
 		}
@@ -153,17 +155,13 @@ public abstract class BaseListAdapter<T> extends ArrayAdapter<T> {
 	}
 
 	public synchronized List<T> getItems() {
-		if (this.items == null) {
-			this.items = Lists.newArrayList();
-		}
-		
 		return items;
 	}
 
 	@Override
-	public void clear() {
+	public synchronized void clear() {
 		items.clear();
-		refresh();
+		this.notifyDataSetInvalidated();
 	}
 
 }

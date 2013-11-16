@@ -64,7 +64,7 @@ public class ClosableAdView extends AdView implements AdListener {
 
 		try {
 			stopLoading();
-			destroy();
+			//destroy();
 		} catch (Exception e) {
 			LOGE(TAG, "Destroy AdMod banner - " + e.getMessage());
 		}

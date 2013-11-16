@@ -25,7 +25,6 @@ import com.cellasoft.univrapp.R;
 import com.cellasoft.univrapp.exception.UnivrReaderException;
 import com.cellasoft.univrapp.manager.ContentManager;
 import com.cellasoft.univrapp.model.Item;
-import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.FileUtils;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.Html;
@@ -36,7 +35,8 @@ import com.github.droidfu.concurrent.BetterAsyncTask;
 import com.github.droidfu.concurrent.BetterAsyncTaskCallable;
 
 public class DisPlayWebPageActivity extends Activity {
-	private static final String TAG = makeLogTag(DisPlayWebPageActivity.class);
+	private static final String TAG = makeLogTag(DisPlayWebPageActivity.class
+			.getName());
 
 	public static final String ITEM_ID_PARAM = "ItemId";
 	public static final String CHANNEL_ID_PARAM = "ChannelId";
@@ -45,6 +45,7 @@ public class DisPlayWebPageActivity extends Activity {
 
 	private Item currentItem;
 	private String page_url;
+	protected volatile boolean running;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -60,7 +61,7 @@ public class DisPlayWebPageActivity extends Activity {
 		page_url = in.getStringExtra("page_url");
 		int id = in.getIntExtra(ITEM_ID_PARAM, 0);
 		currentItem = new Item(id);
-
+		running = true;
 		init();
 	}
 
@@ -92,11 +93,11 @@ public class DisPlayWebPageActivity extends Activity {
 		if (BuildConfig.DEBUG) {
 			LOGD(TAG, "onStop()");
 		}
-		super.onStop();
+
 		webView.stopLoading();
 		webView.clearCache(false);
-		webView.removeAllViews();
 		webView.freeMemory();
+		super.onStop();
 	}
 
 	@Override
@@ -104,10 +105,18 @@ public class DisPlayWebPageActivity extends Activity {
 		if (BuildConfig.DEBUG) {
 			LOGD(TAG, "onDestroy()");
 		}
+		running = false;
+		unbindWebView();
+		currentItem = null;
 		super.onDestroy();
+	}
+
+	private void unbindWebView() {
+		webView.setFocusable(true);
+		webView.removeAllViews();
+		webView.clearHistory();
 		webView.destroy();
 		webView = null;
-		currentItem = null;
 	}
 
 	private void loadPage() {
@@ -116,19 +125,20 @@ public class DisPlayWebPageActivity extends Activity {
 
 			@Override
 			protected void after(final Context context, final String html) {
-				runOnUiThread(new Runnable() {
-					public void run() {
-						try {
-							webView.showArticle(html);
-						} catch (Exception e) {
-							handleError(
-									context,
-									new Exception(
-											"Errore durante la visualizzazione! Segnala il bug!"));
+				if (running) {
+					runOnUiThread(new Runnable() {
+						public void run() {
+							try {
+								webView.showArticle(html);
+							} catch (Exception e) {
+								handleError(
+										context,
+										new Exception(
+												"Errore durante la visualizzazione! Segnala il bug!"));
+							}
 						}
-					}
-				});
-
+					});
+				}
 			}
 
 			@Override
@@ -143,7 +153,7 @@ public class DisPlayWebPageActivity extends Activity {
 			@Override
 			public String call(BetterAsyncTask<Void, Void, String> task)
 					throws Exception {
-				if (ConnectivityReceiver.isOnline()) {
+				if (ConnectivityReceiver.hasGoodEnoughNetworkConnection()) {
 					currentItem = Item.findItemById(currentItem.id,
 							ContentManager.FULL_ITEM_LOADER);
 
@@ -156,17 +166,11 @@ public class DisPlayWebPageActivity extends Activity {
 		});
 		task.disableDialog();
 
-		if (UIUtils.hasHoneycomb()) {
-			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-					(Void[]) null);
-		} else {
-			task.execute((Void[]) null);
-		}
+		UIUtils.execute(task, (Void[]) null);
 	}
 
 	@Override
 	public void onBackPressed() {
-		super.onBackPressed();
 		finish();
 	}
 

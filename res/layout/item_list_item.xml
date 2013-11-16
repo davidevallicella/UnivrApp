@@ -17,8 +17,7 @@
         android:layout_marginTop="1dip"
         android:ellipsize="marquee"
         android:gravity="center_vertical"
-        android:maxLines="2"
-        android:text="Title" />
+        android:maxLines="2" />
 
     <TextView
         android:id="@+id/item_description"
@@ -28,31 +27,19 @@
         android:layout_below="@id/item_title"
         android:ellipsize="marquee"
         android:maxLines="2"
-        android:text="description"
         android:typeface="serif" />
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/item_date"
+        style="@style/listViewDateDetail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignRight="@+id/item_description"
         android:layout_below="@+id/item_description"
-        android:layout_marginRight="5dip"
+        android:layout_marginTop="5dp"
+        android:drawableLeft="@drawable/calendar"
+        android:drawablePadding="5dip"
         android:gravity="right"
-        android:orientation="horizontal" >
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginRight="4dip"
-            android:src="@drawable/calendar" />
-
-        <TextView
-            android:id="@+id/item_date"
-            style="@style/listViewDateDetail"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical" />
-    </LinearLayout>
+        android:padding="5dip" />
 
 </RelativeLayout>

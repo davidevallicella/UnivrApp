@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.cellasoft.univrapp"
-    android:versionCode="79"
-    android:versionName="2.0.2.3" >
+    android:versionCode="80"
+    android:versionName="2.1" >
 
     <!-- GCM requires Android SDK version 2.2 (API level 8) or above. -->
     <uses-sdk
         android:minSdkVersion="8"
-        android:targetSdkVersion="16" />
+        android:targetSdkVersion="19" />
 
     <!-- Connects to Internet Services. -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -75,7 +75,7 @@
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name=".activity.ChooseMainFeedActivity"
+            android:name=".activity.DepartmentsActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.ItemListActivity"
@@ -122,6 +122,7 @@
 
         <provider
             android:name=".provider.Provider"
+            android:exported="false"
             android:authorities="com.cellasoft.univrapp.provider.provider" />
     </application>
 

@@ -73,6 +73,6 @@ public class BasePullListView<T> extends PullToRefreshListView {
 	@Override
 	public T getItemAtPosition(int position) {
 		return adapter.getItem(position - 1); // -1 because add header
-		// (PullToRefresh button)
+												// (PullToRefresh button)
 	}
 }

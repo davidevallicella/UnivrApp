@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:background="@null"
+        android:contentDescription="@string/desc"
         android:src="@drawable/btn_check_off_normal" />
 
     <!-- ListRow Left sied Thumbnail image -->
@@ -73,6 +74,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="2dp"
+                android:contentDescription="@string/desc"
                 android:background="@drawable/check" />
 
             <TextView
@@ -81,7 +83,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:maxLines="1"
-                android:text="Subscribed"
+                android:text="@string/subscribed"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
         </LinearLayout>
     </LinearLayout>

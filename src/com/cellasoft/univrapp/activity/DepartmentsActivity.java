@@ -11,7 +11,7 @@ import com.cellasoft.univrapp.model.Channel;
 import com.cellasoft.univrapp.model.University;
 import com.cellasoft.univrapp.utils.AsyncTask;
 
-public class ChooseMainFeedActivity extends BaseListActivity {
+public class DepartmentsActivity extends BaseListActivity {
 
 	private UniversitylAdapter adapter;
 
@@ -31,6 +31,7 @@ public class ChooseMainFeedActivity extends BaseListActivity {
 
 	private void init() {
 		initListView();
+		initActionBar();
 		setResult(RESULT_CANCELED);
 	}
 
@@ -78,6 +79,6 @@ public class ChooseMainFeedActivity extends BaseListActivity {
 
 	@Override
 	protected void initActionBar() {
-		// do nothing
+		getSupportActionBar().setTitle("Dipartimenti");
 	}
 }

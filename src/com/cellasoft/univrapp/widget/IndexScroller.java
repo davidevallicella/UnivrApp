@@ -1,5 +1,7 @@
 package com.cellasoft.univrapp.widget;
 
+import java.lang.ref.WeakReference;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -199,7 +201,7 @@ public class IndexScroller {
 					// list to that section
 					mCurrentSection = getSectionByPoint(ev.getY());
 					mListView.setSelection(mIndexer
-							.getPositionForSection(mCurrentSection)+1);
+							.getPositionForSection(mCurrentSection) + 1);
 				}
 				return true;
 			}
@@ -299,46 +301,58 @@ public class IndexScroller {
 		mHandler.sendEmptyMessageAtTime(0, SystemClock.uptimeMillis() + delay);
 	}
 
-	private Handler mHandler = new Handler() {
+	static class IncomingHandler extends Handler {
+		private final WeakReference<IndexScroller> mScroller;
+
+		IncomingHandler(IndexScroller scroller) {
+			mScroller = new WeakReference<IndexScroller>(scroller);
+		}
 
 		@Override
 		public void handleMessage(Message msg) {
-			super.handleMessage(msg);
-
-			switch (mState) {
-			case STATE_SHOWING:
-				// Fade in effect
-				mAlphaRate += (1 - mAlphaRate) * 0.2;
-				if (mAlphaRate > 0.9) {
-					mAlphaRate = 1;
-					setState(STATE_SHOWN);
-				}
-
-				mListView.invalidate();
-				fade(10);
-				break;
-			case STATE_SHOWN:
-				// If no action, hide automatically
-				// Hung - comment out this to disable hiding
-				if (autoHide) {
-					setState(STATE_HIDING);
-				}
-				break;
-			case STATE_HIDING:
-				// Fade out effect
-				mAlphaRate -= mAlphaRate * 0.2;
-				if (mAlphaRate < 0.1) {
-					mAlphaRate = 0;
-					setState(STATE_HIDDEN);
-				}
-
-				mListView.invalidate();
-				fade(10);
-				break;
+			IndexScroller scroller = mScroller.get();
+			if (scroller != null) {
+				scroller.refresh();
 			}
 		}
+	}
 
-	};
+	protected IncomingHandler mHandler = new IncomingHandler(this);
+
+	private void refresh() {
+
+		switch (mState) {
+		case STATE_SHOWING:
+			// Fade in effect
+			mAlphaRate += (1 - mAlphaRate) * 0.2;
+			if (mAlphaRate > 0.9) {
+				mAlphaRate = 1;
+				setState(STATE_SHOWN);
+			}
+
+			mListView.invalidate();
+			fade(10);
+			break;
+		case STATE_SHOWN:
+			// If no action, hide automatically
+			// Hung - comment out this to disable hiding
+			if (autoHide) {
+				setState(STATE_HIDING);
+			}
+			break;
+		case STATE_HIDING:
+			// Fade out effect
+			mAlphaRate -= mAlphaRate * 0.2;
+			if (mAlphaRate < 0.1) {
+				mAlphaRate = 0;
+				setState(STATE_HIDDEN);
+			}
+
+			mListView.invalidate();
+			fade(10);
+			break;
+		}
+	}
 
 	public float getLastTouchDownEventX() {
 		return lastTouchDownEventX;

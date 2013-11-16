@@ -203,23 +203,16 @@ public class ContactListActivity extends BaseListActivity implements
 		if (listView != null) {
 			listView.clean();
 			unbindDrawables(listView);
-			listView = null;
 		}
 
 		if (filterList != null) {
 			filterList.clear();
-			filterList = null;
 		}
 
 		if (lecturers != null) {
 			lecturers.clear();
-			lecturers = null;
 		}
 
-		university = null;
-		post_data = null;
-
-		System.gc();
 	}
 
 	@Override
@@ -239,17 +232,20 @@ public class ContactListActivity extends BaseListActivity implements
 
 			@Override
 			protected void after(Context arg0, Void items) {
-				listView.setItems(lecturers);
-				listView.startLayoutAnimation();
+				if (running) {
+					listView.setItems(lecturers);
+					listView.startLayoutAnimation();
+				}
 				refresh = false;
 			}
 
 			protected void handleError(Context context, Exception e) {
+				if (running) {
+					String message = getResources().getString(
+							R.string.not_load_lecturer_notification);
+					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+				}
 				refresh = false;
-				e.printStackTrace();
-				String message = getResources().getString(
-						R.string.not_load_lecturer_notification);
-				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 			}
 		};
 
@@ -261,11 +257,7 @@ public class ContactListActivity extends BaseListActivity implements
 			}
 		});
 		task.disableDialog();
-		if (UIUtils.hasHoneycomb()) {
-			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-					(Void[]) null);
-		} else
-			task.execute((Void[]) null);
+		UIUtils.execute(task, (Void[]) null);
 	}
 
 	private void refresh() {
@@ -280,33 +272,41 @@ public class ContactListActivity extends BaseListActivity implements
 			@Override
 			protected void after(Context context,
 					final List<ContactItemInterface> newItems) {
-				String size = "0";
-				if (newItems != null && newItems.size() > 0) {
-					new Runnable() {
-						public void run() {
-							listView.addItems(newItems);
-							listView.refreshIndexer();
-						}
-					}.run();
+				if (running) {
+					String size = "0";
+					if (newItems != null && newItems.size() > 0) {
+						new Runnable() {
+							public void run() {
+								try {
+									listView.addItems(newItems);
+									listView.refreshIndexer();
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						}.run();
 
-					size = String.valueOf(newItems.size());
+						size = String.valueOf(newItems.size());
+					}
+
+					listView.onRefreshComplete();
+					String message = getResources().getString(
+							R.string.new_lecturers_notification).replace(
+							"{total}", size);
+					Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 				}
-
-				listView.onRefreshComplete();
-				String message = getResources().getString(
-						R.string.new_lecturers_notification).replace("{total}",
-						size);
-				Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 				refresh = false;
 			}
 
 			@Override
 			protected void handleError(Context context, Exception e) {
-				listView.onRefreshComplete();
-				String message = getResources().getString(
-						R.string.not_load_lecturer_notification);
-				Toast.makeText(context, message + "\n" + e.getMessage(),
-						Toast.LENGTH_SHORT).show();
+				if (running) {
+					listView.onRefreshComplete();
+					String message = getResources().getString(
+							R.string.not_load_lecturer_notification);
+					Toast.makeText(context, message + "\n" + e.getMessage(),
+							Toast.LENGTH_SHORT).show();
+				}
 				refresh = false;
 			}
 		};
@@ -324,11 +324,7 @@ public class ContactListActivity extends BaseListActivity implements
 			}
 		});
 		task.disableDialog();
-		if (UIUtils.hasHoneycomb()) {
-			task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-					(Void[]) null);
-		} else
-			task.execute((Void[]) null);
+		UIUtils.execute(task, (Void[]) null);
 	}
 
 	@Override
@@ -397,54 +393,52 @@ public class ContactListActivity extends BaseListActivity implements
 		final ProgressDialog progressDialog = new ProgressDialog(this);
 		progressDialog.setMessage(getResources().getString(
 				R.string.sub_channel_dialog2));
-		BetterAsyncTask<Void, Void, Void> subscribingTask = new BetterAsyncTask<Void, Void, Void>(
+		BetterAsyncTask<Void, Void, Void> task = new BetterAsyncTask<Void, Void, Void>(
 				this) {
 
 			@Override
 			protected void after(Context context, Void arg1) {
-				listView.refresh();
-				progressDialog.dismiss();
-				String message = getResources().getString(R.string.success);
-				Toast.makeText(ContactListActivity.this, message,
-						Toast.LENGTH_LONG).show();
+				if (running) {
+					listView.refresh();
+					progressDialog.dismiss();
+					String message = getResources().getString(R.string.success);
+					Toast.makeText(ContactListActivity.this, message,
+							Toast.LENGTH_LONG).show();
+				}
 			}
 
 			@Override
 			protected void handleError(Context context, Exception e) {
 				progressDialog.dismiss();
-				Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG)
-						.show();
+				if (running) {
+					Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG)
+							.show();
+				}
 			}
 		};
 
-		subscribingTask
-				.setCallable(new BetterAsyncTaskCallable<Void, Void, Void>() {
-					public Void call(BetterAsyncTask<Void, Void, Void> arg0)
-							throws Exception {
-						for (ContactItemInterface item : lecturers) {
-							Lecturer lecturer = (Lecturer) item;
-							if (lecturer.isSelected) {
-								post_data.setPersoneMittente(lecturer.key);
-								String description = lecturer.email;
-								String url = post_data.getUrl().toString();
-								if (new Channel(lecturer.id, lecturer.name,
-										url, lecturer.thumbnail, description)
-										.subscribe()) {
-									lecturer.isSelected = false;
-								}
-							}
+		task.setCallable(new BetterAsyncTaskCallable<Void, Void, Void>() {
+			public Void call(BetterAsyncTask<Void, Void, Void> arg0)
+					throws Exception {
+				for (ContactItemInterface item : lecturers) {
+					Lecturer lecturer = (Lecturer) item;
+					if (lecturer.isSelected) {
+						post_data.setPersoneMittente(lecturer.key);
+						String description = lecturer.email;
+						String url = post_data.getUrl().toString();
+						if (new Channel(lecturer.id, lecturer.name, url,
+								lecturer.thumbnail, description).subscribe()) {
+							lecturer.isSelected = false;
 						}
-						return null;
 					}
-				});
-		subscribingTask.disableDialog();
+				}
+				return null;
+			}
+		});
+		task.disableDialog();
 		progressDialog.show();
 
-		if (UIUtils.hasHoneycomb())
-			subscribingTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-					(Void[]) null);
-		else
-			subscribingTask.execute((Void[]) null);
+		UIUtils.execute(task, (Void[]) null);
 	}
 
 	/**
@@ -510,7 +504,7 @@ public class ContactListActivity extends BaseListActivity implements
 			return Uri
 					.parse(university.domain)
 					.buildUpon()
-					.path("/fol/main")
+					.path("/")
 					.appendQueryParameter("ent", "avviso")
 					.appendQueryParameter("rss", "1")
 					.appendQueryParameter("dest",
@@ -565,20 +559,21 @@ public class ContactListActivity extends BaseListActivity implements
 		}
 
 		protected void onPostExecute(String result) {
+			if (running) {
+				synchronized (searchLock) {
 
-			synchronized (searchLock) {
-
-				runOnUiThread(new Runnable() {
-					public void run() {
-						if (inSearchMode) {
-							listView.setInSearchMode(true);
-							listView.setItems(filterList);
-						} else {
-							listView.setInSearchMode(false);
-							listView.setItems(lecturers);
+					runOnUiThread(new Runnable() {
+						public void run() {
+							if (inSearchMode) {
+								listView.setInSearchMode(true);
+								listView.setItems(filterList);
+							} else {
+								listView.setInSearchMode(false);
+								listView.setItems(lecturers);
+							}
 						}
-					}
-				});
+					});
+				}
 			}
 		}
 

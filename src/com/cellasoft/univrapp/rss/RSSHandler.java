@@ -1,6 +1,6 @@
 package com.cellasoft.univrapp.rss;
 
-import java.util.Date;
+import java.util.Locale;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -29,7 +29,7 @@ public class RSSHandler extends DefaultHandler {
 	private Item currentItem;
 	private StringBuilder builder;
 	private int maxItems = 20;
-	int currentState = 0;
+	private int currentState = 0;
 	private RSSFeed feed;
 	private OnNewEntryCallback callback;
 
@@ -108,7 +108,7 @@ public class RSSHandler extends DefaultHandler {
 		} catch (Exception e) {
 			currentState = RSS_CHANNEL;
 			throw new SAXException("Unknown TAG: "
-					+ localName.toUpperCase().trim());
+					+ localName.toUpperCase(Locale.getDefault()).trim());
 		}
 	}
 
@@ -138,7 +138,7 @@ public class RSSHandler extends DefaultHandler {
 			break;
 		case TITLE:
 			if (currentState == RSS_ITEM_TITLE) {
-				currentItem.setTitle(Html.decode(theFullText));
+				currentItem.title = Html.decode(theFullText);
 				currentState = RSS_ITEM;
 			} else if (currentState == RSS_CHANNEL_TITLE) {
 				feed.setTitle(Html.decode(theFullText));
@@ -147,10 +147,10 @@ public class RSSHandler extends DefaultHandler {
 			break;
 		case LINK:
 			if (currentState == RSS_ITEM_LINK) {
-				currentItem.setLink(theFullText);
+				currentItem.link = theFullText;
 				if (currentItem.exist()) {
 					throw new SAXException(
-							"Trovato item già esistente. Stop parsing.");
+							"Trovato item giï¿½ esistente. Stop parsing.");
 				}
 				currentState = RSS_ITEM;
 			} else if (currentState == RSS_CHANNEL_LINK) {
@@ -160,7 +160,7 @@ public class RSSHandler extends DefaultHandler {
 			break;
 		case DESCRIPTION:
 			if (currentState == RSS_ITEM_DESCRIPTION) {
-				currentItem.setDescription(theFullText.replace(",", "<br/>"));
+				currentItem.description = theFullText.replace(",", "<br/>");
 				currentState = RSS_ITEM;
 			} else if (currentState == RSS_CHANNEL_DESCRIPTION) {
 				feed.setDescription(theFullText);
@@ -168,16 +168,15 @@ public class RSSHandler extends DefaultHandler {
 			}
 			break;
 		case PUBDATE:
-			Date updated = DateUtils.parseRfc822(theFullText);
 			if (currentState == RSS_ITEM_PUB_DATE) {
-				currentItem.setDate(updated);
+				currentItem.pubDate = DateUtils.parseRfc822(theFullText);
 				currentState = RSS_ITEM;
 			} else
 				currentState = RSS_CHANNEL;
 			break;
 		case GUID:
 			if (currentState == RSS_ITEM_GUID) {
-				currentItem.setGuid(theFullText);
+				currentItem.guid = theFullText;
 				currentState = RSS_ITEM;
 			} else
 				currentState = RSS_CHANNEL;
@@ -196,7 +195,8 @@ public class RSSHandler extends DefaultHandler {
 	}
 
 	private XML_TAGS getTag(String localName) {
-		return XML_TAGS.valueOf(localName.toUpperCase().trim());
+		return XML_TAGS.valueOf(localName.toUpperCase(Locale.getDefault())
+				.trim());
 	}
 
 	private String cleanUpText(StringBuilder sb) {

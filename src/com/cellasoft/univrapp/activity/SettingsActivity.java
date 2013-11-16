@@ -44,7 +44,6 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 				Config.getAppVersion(getApplicationContext()));
 		findPreferenceBykey("univrapp_regid").setSummary(
 				Settings.getRegistrationId());
-
 	}
 
 	/**

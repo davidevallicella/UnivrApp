@@ -4,6 +4,7 @@
         <item name="switchStyle">@style/Widget.Holo.Light.CompoundButton.Switch</item>
         <item name="switchPreferenceStyle">@style/Preference.SwitchPreference</item>
         <item name="titleTextStyle">@style/customTextAppearance.Sherlock.Widget.ActionBar.Title</item>
+        <item name="android:windowBackground">@color/white_opaque</item>
     </style>
 
     <!-- define text style of Action bar Title -->
@@ -128,7 +129,7 @@
 
     <style name="separator" parent="@style/contentText">
         <item name="android:textStyle">bold</item>
-ì                                                         <item name="android:paddingTop">2dp</item>
+ì                                                                   <item name="android:paddingTop">2dp</item>
         <item name="android:paddingBottom">2dp</item>
         <item name="android:textColor">@color/blue</item>
         <item name="android:gravity">center_vertical</item>
@@ -167,7 +168,6 @@
 
     <style name="listViewItem">
         <item name="android:layout_height">@dimen/lvItemHeight</item>
-        
     </style>
 
     <style name="listViewPrimaryDetail">
@@ -223,6 +223,10 @@
         <item name="android:background"> #FDFDFD</item>
         <item name="android:cacheColorHint">#FDFDFD</item>
         <item name="android:listSelector">@drawable/list_selector</item>
+    </style>
+
+    <style name="Theme.NoBackground" parent="android:Theme">
+        <item name="android:windowBackground">@null</item>
     </style>
 
 </resources>

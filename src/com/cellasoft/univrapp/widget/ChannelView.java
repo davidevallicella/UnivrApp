@@ -38,13 +38,13 @@ public class ChannelView extends LinearLayout {
 		}
 	}
 
-	private final ArrayList<TouchDelegateRecord> mTouchDelegateRecords = Lists.newArrayList();
+	private final ArrayList<TouchDelegateRecord> mTouchDelegateRecords = Lists
+			.newArrayList();
 	private final Paint mPaint = new Paint();
 
 	private ImageButton mSelectButton;
 	private ImageButton mStarButton;
 	private TextView mTextView;
-	private TextView description;
 
 	private TouchDelegateGroup mTouchDelegateGroup;
 	private OnChannelViewListener channelListener;
