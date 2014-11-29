@@ -1,6 +1,6 @@
 UnivrApp 
 ========
-[![Crowdin](https://d322cqt584bo4o.cloudfront.net/univrapp/localized.png)](http://translate.univrapp.org)
+[![Crowdin](https://d322cqt584bo4o.cloudfront.net/univrapp/localized.png)](https://crowdin.com/project/univrapp)
 
 *Application addressed to students of the University of Verona.*
 
