@@ -1,7 +1,8 @@
-UnivrApp
+UnivrApp 
 ========
+[![Crowdin](https://d322cqt584bo4o.cloudfront.net/univrapp/localized.png)](http://translate.univrapp.org)
 
-Application addressed to students of the University of Verona.
+*Application addressed to students of the University of Verona.*
 
 <a href="https://play.google.com/store/apps/details?id=com.cellasoft.univrapp">
   <img alt="Get it on Google Play"
