@@ -1,124 +1,114 @@
 package com.cellasoft.univrapp.rss;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-
 import android.util.Log;
-
 import com.cellasoft.univrapp.BuildConfig;
 import com.cellasoft.univrapp.model.Item;
 import com.cellasoft.univrapp.rss.RSSHandler.OnNewEntryCallback;
 import com.cellasoft.univrapp.utils.Lists;
 import com.cellasoft.univrapp.utils.StreamUtils;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
 
 public class RSSFeed {
 
-	private static SAXParserFactory factory = SAXParserFactory.newInstance();
+    private static SAXParserFactory factory = SAXParserFactory.newInstance();
 
-	private int id;
-	private String title;
-	private String link;
-	private String description;
-	private Date updated;
-	private List<Item> entries;
+    private int id;
+    private String title;
+    private String link;
+    private String description;
+    private Date updated;
+    private List<Item> entries;
 
-	public RSSFeed() {
-		entries = Lists.newArrayList();
-	}
+    public RSSFeed() {
+        entries = Lists.newArrayList();
+    }
 
-	public int getId() {
-		return id;
-	}
+    public static RSSFeed parse(InputStream is, int maxItems,
+                                OnNewEntryCallback callback) {
+        RSSHandler handler = new RSSHandler(maxItems);
+        handler.setCallback(callback);
 
-	public void setId(int id) {
-		this.id = id;
-	}
+        try {
+            // create a parser
+            SAXParser parser = factory.newSAXParser();
+            // create the reader (scanner)
+            XMLReader xmlReader = parser.getXMLReader();
+            // assign our handler
+            xmlReader.setContentHandler(handler);
+            // perform the synchronous parse
+            xmlReader.parse(new InputSource(is));
+        } catch (Exception e) {
+            Log.e("ERROR", "Parser IO exception.");
+        } finally {
+            StreamUtils.closeQuietly(is);
+        }
 
-	public String getTitle() {
-		return title;
-	}
+        return handler.getFeed();
+    }
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public String getLink() {
-		return link;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public void setLink(String link) {
-		this.link = link;
-	}
+    public String getTitle() {
+        return title;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public String getLink() {
+        return link;
+    }
 
-	public String getUrl() {
-		return this.link;
-	}
+    public void setLink(String link) {
+        this.link = link;
+    }
 
-	public Date getUpdated() {
-		return updated;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public void setUpdated(Date updated) {
-		this.updated = updated;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public List<Item> getEntries() {
-		return entries;
-	}
+    public String getUrl() {
+        return this.link;
+    }
 
-	public void setEntries(List<Item> entries) {
-		this.entries = entries;
-	}
+    public Date getUpdated() {
+        return updated;
+    }
 
-	public void addItem(Item item) {
-		this.entries.add(item);
-	}
+    public void setUpdated(Date updated) {
+        this.updated = updated;
+    }
 
-	public static RSSFeed parse(InputStream is, int maxItems,
-			OnNewEntryCallback callback) {
-		RSSHandler handler = new RSSHandler(maxItems);
-		handler.setCallback(callback);
+    public List<Item> getEntries() {
+        return entries;
+    }
 
-		try {
-			// create a parser
-			SAXParser parser = factory.newSAXParser();
-			// create the reader (scanner)
-			XMLReader xmlReader = parser.getXMLReader();
-			// assign our handler
-			xmlReader.setContentHandler(handler);
-			// perform the synchronous parse
-			xmlReader.parse(new InputSource(is));
-		} catch (IOException e) {
-			e.printStackTrace();
-			Log.e("ERROR", "Parser IO exception.");
-		} catch (SAXException e) {
-			if (BuildConfig.DEBUG)
-				Log.d("DEBUG", e.getMessage());
-		} catch (ParserConfigurationException e) {
-			if (BuildConfig.DEBUG)
-				Log.d("DEBUG", e.getMessage());
-		} finally {
-			StreamUtils.closeQuietly(is);
-		}
+    public void setEntries(List<Item> entries) {
+        this.entries = entries;
+    }
 
-		return handler.getFeed();
-	}
+    public void addItem(Item item) {
+        this.entries.add(item);
+    }
 }

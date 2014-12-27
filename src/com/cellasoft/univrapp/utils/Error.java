@@ -18,7 +18,7 @@ package com.cellasoft.univrapp.utils;
 
 public class Error {
 
-	public String domain;
-	public String reason;
-	public String message;
+    public String domain;
+    public String reason;
+    public String message;
 }

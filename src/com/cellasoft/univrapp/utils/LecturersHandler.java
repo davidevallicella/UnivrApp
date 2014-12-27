@@ -16,12 +16,12 @@
 
 package com.cellasoft.univrapp.utils;
 
-import java.io.IOException;
-import java.util.List;
-
 import com.cellasoft.univrapp.model.Lecturer;
 import com.cellasoft.univrapp.widget.ContactItemInterface;
 import com.google.gson.Gson;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Handler that parses room JSON data into a list of content provider
@@ -29,46 +29,46 @@ import com.google.gson.Gson;
  */
 public class LecturersHandler extends JSONHandler {
 
-	public List<ContactItemInterface> parse(String jsonString)
-			throws IOException {
-		List<ContactItemInterface> result = Lists.newArrayList();
+    public List<ContactItemInterface> parse(String jsonString)
+            throws IOException {
+        List<ContactItemInterface> result = Lists.newArrayList();
 
-		LecturerList list = null;
-		list = getLecturerList(jsonString);
+        LecturerList list = null;
+        list = getLecturerList(jsonString);
 
-		if (list != null) {
+        if (list != null) {
 
-			List<LecturerContainer> lecturers = list
-					.getLecturerContainterList();
+            List<LecturerContainer> lecturers = list
+                    .getLecturerContainterList();
 
-			for (LecturerContainer lc : lecturers) {
-				result.add(lc.getLecturer());
-			}
-		}
+            for (LecturerContainer lc : lecturers) {
+                result.add(lc.getLecturer());
+            }
+        }
 
-		return result;
-	}
+        return result;
+    }
 
-	protected LecturerList getLecturerList(String jsonString) {
-		LecturerList ll = null;
-		ll = new Gson().fromJson(jsonString, LecturerList.class);
-		return ll;
-	}
+    protected LecturerList getLecturerList(String jsonString) {
+        LecturerList ll = null;
+        ll = new Gson().fromJson(jsonString, LecturerList.class);
+        return ll;
+    }
 
-	class LecturerList {
+    class LecturerList {
 
-		private List<LecturerContainer> lecturers = Lists.newArrayList();
+        private List<LecturerContainer> lecturers = Lists.newArrayList();
 
-		public List<LecturerContainer> getLecturerContainterList() {
-			return lecturers;
-		}
-	}
+        public List<LecturerContainer> getLecturerContainterList() {
+            return lecturers;
+        }
+    }
 
-	class LecturerContainer {
-		Lecturer lecturer;
+    class LecturerContainer {
+        Lecturer lecturer;
 
-		public Lecturer getLecturer() {
-			return lecturer;
-		}
-	}
+        public Lecturer getLecturer() {
+            return lecturer;
+        }
+    }
 }

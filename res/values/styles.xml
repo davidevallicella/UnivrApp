@@ -1,8 +1,8 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <style name="AppTheme" parent="Theme.Sherlock.Light">
-        <item name="switchStyle">@style/Widget.Holo.Light.CompoundButton.Switch</item>
-        <item name="switchPreferenceStyle">@style/Preference.SwitchPreference</item>
+        <item name="asb_switchStyle">@style/Widget.Holo.Light.CompoundButton.Switch</item>
+        <item name="asb_switchPreferenceStyle">@style/Preference.SwitchPreference</item>
         <item name="titleTextStyle">@style/customTextAppearance.Sherlock.Widget.ActionBar.Title</item>
         <item name="android:windowBackground">@color/white_opaque</item>
     </style>
@@ -129,7 +129,8 @@
 
     <style name="separator" parent="@style/contentText">
         <item name="android:textStyle">bold</item>
-ì                                                                   <item name="android:paddingTop">2dp</item>
+ì
+                                                                   <item name="android:paddingTop">2dp</item>
         <item name="android:paddingBottom">2dp</item>
         <item name="android:textColor">@color/blue</item>
         <item name="android:gravity">center_vertical</item>

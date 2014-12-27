@@ -18,5 +18,5 @@ package com.cellasoft.univrapp.utils;
 
 public class ErrorResponse {
 
-	public Errors error;
+    public Errors error;
 }

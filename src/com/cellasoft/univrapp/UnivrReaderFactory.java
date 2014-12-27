@@ -4,8 +4,8 @@ import com.cellasoft.univrapp.reader.UnivrReader;
 
 public class UnivrReaderFactory {
 
-	public static UnivrReader getUnivrReader() {
-		return new UnivrReader(Application.getInstance()
-				.getApplicationContext());
-	}
+    public static UnivrReader getUnivrReader() {
+        return new UnivrReader(Application.getInstance()
+                .getApplicationContext());
+    }
 }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<view xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    class="com.cellasoft.univrapp.widget.ChannelView"
+    android:background="?android:attr/activatedBackgroundIndicator"
+    android:padding="6dp" />

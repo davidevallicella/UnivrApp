@@ -3,11 +3,11 @@ package com.cellasoft.univrapp.criteria;
 import android.net.Uri;
 
 public interface ItemCriteria {
-	Uri getContentUri();
+    Uri getContentUri();
 
-	String getSelection();
+    String getSelection();
 
-	String[] getSelectionArgs();
+    String[] getSelectionArgs();
 
-	String getOrderBy();
+    String getOrderBy();
 }

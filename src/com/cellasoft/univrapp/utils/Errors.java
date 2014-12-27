@@ -18,7 +18,7 @@ package com.cellasoft.univrapp.utils;
 
 public class Errors {
 
-	public Error[] errors;
-	public String code;
-	public String message;
+    public Error[] errors;
+    public String code;
+    public String message;
 }

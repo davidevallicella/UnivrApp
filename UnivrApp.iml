@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="android" name="Android">
+      <configuration />
+    </facet>
+  </component>
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" generated="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/res" type="java-resource" />
+      <excludeFolder url="file://$MODULE_DIR$/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/proguard_logs" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" exported="" name="libs" level="project" />
+    <orderEntry type="module" module-name="universalimageloader" exported="" />
+    <orderEntry type="module" module-name="actionbarsherlock" exported="" />
+    <orderEntry type="module" module-name="switchbackport" exported="" />
+    <orderEntry type="module" module-name="pulltorefresh" exported="" />
+    <orderEntry type="library" exported="" name="android-support-v4" level="project" />
+  </component>
+</module>
+

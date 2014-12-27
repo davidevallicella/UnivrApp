@@ -7,111 +7,111 @@ import java.util.List;
 
 public class ActiveList<T> extends ArrayList<T> implements Serializable {
 
-	private static final long serialVersionUID = 870605912858223939L;
-	transient private List<ActiveListListener<T>> listeners;
+    private static final long serialVersionUID = 870605912858223939L;
+    transient private List<ActiveListListener<T>> listeners;
 
-	public interface ActiveListListener<T> {
-		void onAdd(T item);
+    @Override
+    public synchronized void clear() {
+        super.clear();
+        fireChangedEvent();
+    }
 
-		void onInsert(int location, T item);
+    @Override
+    public synchronized int size() {
+        return super.size();
+    }
 
-		void onAddAll(Collection<? extends T> items);
+    @Override
+    public synchronized T get(int index) {
+        return super.get(index);
+    }
 
-		void onClear();
-	}
+    @Override
+    public synchronized boolean add(T item) {
+        boolean success = super.add(item);
+        if (success) {
+            fireAddEvent(item);
+        }
+        return success;
+    }
 
-	@Override
-	public synchronized void clear() {
-		super.clear();
-		fireChangedEvent();
-	}
+    @Override
+    public synchronized void add(int index, T item) {
+        super.add(index, item);
+        fireInsertEvent(index, item);
+    }
 
-	@Override
-	public synchronized int size() {
-		return super.size();
-	}
+    @Override
+    public synchronized boolean addAll(int index, Collection<? extends T> items) {
+        boolean success = super.addAll(index, items);
+        if (success) {
+            fireAddAllEvent(items);
+        }
+        return success;
+    }
 
-	@Override
-	public synchronized T get(int index) {
-		return super.get(index);
-	}
+    @Override
+    public synchronized boolean addAll(Collection<? extends T> items) {
+        boolean success = super.addAll(items);
+        if (success) {
+            fireAddAllEvent(items);
+        }
+        return success;
 
-	@Override
-	public synchronized boolean add(T item) {
-		boolean success = super.add(item);
-		if (success) {
-			fireAddEvent(item);
-		}
-		return success;
-	}
+    }
 
-	@Override
-	public synchronized void add(int index, T item) {
-		super.add(index, item);
-		fireInsertEvent(index, item);
-	}
+    public synchronized void addListener(ActiveListListener<T> listener) {
+        if (this.listeners == null) {
+            listeners = Lists.newArrayList();
+        }
+        this.listeners.add(listener);
+    }
 
-	@Override
-	public synchronized boolean addAll(int index, Collection<? extends T> items) {
-		boolean success = super.addAll(index, items);
-		if (success) {
-			fireAddAllEvent(items);
-		}
-		return success;
-	}
+    public synchronized void removeListener(ActiveListListener<T> listener) {
+        if (this.listeners != null) {
+            this.listeners.remove(listener);
+        }
+    }
 
-	@Override
-	public synchronized boolean addAll(Collection<? extends T> items) {
-		boolean success = super.addAll(items);
-		if (success) {
-			fireAddAllEvent(items);
-		}
-		return success;
+    private void fireChangedEvent() {
+        if (this.listeners == null)
+            return;
+        for (ActiveListListener<T> listener : listeners) {
+            listener.onClear();
+        }
+    }
 
-	}
+    private void fireInsertEvent(int location, T item) {
+        if (this.listeners == null)
+            return;
+        for (ActiveListListener<T> listener : listeners) {
+            listener.onInsert(location, item);
+        }
+    }
 
-	public synchronized void addListener(ActiveListListener<T> listener) {
-		if (this.listeners == null) {
-			listeners = Lists.newArrayList();
-		}
-		this.listeners.add(listener);
-	}
+    private void fireAddEvent(T item) {
+        if (this.listeners == null)
+            return;
+        for (ActiveListListener<T> listener : listeners) {
+            listener.onAdd(item);
+        }
+    }
 
-	public synchronized void removeListener(ActiveListListener<T> listener) {
-		if (this.listeners != null) {
-			this.listeners.remove(listener);
-		}
-	}
+    private void fireAddAllEvent(Collection<? extends T> items) {
+        if (this.listeners == null)
+            return;
+        for (ActiveListListener<T> listener : listeners) {
+            listener.onAddAll(items);
+        }
+    }
 
-	private void fireChangedEvent() {
-		if (this.listeners == null)
-			return;
-		for (ActiveListListener<T> listener : listeners) {
-			listener.onClear();
-		}
-	}
+    public interface ActiveListListener<T> {
+        void onAdd(T item);
 
-	private void fireInsertEvent(int location, T item) {
-		if (this.listeners == null)
-			return;
-		for (ActiveListListener<T> listener : listeners) {
-			listener.onInsert(location, item);
-		}
-	}
+        void onInsert(int location, T item);
 
-	private void fireAddEvent(T item) {
-		if (this.listeners == null)
-			return;
-		for (ActiveListListener<T> listener : listeners) {
-			listener.onAdd(item);
-		}
-	}
+        void onAddAll(Collection<? extends T> items);
 
-	private void fireAddAllEvent(Collection<? extends T> items) {
-		if (this.listeners == null)
-			return;
-		for (ActiveListListener<T> listener : listeners) {
-			listener.onAddAll(items);
-		}
-	}
+        void onClear();
+    }
 }

@@ -1,11 +1,10 @@
 package com.cellasoft.univrapp.loader;
 
 import android.database.Cursor;
-
 import com.cellasoft.univrapp.model.Lecturer;
 
 public interface LecturerLoader {
-	String[] getProjection();
+    String[] getProjection();
 
-	Lecturer load(Cursor cursor);
+    Lecturer load(Cursor cursor);
 }

@@ -1,149 +1,59 @@
 package com.cellasoft.univrapp.activity;
 
-import java.math.BigDecimal;
-
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Vibrator;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.animation.AnimationUtils;
-import android.widget.LinearLayout;
-import android.widget.Toast;
-
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import com.cellasoft.univrapp.Config;
 import com.cellasoft.univrapp.R;
-import com.cellasoft.univrapp.utils.AsyncTask;
 import com.cellasoft.univrapp.utils.FontUtils;
 import com.cellasoft.univrapp.utils.UIUtils;
-import com.paypal.android.MEP.CheckoutButton;
-import com.paypal.android.MEP.PayPal;
-import com.paypal.android.MEP.PayPalActivity;
-import com.paypal.android.MEP.PayPalPayment;
 
-public class AboutScreen extends Activity {
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		setContentView(R.layout.about);
+public class AboutScreen extends SherlockActivity {
 
-		init();
-	}
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.about);
 
-	@Override
-	protected void onPostCreate(Bundle savedInstanceState) {
-		FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
-		super.onPostCreate(savedInstanceState);
-	}
+        init();
+    }
 
-	private void init() {
-		UIUtils.keepScreenOn(this, true);
-		setProgressBarIndeterminateVisibility(true);
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        FontUtils.setRobotoFont(this, (ViewGroup) getWindow().getDecorView());
+        super.onPostCreate(savedInstanceState);
+    }
 
-		AsyncTask<Void, Void, Void> loadPayPalTask = new AsyncTask<Void, Void, Void>() {
+    private void init() {
+        UIUtils.keepScreenOn(this, true);
+        setProgressBarIndeterminateVisibility(true);
+    }
 
-			@Override
-			protected Void doInBackground(Void... params) {
-				Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-				final Vibrator vib = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        new MenuInflater(this).inflate(R.menu.about_menu, menu);
+        return (super.onCreateOptionsMenu(menu));
+    }
 
-				findViewById(R.id.about_email_action).setOnTouchListener(
-						new OnTouchListener() {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
 
-							@Override
-							public boolean onTouch(View v, MotionEvent event) {
-								if (MotionEvent.ACTION_DOWN == event
-										.getAction()) {
-									vib.vibrate(50);
-									v.startAnimation(AnimationUtils
-											.loadAnimation(AboutScreen.this,
-													R.anim.image_click));
-									Intent email_intent = new Intent(
-											Intent.ACTION_SENDTO,
-											Uri.fromParts("mailto",
-													Config.SUPPORT_EMAIL, null));
-									startActivity(Intent.createChooser(
-											email_intent, "Send email..."));
-									return true;
-								}
-								return false;
-							}
-						});
+        switch (item.getItemId()) {
+            case R.id.menu_github:
+                showSource();
+                return true;
+            default:
+                return (super.onOptionsItemSelected(item));
+        }
+    }
 
-				PayPal pp = PayPal.initWithAppID(AboutScreen.this,
-						Config.PAYPAL_APP_ID, PayPal.ENV_LIVE);
-
-				final CheckoutButton launchSimplePayment = pp
-						.getCheckoutButton(AboutScreen.this,
-								PayPal.BUTTON_194x37,
-								CheckoutButton.TEXT_DONATE);
-
-				launchSimplePayment.setOnClickListener(new OnClickListener() {
-
-					@Override
-					public void onClick(View view) {
-						PayPalPayment payment = new PayPalPayment();
-
-						payment.setSubtotal(new BigDecimal("0.90"));
-
-						payment.setCurrencyType("EUR");
-
-						payment.setRecipient(Config.PAYPAL_EMAIL);
-
-						payment.setPaymentType(PayPal.PAYMENT_TYPE_GOODS);
-
-						Intent checkoutIntent = PayPal.getInstance().checkout(
-								payment, AboutScreen.this);
-
-						startActivityForResult(checkoutIntent, 1);
-					}
-
-				});
-
-				runOnUiThread(new Runnable() {
-					public void run() {
-						((LinearLayout) findViewById(R.id.paypal_layout))
-								.addView(launchSimplePayment);
-						findViewById(R.id.paypal_load).setVisibility(View.GONE);
-					}
-				});
-
-				return null;
-			}
-		};
-		loadPayPalTask.execute((Void[]) null);
-	}
-
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-		switch (resultCode) {
-		case Activity.RESULT_OK:
-			// Il pagamento è stato effettuato
-			// String payKey =
-			// data.getStringExtra(PayPalActivity.EXTRA_PAY_KEY);
-			Toast.makeText(this, ";) thanks for the contribution",
-					Toast.LENGTH_SHORT).show();
-			break;
-		case Activity.RESULT_CANCELED:
-			// Il pagamento è stato cancellato dall’utente
-			Toast.makeText(this, ":'(", Toast.LENGTH_SHORT).show();
-			break;
-		case PayPalActivity.RESULT_FAILURE:
-			// Il pagamento non è stato effettuato a causa di errore
-			String errorID = data.getStringExtra(PayPalActivity.EXTRA_ERROR_ID);
-			String errorMessage = data
-					.getStringExtra(PayPalActivity.EXTRA_ERROR_MESSAGE);
-			Toast.makeText(this,
-					"Payment error: " + errorMessage + "\n ErrId: " + errorID,
-					Toast.LENGTH_LONG).show();
-		}
-	}
+    private void showSource() {
+        UIUtils.safeOpenLink(this, new Intent(Intent.ACTION_VIEW, Uri.parse(Config.Links.GITHUB)));
+    }
 }

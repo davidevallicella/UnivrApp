@@ -24,59 +24,59 @@ import java.io.IOException;
  */
 public class HandlerException extends IOException {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public HandlerException() {
-		super();
-	}
+    public HandlerException() {
+        super();
+    }
 
-	public HandlerException(String message) {
-		super(message);
-	}
+    public HandlerException(String message) {
+        super(message);
+    }
 
-	public HandlerException(String message, Throwable cause) {
-		super(message);
-		initCause(cause);
-	}
+    public HandlerException(String message, Throwable cause) {
+        super(message);
+        initCause(cause);
+    }
 
-	@Override
-	public String toString() {
-		if (getCause() != null) {
-			return getLocalizedMessage() + ": " + getCause();
-		} else {
-			return getLocalizedMessage();
-		}
-	}
+    @Override
+    public String toString() {
+        if (getCause() != null) {
+            return getLocalizedMessage() + ": " + getCause();
+        } else {
+            return getLocalizedMessage();
+        }
+    }
 
-	public static class UnauthorizedException extends HandlerException {
-		
-		private static final long serialVersionUID = 1L;
+    public static class UnauthorizedException extends HandlerException {
 
-		public UnauthorizedException() {
-		}
+        private static final long serialVersionUID = 1L;
 
-		public UnauthorizedException(String message) {
-			super(message);
-		}
+        public UnauthorizedException() {
+        }
 
-		public UnauthorizedException(String message, Throwable cause) {
-			super(message, cause);
-		}
-	}
+        public UnauthorizedException(String message) {
+            super(message);
+        }
 
-	public static class NoDevsiteProfileException extends HandlerException {
-	
-		private static final long serialVersionUID = 1L;
+        public UnauthorizedException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 
-		public NoDevsiteProfileException() {
-		}
+    public static class NoDevsiteProfileException extends HandlerException {
 
-		public NoDevsiteProfileException(String message) {
-			super(message);
-		}
+        private static final long serialVersionUID = 1L;
 
-		public NoDevsiteProfileException(String message, Throwable cause) {
-			super(message, cause);
-		}
-	}
+        public NoDevsiteProfileException() {
+        }
+
+        public NoDevsiteProfileException(String message) {
+            super(message);
+        }
+
+        public NoDevsiteProfileException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 }

@@ -16,18 +16,11 @@
 
 package com.cellasoft.univrapp.utils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.List;
-
 import android.content.Context;
-
 import com.cellasoft.univrapp.widget.ContactItemInterface;
+
+import java.io.*;
+import java.util.List;
 
 /**
  * An abstract object that is in charge of parsing JSON data with a given, known
@@ -36,29 +29,29 @@ import com.cellasoft.univrapp.widget.ContactItemInterface;
  */
 public abstract class JSONHandler {
 
-	public abstract List<ContactItemInterface> parse(String json)
-			throws IOException;
+    /**
+     * Loads the JSON text resource with the given ID and returns the JSON
+     * content.
+     */
+    public static String loadResourceJson(Context context, int resource)
+            throws IOException {
+        InputStream is = context.getResources().openRawResource(resource);
+        Writer writer = new StringWriter();
+        char[] buffer = new char[1024];
+        try {
+            Reader reader = new BufferedReader(new InputStreamReader(is,
+                    "UTF-8"));
+            int n;
+            while ((n = reader.read(buffer)) != -1) {
+                writer.write(buffer, 0, n);
+            }
+        } finally {
+            StreamUtils.closeQuietly(is);
+        }
 
-	/**
-	 * Loads the JSON text resource with the given ID and returns the JSON
-	 * content.
-	 */
-	public static String loadResourceJson(Context context, int resource)
-			throws IOException {
-		InputStream is = context.getResources().openRawResource(resource);
-		Writer writer = new StringWriter();
-		char[] buffer = new char[1024];
-		try {
-			Reader reader = new BufferedReader(new InputStreamReader(is,
-					"UTF-8"));
-			int n;
-			while ((n = reader.read(buffer)) != -1) {
-				writer.write(buffer, 0, n);
-			}
-		} finally {
-			StreamUtils.closeQuietly(is);
-		}
+        return writer.toString();
+    }
 
-		return writer.toString();
-	}
+    public abstract List<ContactItemInterface> parse(String json)
+            throws IOException;
 }
